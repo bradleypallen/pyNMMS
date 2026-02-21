@@ -1,5 +1,5 @@
 site_name: pyNMMS
-site_description: Non-Monotonic Multi-Succedent sequent calculus
+site_description: An automated reasoner for the Non-Monotonic Multi-Succedent (NMMS) propositional sequent calculus
 site_url: https://bradleyallen.github.io/nmms-reasoner/
 
 theme:

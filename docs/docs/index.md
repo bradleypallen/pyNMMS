@@ -1,6 +1,6 @@
 # pyNMMS
 
-**Non-Monotonic Multi-Succedent sequent calculus** — propositional NMMS from Hlobil & Brandom 2025, Ch. 3.
+**An automated reasoner for the Non-Monotonic Multi-Succedent (NMMS) propositional sequent calculus** from Hlobil & Brandom 2025, Ch. 3.
 
 pyNMMS implements a proof search engine for the NMMS sequent calculus, which codifies *open reason relations* — consequence relations where Monotonicity and Transitivity can fail.
 

@@ -3,8 +3,11 @@
 [![PyPI](https://img.shields.io/pypi/v/pyNMMS)](https://pypi.org/project/pyNMMS/)
 [![Python](https://img.shields.io/pypi/pyversions/pyNMMS)](https://pypi.org/project/pyNMMS/)
 [![License](https://img.shields.io/pypi/l/pyNMMS)](https://github.com/bradleypallen/nmms-reasoner/blob/main/LICENSE)
+[![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://bradleypallen.github.io/nmms-reasoner/)
 
 Non-Monotonic Multi-Succedent sequent calculus — propositional NMMS from Hlobil & Brandom 2025, Ch. 3.
+
+**[Documentation](https://bradleypallen.github.io/nmms-reasoner/)** | **[PyPI](https://pypi.org/project/pyNMMS/)** | **[GitHub](https://github.com/bradleypallen/nmms-reasoner)**
 
 ## Installation
 

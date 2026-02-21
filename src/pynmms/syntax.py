@@ -16,7 +16,6 @@ Grammar (informal, precedence from low to high):
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Union
 
 # Sentence type constants
 ATOM = "atom"

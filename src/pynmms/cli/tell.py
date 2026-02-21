@@ -12,7 +12,9 @@ from pynmms.base import MaterialBase
 logger = logging.getLogger(__name__)
 
 
-def _parse_tell_statement(statement: str) -> tuple[str, frozenset[str] | None, frozenset[str] | None]:
+def _parse_tell_statement(
+    statement: str,
+) -> tuple[str, frozenset[str] | None, frozenset[str] | None]:
     """Parse a tell statement.
 
     Returns:

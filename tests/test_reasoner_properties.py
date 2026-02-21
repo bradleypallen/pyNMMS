@@ -4,7 +4,6 @@ Tests nontransitivity, nonmonotonicity, supraclassicality, and the
 explicitation conditions (DD, II, AA, SS) from Ch. 3.
 """
 
-import pytest
 
 from pynmms import MaterialBase, NMMSReasoner
 

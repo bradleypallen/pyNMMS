@@ -2,9 +2,7 @@
 
 import logging
 
-import pytest
-
-from pynmms import MaterialBase, NMMSReasoner, ProofResult
+from pynmms import MaterialBase, NMMSReasoner
 
 
 class TestProofResultTrace:
@@ -92,7 +90,7 @@ class TestLoggingOutput:
 
     def test_base_debug_logging(self, caplog):
         with caplog.at_level(logging.DEBUG, logger="pynmms.base"):
-            base = MaterialBase(
+            MaterialBase(
                 language={"A"},
             )
 

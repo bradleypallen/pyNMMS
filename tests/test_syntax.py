@@ -2,7 +2,16 @@
 
 import pytest
 
-from pynmms.syntax import ATOM, CONJ, DISJ, IMPL, NEG, Sentence, all_atomic, is_atomic, parse_sentence
+from pynmms.syntax import (
+    ATOM,
+    CONJ,
+    DISJ,
+    IMPL,
+    NEG,
+    all_atomic,
+    is_atomic,
+    parse_sentence,
+)
 
 
 class TestAtoms:

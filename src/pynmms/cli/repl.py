@@ -4,11 +4,10 @@ from __future__ import annotations
 
 import argparse
 import logging
-import sys
 from pathlib import Path
 
 from pynmms.base import MaterialBase
-from pynmms.reasoner import NMMSReasoner, _fmt
+from pynmms.reasoner import NMMSReasoner
 
 logger = logging.getLogger(__name__)
 

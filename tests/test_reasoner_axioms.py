@@ -3,7 +3,6 @@
 Corresponds to Demo 1 from nmms_acl_reasoner.py (lines 1064-1078).
 """
 
-from pynmms import NMMSReasoner
 
 
 class TestAxioms:

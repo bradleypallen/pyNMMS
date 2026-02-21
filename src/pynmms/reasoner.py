@@ -34,7 +34,7 @@ import logging
 from dataclasses import dataclass, field
 
 from pynmms.base import MaterialBase
-from pynmms.syntax import ATOM, CONJ, DISJ, IMPL, NEG, parse_sentence
+from pynmms.syntax import CONJ, DISJ, IMPL, NEG, parse_sentence
 
 logger = logging.getLogger(__name__)
 

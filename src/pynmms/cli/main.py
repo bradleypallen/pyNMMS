@@ -28,14 +28,18 @@ def main(argv: list[str] | None = None) -> int:
     # --- tell ---
     tell_parser = subparsers.add_parser("tell", help="Add atoms or consequences to a base")
     tell_parser.add_argument("-b", "--base", required=True, help="Path to JSON base file")
-    tell_parser.add_argument("--create", action="store_true", help="Create the base file if it doesn't exist")
+    tell_parser.add_argument(
+        "--create", action="store_true", help="Create the base file if missing",
+    )
     tell_parser.add_argument("statement", help='Statement: "A |~ B" or "atom A"')
 
     # --- ask ---
     ask_parser = subparsers.add_parser("ask", help="Query derivability of a sequent")
     ask_parser.add_argument("-b", "--base", required=True, help="Path to JSON base file")
     ask_parser.add_argument("--trace", action="store_true", help="Print proof trace")
-    ask_parser.add_argument("--max-depth", type=int, default=25, help="Max proof depth (default: 25)")
+    ask_parser.add_argument(
+        "--max-depth", type=int, default=25, help="Max proof depth (default: 25)",
+    )
     ask_parser.add_argument("sequent", help='Sequent: "A => B" or "A, B => C, D"')
 
     # --- repl ---

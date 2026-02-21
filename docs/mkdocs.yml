@@ -1,0 +1,54 @@
+site_name: pyNMMS
+site_description: Non-Monotonic Multi-Succedent sequent calculus
+site_url: https://bradleyallen.github.io/nmms-reasoner/
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+  features:
+    - content.code.copy
+    - navigation.sections
+    - navigation.expand
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: ["../src"]
+          options:
+            show_source: true
+            show_root_heading: true
+
+nav:
+  - Home: index.md
+  - Getting Started: getting-started.md
+  - Tutorial:
+      - Key Concepts: tutorial/concepts.md
+      - Material Bases: tutorial/material-bases.md
+      - Proof Search: tutorial/proof-search.md
+      - CLI Usage: tutorial/cli-usage.md
+  - API Reference:
+      - MaterialBase: api/base.md
+      - NMMSReasoner: api/reasoner.md
+      - Syntax: api/syntax.md
+  - Theory:
+      - NMMS Calculus: theory/nmms-calculus.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - toc:
+      permalink: true
+
+docs_dir: docs

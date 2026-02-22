@@ -17,11 +17,27 @@
          <lastmod>2026-02-22</lastmod>
     </url>
     <url>
+         <loc>https://bradleyallen.github.io/nmms-reasoner/api/rq-base/</loc>
+         <lastmod>2026-02-22</lastmod>
+    </url>
+    <url>
+         <loc>https://bradleyallen.github.io/nmms-reasoner/api/rq-reasoner/</loc>
+         <lastmod>2026-02-22</lastmod>
+    </url>
+    <url>
+         <loc>https://bradleyallen.github.io/nmms-reasoner/api/rq-syntax/</loc>
+         <lastmod>2026-02-22</lastmod>
+    </url>
+    <url>
          <loc>https://bradleyallen.github.io/nmms-reasoner/api/syntax/</loc>
          <lastmod>2026-02-22</lastmod>
     </url>
     <url>
          <loc>https://bradleyallen.github.io/nmms-reasoner/theory/nmms-calculus/</loc>
+         <lastmod>2026-02-22</lastmod>
+    </url>
+    <url>
+         <loc>https://bradleyallen.github.io/nmms-reasoner/theory/rq-extension/</loc>
          <lastmod>2026-02-22</lastmod>
     </url>
     <url>
@@ -38,6 +54,10 @@
     </url>
     <url>
          <loc>https://bradleyallen.github.io/nmms-reasoner/tutorial/proof-search/</loc>
+         <lastmod>2026-02-22</lastmod>
+    </url>
+    <url>
+         <loc>https://bradleyallen.github.io/nmms-reasoner/tutorial/rq-tutorial/</loc>
          <lastmod>2026-02-22</lastmod>
     </url>
 </urlset>

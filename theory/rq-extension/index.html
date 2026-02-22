@@ -10,13 +10,11 @@
       
       
       
-        <link rel="canonical" href="https://bradleyallen.github.io/nmms-reasoner/theory/nmms-calculus/">
+        <link rel="canonical" href="https://bradleyallen.github.io/nmms-reasoner/theory/rq-extension/">
       
       
-        <link rel="prev" href="../../api/rq-syntax/">
+        <link rel="prev" href="../nmms-calculus/">
       
-      
-        <link rel="next" href="../rq-extension/">
       
       
         
@@ -27,7 +25,7 @@
     
     
       
-        <title>NMMS Calculus - pyNMMS</title>
+        <title>RQ Extension - pyNMMS</title>
       
     
     
@@ -80,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#the-nmms-calculus" class="md-skip">
+        <a href="#restricted-quantifier-extension" class="md-skip">
           Skip to content
         </a>
       
@@ -116,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              NMMS Calculus
+              RQ Extension
             
           </span>
         </div>
@@ -759,6 +757,34 @@
                 
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../nmms-calculus/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    NMMS Calculus
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
     
   
   
@@ -778,7 +804,7 @@
   <span class="md-ellipsis">
     
   
-    NMMS Calculus
+    RQ Extension
   
 
     
@@ -796,7 +822,7 @@
   <span class="md-ellipsis">
     
   
-    NMMS Calculus
+    RQ Extension
   
 
     
@@ -822,10 +848,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#overview" class="md-nav__link">
+  <a href="#motivation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Overview
+        Motivation
       
     </span>
   </a>
@@ -833,10 +859,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#material-base-definition-1" class="md-nav__link">
+  <a href="#syntax" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Material Base (Definition 1)
+        Syntax
       
     </span>
   </a>
@@ -844,44 +870,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#logical-extension" class="md-nav__link">
+  <a href="#the-four-quantifier-rules" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Logical Extension
+        The Four Quantifier Rules
       
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#structural-rules-absent" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Structural Rules (Absent)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#propositional-rules" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Propositional Rules
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Propositional Rules">
+    <nav class="md-nav" aria-label="The Four Quantifier Rules">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#left-rules" class="md-nav__link">
+  <a href="#lrc-universal-restriction-on-the-left" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Left Rules
+        [L∀R.C] — Universal restriction on the left
       
     </span>
   </a>
@@ -889,10 +893,32 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#right-rules" class="md-nav__link">
+  <a href="#lrc-existential-restriction-on-the-left" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Right Rules
+        [L∃R.C] — Existential restriction on the left
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rrc-existential-restriction-on-the-right" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [R∃R.C] — Existential restriction on the right
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rrc-universal-restriction-on-the-right" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [R∀R.C] — Universal restriction on the right
       
     </span>
   </a>
@@ -905,22 +931,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#critical-properties" class="md-nav__link">
+  <a href="#design-decisions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Critical Properties
+        Design Decisions
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Critical Properties">
+    <nav class="md-nav" aria-label="Design Decisions">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#supraclassicality-fact-2" class="md-nav__link">
+  <a href="#oq-1-adjunction-vs-power-symjunction-for-lrc" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Supraclassicality (Fact 2)
+        OQ-1: Adjunction vs. Power-Symjunction for [L∀R.C]
       
     </span>
   </a>
@@ -928,10 +954,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#conservative-extension-fact-3-prop-26" class="md-nav__link">
+  <a href="#oq-2-blocking-soundness" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Conservative Extension (Fact 3 / Prop. 26)
+        OQ-2: Blocking Soundness
       
     </span>
   </a>
@@ -939,21 +965,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#invertibility-prop-27" class="md-nav__link">
+  <a href="#oq-3-empty-trigger-handling" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Invertibility (Prop. 27)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#projection-theorem-7" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Projection (Theorem 7)
+        OQ-3: Empty Trigger Handling
       
     </span>
   </a>
@@ -966,10 +981,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#explicitation-conditions" class="md-nav__link">
+  <a href="#preserved-properties" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Explicitation Conditions
+        Preserved Properties
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lazy-schema-evaluation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lazy Schema Evaluation
       
     </span>
   </a>
@@ -991,34 +1017,6 @@
   
 </nav>
       
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../rq-extension/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    RQ Extension
-  
-
-    
-  </span>
-  
-  
-
-      </a>
     </li>
   
 
@@ -1058,10 +1056,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#overview" class="md-nav__link">
+  <a href="#motivation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Overview
+        Motivation
       
     </span>
   </a>
@@ -1069,10 +1067,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#material-base-definition-1" class="md-nav__link">
+  <a href="#syntax" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Material Base (Definition 1)
+        Syntax
       
     </span>
   </a>
@@ -1080,44 +1078,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#logical-extension" class="md-nav__link">
+  <a href="#the-four-quantifier-rules" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Logical Extension
+        The Four Quantifier Rules
       
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#structural-rules-absent" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Structural Rules (Absent)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#propositional-rules" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Propositional Rules
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Propositional Rules">
+    <nav class="md-nav" aria-label="The Four Quantifier Rules">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#left-rules" class="md-nav__link">
+  <a href="#lrc-universal-restriction-on-the-left" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Left Rules
+        [L∀R.C] — Universal restriction on the left
       
     </span>
   </a>
@@ -1125,10 +1101,32 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#right-rules" class="md-nav__link">
+  <a href="#lrc-existential-restriction-on-the-left" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Right Rules
+        [L∃R.C] — Existential restriction on the left
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rrc-existential-restriction-on-the-right" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [R∃R.C] — Existential restriction on the right
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rrc-universal-restriction-on-the-right" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [R∀R.C] — Universal restriction on the right
       
     </span>
   </a>
@@ -1141,22 +1139,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#critical-properties" class="md-nav__link">
+  <a href="#design-decisions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Critical Properties
+        Design Decisions
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Critical Properties">
+    <nav class="md-nav" aria-label="Design Decisions">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#supraclassicality-fact-2" class="md-nav__link">
+  <a href="#oq-1-adjunction-vs-power-symjunction-for-lrc" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Supraclassicality (Fact 2)
+        OQ-1: Adjunction vs. Power-Symjunction for [L∀R.C]
       
     </span>
   </a>
@@ -1164,10 +1162,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#conservative-extension-fact-3-prop-26" class="md-nav__link">
+  <a href="#oq-2-blocking-soundness" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Conservative Extension (Fact 3 / Prop. 26)
+        OQ-2: Blocking Soundness
       
     </span>
   </a>
@@ -1175,21 +1173,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#invertibility-prop-27" class="md-nav__link">
+  <a href="#oq-3-empty-trigger-handling" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Invertibility (Prop. 27)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#projection-theorem-7" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Projection (Theorem 7)
+        OQ-3: Empty Trigger Handling
       
     </span>
   </a>
@@ -1202,10 +1189,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#explicitation-conditions" class="md-nav__link">
+  <a href="#preserved-properties" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Explicitation Conditions
+        Preserved Properties
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lazy-schema-evaluation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lazy Schema Evaluation
       
     </span>
   </a>
@@ -1240,90 +1238,129 @@
 
 
 
-<h1 id="the-nmms-calculus">The NMMS Calculus<a class="headerlink" href="#the-nmms-calculus" title="Permanent link">&para;</a></h1>
-<p>This page describes the theoretical foundations of pyNMMS, following Hlobil &amp; Brandom (2025), Chapter 3: "Introducing Logical Vocabulary."</p>
-<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
-<p>NMMS (Non-Monotonic Multi-Succedent) is a sequent calculus for codifying <strong>open reason relations</strong> — consequence relations where Monotonicity ([Weakening]) and Transitivity ([Mixed-Cut]) can fail.</p>
-<h2 id="material-base-definition-1">Material Base (Definition 1)<a class="headerlink" href="#material-base-definition-1" title="Permanent link">&para;</a></h2>
-<p>A material base B = <L_B, |~_B> consists of:</p>
+<h1 id="restricted-quantifier-extension">Restricted Quantifier Extension<a class="headerlink" href="#restricted-quantifier-extension" title="Permanent link">&para;</a></h1>
+<p>The <code>pynmms.rq</code> subpackage extends propositional NMMS with ALC-style restricted quantifiers (<code>ALL R.C</code>, <code>SOME R.C</code>), following the semantic framework of Hlobil (2025), "First-Order Implication-Space Semantics."</p>
+<h2 id="motivation">Motivation<a class="headerlink" href="#motivation" title="Permanent link">&para;</a></h2>
+<p>Standard unrestricted quantifier rules fail in nonmonotonic settings:</p>
 <ul>
-<li>An <strong>atomic language</strong> L_B</li>
-<li>A <strong>base consequence relation</strong> |~_B ⊆ P(L_B) x P(L_B)</li>
+<li>
+<p><strong>The <code>∀R</code> problem</strong> (Inf-5/Inf-6): Unrestricted <code>∀R</code> overgeneralizes from specific instances. If Shakespeare authored great works, <code>∀R</code> concludes <em>everyone</em> is an important author — generalizing over the entire domain rather than just authors.</p>
+</li>
+<li>
+<p><strong>The <code>∀L</code> problem</strong> (Inf-7/Inf-8): Unrestricted <code>∀L</code> smuggles in defeating information via universal instantiation. If all bottles in the fridge are empty, <code>∀L</code> instantiates over <em>all</em> domain objects, bringing in information that defeats defeasible inferences.</p>
+</li>
 </ul>
-<p>satisfying <strong>Containment</strong>: Gamma ∩ Delta ≠ ∅ implies Gamma |~_B Delta.</p>
-<p>The base encodes defeasible material inferences among atomic sentences as axioms.</p>
-<h2 id="logical-extension">Logical Extension<a class="headerlink" href="#logical-extension" title="Permanent link">&para;</a></h2>
-<p>The rules of NMMS extend |~_B to a consequence relation |~ over a logically extended language L (adding ~, -&gt;, &amp;, |). A sequent Gamma =&gt; Delta is derivable iff there is a proof tree whose leaves are all axioms (base sequents).</p>
-<h2 id="structural-rules-absent">Structural Rules (Absent)<a class="headerlink" href="#structural-rules-absent" title="Permanent link">&para;</a></h2>
-<p>NMMS <strong>omits</strong> two structural rules:</p>
+<p>Restricted quantifiers (<code>ALL R.C</code>, <code>SOME R.C</code>) avoid both problems by quantifying only over <strong>role successors</strong> <code>{b | R(a,b)}</code> rather than the full domain. This keeps the domain of quantification local to explicit role assertions in the proof context.</p>
+<h2 id="syntax">Syntax<a class="headerlink" href="#syntax" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Individual:              alice, bob, carol, ...
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>Concept assertion:       Human(alice)
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>Role assertion:          hasChild(alice,bob)
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>Universal restriction:   ALL hasChild.Happy(alice)
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>                         = &quot;all children of alice are Happy&quot;
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>Existential restriction: SOME hasChild.Doctor(alice)
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>                         = &quot;some child of alice is a Doctor&quot;
+</code></pre></div>
+<p>Propositional connectives (<code>~</code>, <code>&amp;</code>, <code>|</code>, <code>-&gt;</code>) work as in the base calculus and can combine with quantified sentences:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>ALL hasChild.Happy(alice) -&gt; Happy(bob)
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>ALL hasChild.Happy(alice) | ~ALL hasChild.Happy(alice)
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>ALL hasChild.Happy(alice) &amp; ALL hasChild.Smart(alice)
+</code></pre></div>
+<h2 id="the-four-quantifier-rules">The Four Quantifier Rules<a class="headerlink" href="#the-four-quantifier-rules" title="Permanent link">&para;</a></h2>
+<h3 id="lrc-universal-restriction-on-the-left">[L∀R.C] — Universal restriction on the left<a class="headerlink" href="#lrc-universal-restriction-on-the-left" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>Γ, ALL R.C(a) ⇒ Δ  ←  Γ, {C(b) | R(a,b) ∈ Γ} ⇒ Δ
+</code></pre></div>
+<p><strong>Adjunction interpretation</strong> (OQ-1, option A): <code>ALL R.C(a)</code> as a premise behaves as a generalized conjunction over triggered instances. One subgoal adds all <code>C(b)</code> for known R-successors <code>b</code>.</p>
+<p><strong>How it avoids the ∀L problem</strong>: Instantiates only for triggered role successors present in <code>Γ</code>, not the full domain. No hidden Weakening — no information enters the proof that wasn't already explicitly present as a role assertion.</p>
+<h3 id="lrc-existential-restriction-on-the-left">[L∃R.C] — Existential restriction on the left<a class="headerlink" href="#lrc-existential-restriction-on-the-left" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>Γ, SOME R.C(a) ⇒ Δ  ←  for all nonempty subsets S of {C(b) | R(a,b) ∈ Γ}:
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>                          Γ, S ⇒ Δ
+</code></pre></div>
+<p><strong>Ketonen pattern</strong>: All <code>2^k - 1</code> nonempty subsets of triggered instances must independently prove the conclusion. This is the restricted analogue of Hlobil's power-symjunction for generalized disjunction.</p>
+<p>For binary <code>L∨</code> with <code>{A, B}</code>, this gives the familiar three top sequents: <code>{A}</code>, <code>{B}</code>, <code>{A,B}</code>. For <code>n</code> triggers, we need all <code>2^n - 1</code> nonempty subsets.</p>
+<h3 id="rrc-existential-restriction-on-the-right">[R∃R.C] — Existential restriction on the right<a class="headerlink" href="#rrc-existential-restriction-on-the-right" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>Γ ⇒ Δ, SOME R.C(a)
+</code></pre></div>
+<p>Two strategies:</p>
+<ol>
+<li><strong>Known witnesses</strong>: For each <code>b</code> with <code>R(a,b) ∈ Γ</code>, prove <code>Γ ⇒ Δ, C(b)</code>.</li>
+<li><strong>Fresh canonical witness</strong>: Try <code>_w_{R}_{C}_{a}</code> with concept-label blocking (experimental).</li>
+</ol>
+<h3 id="rrc-universal-restriction-on-the-right">[R∀R.C] — Universal restriction on the right<a class="headerlink" href="#rrc-universal-restriction-on-the-right" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>Γ ⇒ Δ, ALL R.C(a)  ←  Γ, R(a,b) ⇒ Δ, C(b)   (b fresh eigenvariable)
+</code></pre></div>
+<p><strong>How it avoids the ∀R problem</strong>: The eigenvariable represents an arbitrary role successor, not an arbitrary domain element. We only need to show <code>C(b)</code> holds for an arbitrary R-successor of <code>a</code>, not for every object in the domain.</p>
+<h2 id="design-decisions">Design Decisions<a class="headerlink" href="#design-decisions" title="Permanent link">&para;</a></h2>
+<h3 id="oq-1-adjunction-vs-power-symjunction-for-lrc">OQ-1: Adjunction vs. Power-Symjunction for [L∀R.C]<a class="headerlink" href="#oq-1-adjunction-vs-power-symjunction-for-lrc" title="Permanent link">&para;</a></h3>
+<p>Hlobil's semantic clause for <code>∀</code> uses <strong>power-symjunction</strong> (Def. 16), not adjunction. The current implementation uses <strong>adjunction</strong> (option A): one subgoal adding all triggered instances simultaneously.</p>
+<p>Arguments for adjunction:</p>
+<ol>
+<li>Matches propositional <code>[L∧]</code> pattern (1 subgoal = multiplicative)</li>
+<li>Consistent with classical ALC tableau rules</li>
+<li>Avoids exponential branching (already present in <code>[L∃R.C]</code>)</li>
+<li>The restricted domain mitigates the <code>∀L</code> problem that motivated power-symjunction</li>
+<li>All 10 legacy demo scenarios pass with this interpretation</li>
+</ol>
+<p>This is documented as a design choice pending theoretical analysis.</p>
+<h3 id="oq-2-blocking-soundness">OQ-2: Blocking Soundness<a class="headerlink" href="#oq-2-blocking-soundness" title="Permanent link">&para;</a></h3>
+<div class="admonition warning">
+<p class="admonition-title">Experimental</p>
+<p>Concept-label subset blocking is an experimental conjecture adapted from classical ALC tableau procedures.</p>
+</div>
+<p>Fresh witness <code>b</code> is blocked if <code>concept_label(b) ⊆ concept_label(c)</code> for some existing individual <code>c</code>. This is conjectured to be sound for NMMS because nonmonotonicity arises from the material base (exact match), not from logical rules.</p>
+<h3 id="oq-3-empty-trigger-handling">OQ-3: Empty Trigger Handling<a class="headerlink" href="#oq-3-empty-trigger-handling" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>[Weakening]</strong>: Gamma |~ Delta does NOT imply Gamma, A |~ Delta. Adding premises can defeat inferences.</li>
-<li><strong>[Mixed-Cut]</strong>: Gamma |~ A, Delta and Gamma', A |~ Delta' does NOT imply Gamma, Gamma' |~ Delta, Delta'. Chaining good inferences can yield bad ones.</li>
+<li><code>ALL R.C(a)</code> with no triggers: vacuously true as premise, treated as inert (falls through)</li>
+<li><code>SOME R.C(a)</code> with no triggers: treated as inert (safe, potentially incomplete)</li>
 </ul>
-<h2 id="propositional-rules">Propositional Rules<a class="headerlink" href="#propositional-rules" title="Permanent link">&para;</a></h2>
-<p>All rules are Ketonen-style. Multi-premise rules include a third top sequent containing all active formulae from the other premises on the same sides. This compensates for the absence of structural contraction.</p>
-<h3 id="left-rules">Left Rules<a class="headerlink" href="#left-rules" title="Permanent link">&para;</a></h3>
-<p><strong>[L~]</strong> Negation left:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>    Gamma =&gt; Delta, A
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    -----------------
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    Gamma, ~A =&gt; Delta
-</code></pre></div>
-<p><strong>[L-&gt;]</strong> Implication left (3 premises):</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>    Gamma =&gt; Delta, A     Gamma, B =&gt; Delta     Gamma, B =&gt; Delta, A
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    -----------------------------------------------------------------
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>                      Gamma, A -&gt; B =&gt; Delta
-</code></pre></div>
-<p><strong>[L&amp;]</strong> Conjunction left:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>    Gamma, A, B =&gt; Delta
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>    --------------------
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    Gamma, A &amp; B =&gt; Delta
-</code></pre></div>
-<p><strong>[L|]</strong> Disjunction left (3 premises):</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>    Gamma, A =&gt; Delta     Gamma, B =&gt; Delta     Gamma, A, B =&gt; Delta
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>    -----------------------------------------------------------------
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>                      Gamma, A | B =&gt; Delta
-</code></pre></div>
-<h3 id="right-rules">Right Rules<a class="headerlink" href="#right-rules" title="Permanent link">&para;</a></h3>
-<p><strong>[R~]</strong> Negation right:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>    Gamma, A =&gt; Delta
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>    -----------------
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>    Gamma =&gt; Delta, ~A
-</code></pre></div>
-<p><strong>[R-&gt;]</strong> Implication right:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>    Gamma, A =&gt; Delta, B
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>    --------------------
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>    Gamma =&gt; Delta, A -&gt; B
-</code></pre></div>
-<p><strong>[R&amp;]</strong> Conjunction right (3 premises):</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>    Gamma =&gt; Delta, A     Gamma =&gt; Delta, B     Gamma =&gt; Delta, A, B
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>    -----------------------------------------------------------------
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>                      Gamma =&gt; Delta, A &amp; B
-</code></pre></div>
-<p><strong>[R|]</strong> Disjunction right:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>    Gamma =&gt; Delta, A, B
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>    --------------------
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>    Gamma =&gt; Delta, A | B
-</code></pre></div>
-<h2 id="critical-properties">Critical Properties<a class="headerlink" href="#critical-properties" title="Permanent link">&para;</a></h2>
-<h3 id="supraclassicality-fact-2">Supraclassicality (Fact 2)<a class="headerlink" href="#supraclassicality-fact-2" title="Permanent link">&para;</a></h3>
-<p>CL ⊆ |~ — all classically valid sequents are derivable when the base obeys Containment. The "narrowly logical part" (derivable from Containment alone) is exactly classical propositional logic.</p>
-<h3 id="conservative-extension-fact-3-prop-26">Conservative Extension (Fact 3 / Prop. 26)<a class="headerlink" href="#conservative-extension-fact-3-prop-26" title="Permanent link">&para;</a></h3>
-<p>If Gamma ∪ Delta ⊆ L_B, then Gamma |~ Delta iff Gamma |~_B Delta. Adding logical vocabulary does not change base-level reason relations.</p>
-<h3 id="invertibility-prop-27">Invertibility (Prop. 27)<a class="headerlink" href="#invertibility-prop-27" title="Permanent link">&para;</a></h3>
-<p>All NMMS rules are invertible — the bottom sequent is derivable iff all top sequents are derivable.</p>
-<h3 id="projection-theorem-7">Projection (Theorem 7)<a class="headerlink" href="#projection-theorem-7" title="Permanent link">&para;</a></h3>
-<p>Every sequent Gamma =&gt; Delta in the extended language uniquely decomposes into a set of base-vocabulary sequents (AtomicImp) such that Gamma =&gt; Delta is derivable iff AtomicImp ⊆ |~_B.</p>
-<h2 id="explicitation-conditions">Explicitation Conditions<a class="headerlink" href="#explicitation-conditions" title="Permanent link">&para;</a></h2>
-<p>These biconditionals show how logical vocabulary "makes explicit" reason relations:</p>
+<h2 id="preserved-properties">Preserved Properties<a class="headerlink" href="#preserved-properties" title="Permanent link">&para;</a></h2>
+<p>All five constraints from the propositional calculus are preserved:</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Description</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>MOF</strong></td>
+<td>Nonmonotonicity — adding premises defeats inferences</td>
+<td>Preserved</td>
+</tr>
+<tr>
+<td><strong>SCL</strong></td>
+<td>Supraclassicality — all classically valid sequents derivable</td>
+<td>Preserved</td>
+</tr>
+<tr>
+<td><strong>DDT</strong></td>
+<td>Deduction-detachment theorem</td>
+<td>Preserved</td>
+</tr>
+<tr>
+<td><strong>DS</strong></td>
+<td>Disjunction simplification (Ketonen pattern)</td>
+<td>Preserved</td>
+</tr>
+<tr>
+<td><strong>LC</strong></td>
+<td>Left conjunction is multiplicative</td>
+<td>Preserved (with adjunction, OQ-1)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="lazy-schema-evaluation">Lazy Schema Evaluation<a class="headerlink" href="#lazy-schema-evaluation" title="Permanent link">&para;</a></h2>
+<p>Quantified commitments are stored as <strong>schemas</strong> and evaluated lazily during <code>is_axiom</code> checks. No eager grounding over all known individuals.</p>
 <ul>
-<li><strong>DD</strong> (Deduction-Detachment): Gamma |~ A -&gt; B, Delta iff Gamma, A |~ B, Delta</li>
-<li><strong>II</strong> (Incoherence-Incompatibility): Gamma |~ ~A, Delta iff Gamma, A |~ Delta</li>
-<li><strong>AA</strong> (Antecedent-Adjunction): Gamma, A &amp; B |~ Delta iff Gamma, A, B |~ Delta</li>
-<li><strong>SS</strong> (Succedent-Summation): Gamma |~ A | B, Delta iff Gamma |~ A, B, Delta</li>
+<li><strong>Storage</strong>: <code>O(k + m)</code> schemas, not <code>O(n × (k + m))</code> ground entries</li>
+<li><strong>Adding individuals</strong>: <code>O(1)</code>, no schema re-expansion needed</li>
+<li><strong>Query time</strong>: Schemas matched against concrete individuals in each sequent</li>
 </ul>
 <h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Hlobil, U. &amp; Brandom, R. B. (2025). <em>Reasons for Logic, Logic for Reasons</em>. Chapter 3: "Introducing Logical Vocabulary."</li>
+<li>Hlobil (2025), "First-Order Implication-Space Semantics," §2 (Inf-5/6/7/8) and §3 (power-symjunction, Proposition 20)</li>
+<li>Hlobil &amp; Brandom (2025), Ch. 3, "Introducing Logical Vocabulary"</li>
 </ul>
 
 

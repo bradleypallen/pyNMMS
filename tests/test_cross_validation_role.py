@@ -21,7 +21,9 @@ Source: Hlobil & Brandom (2025), Ch. 3; Brown, ROLE.jl
 
 import json
 import os
+
 import pytest
+
 from pynmms import MaterialBase, NMMSReasoner
 
 # ============================================================

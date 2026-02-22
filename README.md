@@ -112,11 +112,12 @@ The reasoner uses root-first backward proof search with memoization and backtrac
 
 ### Test suite
 
-214 tests across 11 test files:
+273 tests across 12 test files:
 
 - Syntax parsing (29 tests), MaterialBase construction/serialization (21), individual rule correctness (17), axiom derivability (6), structural properties with deterministic bases (18: nonmonotonicity, nontransitivity, supraclassicality, DD/II/AA/SS), soundness audit checking each rule for containment-leak false positives (17), CLI integration (17), logging/tracing (9)
 - 63 tests from every concrete worked example in Ch. 3 (Toy Base T, monotonicity/transitivity failures, explicitating theorems, distribution failure, meta-modus-ponens failure, Mingle-Mix failure, conservative extension)
 - 17 Hypothesis property-based tests against randomly generated material bases verifying: Containment, supraclassicality schemas, DDT biconditional, no-Weakening, no-Cut, conservativity, base consequence derivability, idempotency, and serialization roundtrip
+- 59 cross-validation tests against ROLE.jl ground truth across 3 material base fragments, verifying agreement between pyNMMS backward proof search and ROLE.jl exhaustive semantic enumeration
 
 ## Theoretical Background
 

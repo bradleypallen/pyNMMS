@@ -19,15 +19,17 @@ pynmms tell -b base.json --create "A |~ B"
 pynmms ask -b base.json "A => B"
 pynmms repl
 
-# Legacy: run original 10 demo scenarios
-python nmms_acl_reasoner.py
+# CLI with restricted quantifiers
+pynmms tell -b rq_base.json --create --rq "atom hasChild(alice,bob)"
+pynmms ask -b rq_base.json --rq "ALL hasChild.Doctor(alice), hasChild(alice,bob) => ParentOfDoctor(alice)"
+pynmms repl --rq
 ```
 
 Uses Python 3.10+ standard library only (no runtime dependencies). Dev dependencies: pytest, pytest-cov, ruff, mypy.
 
 ## Theoretical Foundation
 
-This implements the NMMS sequent calculus from Hlobil & Brandom 2025 (Ch. 3, "Introducing Logical Vocabulary"). The `pynmms` package implements **propositional NMMS only**. The original `nmms_acl_reasoner.py` is preserved as legacy reference for the ALC extension.
+This implements the NMMS sequent calculus from Hlobil & Brandom 2025 (Ch. 3, "Introducing Logical Vocabulary"). The `pynmms` package implements propositional NMMS in the core and **restricted quantifiers** (`ALL R.C`, `SOME R.C`) in the `pynmms.rq` subpackage.
 
 ### The NMMS Framework
 
@@ -58,9 +60,7 @@ These biconditionals are what make logical vocabulary "make explicit" reason rel
 
 ## Architecture
 
-### pyNMMS Package (`src/pynmms/`)
-
-The package implements propositional NMMS as a clean, testable library:
+### Propositional Core (`src/pynmms/`)
 
 1. **`syntax.py`** — Recursive descent parser for propositional sentences: atoms, negation (~), conjunction (&), disjunction (|), implication (->). Returns frozen `Sentence` dataclass AST nodes. Operator precedence: `&` > `|` > `->`.
 
@@ -68,14 +68,24 @@ The package implements propositional NMMS as a clean, testable library:
 
 3. **`reasoner.py`** — `NMMSReasoner` class with backward proof search implementing 8 Ketonen-style propositional rules (L¬, L→, L∧, L∨, R¬, R→, R∧, R∨). Returns `ProofResult` with derivability, trace, depth, and cache stats.
 
-4. **`cli/`** — Tell/Ask CLI with REPL mode:
+4. **`cli/`** — Tell/Ask CLI with REPL mode (`--rq` flag enables restricted quantifier mode):
    - `pynmms tell` — add atoms/consequences to a JSON base file
    - `pynmms ask` — query derivability with optional trace
    - `pynmms repl` — interactive session with tell/ask/show/save/load
 
-### Legacy Reference (`nmms_acl_reasoner.py`)
+### Restricted Quantifiers (`src/pynmms/rq/`)
 
-The original single-file implementation with ALC-style restricted quantifiers (ALL R.C, SOME R.C). Preserved for reference; the ALC extension is planned for a future pyNMMS release.
+The `pynmms.rq` subpackage extends propositional NMMS with ALC-style restricted quantifiers (`ALL R.C`, `SOME R.C`), avoiding the problems Hlobil (2025) identifies with unrestricted ∀/∃ in nonmonotonic settings.
+
+1. **`rq/syntax.py`** — `RQSentence` frozen dataclass (types: `ATOM_CONCEPT`, `ATOM_ROLE`, `ALL_RESTRICT`, `SOME_RESTRICT`). `parse_rq_sentence()` tries binary connectives first, then RQ patterns, then falls through to propositional atoms. Helpers: `find_role_triggers`, `collect_individuals`, `fresh_individual`, `concept_label`, `find_blocking_individual`.
+
+2. **`rq/base.py`** — `RQMaterialBase(MaterialBase)` adds vocabulary tracking (`_individuals`, `_concepts`, `_roles`), inference schemas (lazy evaluation), and Ax3 (exact-match schema axiom). `CommitmentStore` provides a higher-level API for managing assertions and schemas, compiling to an `RQMaterialBase`.
+
+3. **`rq/reasoner.py`** — `NMMSRQReasoner(NMMSReasoner)` overrides `_try_left_rules()` and `_try_right_rules()` to handle both propositional and RQ sentence types in a single pass. Four quantifier rules:
+   - **[L∀R.C]**: Adjunction — 1 subgoal with all triggered concept instances (like [L∧])
+   - **[L∃R.C]**: Ketonen pattern — all 2^k−1 nonempty subsets of triggered instances (like [L∨])
+   - **[R∃R.C]**: Known witnesses + fresh canonical witness with concept-label blocking (experimental)
+   - **[R∀R.C]**: Eigenvariable — fresh `_e_{R}_{C}_{a}` for arbitrary role successor (like [R∧])
 
 ### Key design properties preserved by the calculus:
 - **MOF**: Nonmonotonicity — adding premises can defeat inferences (no [Weakening])
@@ -86,7 +96,9 @@ The original single-file implementation with ALC-style restricted quantifiers (A
 
 ## Test Suite
 
-273 tests across 12 test files:
+554 tests across 20 test files:
+
+**Propositional core (273 tests, 12 files):**
 - `test_syntax.py` — parser unit tests
 - `test_base.py` — MaterialBase construction, validation, axiom checks, serialization
 - `test_reasoner_axioms.py` — axiom-level derivability (Demo 1 equivalence)
@@ -99,6 +111,17 @@ The original single-file implementation with ALC-style restricted quantifiers (A
 - `test_cli.py` — CLI integration tests
 - `test_logging.py` — proof trace and logging output
 
+**Restricted quantifiers (281 tests, 8 files):**
+- `test_rq_syntax.py` — RQ sentence parsing, helpers, atomicity checks
+- `test_rq_base.py` — RQMaterialBase construction, validation, schemas, CommitmentStore
+- `test_rq_reasoner_rules.py` — individual rule correctness for all 4 quantifier rules + propositional backward compat
+- `test_rq_reasoner_properties.py` — MOF, nontransitivity, SCL, DDT, II, AA, SS with quantifiers
+- `test_rq_reasoner_soundness.py` — containment-leak probes for all RQ rules
+- `test_rq_schemas.py` — concept/inference schemas, lazy evaluation, CommitmentStore integration
+- `test_rq_cli.py` — `--rq` flag with tell/ask/repl
+- `test_rq_legacy_equivalence.py` — RQ demo scenario equivalence (all 10 original demo scenarios)
+- `test_rq_logging.py` — RQ rule names in traces, blocking warnings
+
 ## Logging
 
-All modules use `logging.getLogger(__name__)` at DEBUG level. The `NMMSReasoner` produces proof traces both in `ProofResult.trace` and via the logging system for post-experimental run analysis and reporting.
+All modules use `logging.getLogger(__name__)` at DEBUG level. The `NMMSReasoner` and `NMMSRQReasoner` produce proof traces both in `ProofResult.trace` and via the logging system for post-experimental run analysis and reporting. The RQ reasoner logs quantifier rule applications (e.g., `[L∀R.C]`, `[R∃R.C]`) and blocking events with `warnings.warn()` on first use.

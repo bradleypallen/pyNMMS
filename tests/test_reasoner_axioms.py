@@ -1,6 +1,6 @@
 """Tests for NMMSReasoner — axiom-level derivability.
 
-Corresponds to Demo 1 from nmms_acl_reasoner.py (lines 1064-1078).
+Corresponds to Demo 1 (axiom-level checks on the toy base).
 """
 
 

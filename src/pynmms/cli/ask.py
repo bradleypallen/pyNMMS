@@ -38,13 +38,24 @@ def _parse_sequent(sequent_str: str) -> tuple[frozenset[str], frozenset[str]]:
 def run_ask(args: argparse.Namespace) -> int:
     """Execute the ``ask`` subcommand."""
     base_path = Path(args.base)
+    rq_mode = getattr(args, "rq", False)
 
     if not base_path.exists():
         print(f"Error: Base file {base_path} does not exist.", file=sys.stderr)
         return 1
 
-    base = MaterialBase.from_file(base_path)
-    reasoner = NMMSReasoner(base, max_depth=args.max_depth)
+    base: MaterialBase
+    reasoner: NMMSReasoner
+
+    if rq_mode:
+        from pynmms.rq.base import RQMaterialBase
+        from pynmms.rq.reasoner import NMMSRQReasoner
+
+        base = RQMaterialBase.from_file(base_path)
+        reasoner = NMMSRQReasoner(base, max_depth=args.max_depth)
+    else:
+        base = MaterialBase.from_file(base_path)
+        reasoner = NMMSReasoner(base, max_depth=args.max_depth)
 
     try:
         antecedent, consequent = _parse_sequent(args.sequent)

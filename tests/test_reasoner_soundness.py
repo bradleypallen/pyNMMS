@@ -1,7 +1,7 @@
 """Tests for NMMSReasoner — soundness audit.
 
-Adapted from Demo 9 (lines 1716-1783) of nmms_acl_reasoner.py,
-using propositional atoms (p, q, r) instead of ALC concept/role assertions.
+Adapted from Demo 9, using propositional atoms (p, q, r) instead of
+ALC concept/role assertions.
 
 These tests probe every propositional rule for containment-leak false
 positives: cases where a rule might place content on one side that overlaps

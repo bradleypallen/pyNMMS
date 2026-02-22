@@ -31,12 +31,17 @@ nav:
       - Material Bases: tutorial/material-bases.md
       - Proof Search: tutorial/proof-search.md
       - CLI Usage: tutorial/cli-usage.md
+      - Restricted Quantifiers: tutorial/rq-tutorial.md
   - API Reference:
       - MaterialBase: api/base.md
       - NMMSReasoner: api/reasoner.md
       - Syntax: api/syntax.md
+      - RQ Material Base: api/rq-base.md
+      - RQ Reasoner: api/rq-reasoner.md
+      - RQ Syntax: api/rq-syntax.md
   - Theory:
       - NMMS Calculus: theory/nmms-calculus.md
+      - RQ Extension: theory/rq-extension.md
 
 markdown_extensions:
   - admonition

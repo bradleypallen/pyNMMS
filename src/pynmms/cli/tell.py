@@ -51,16 +51,33 @@ def _parse_tell_statement(
 def run_tell(args: argparse.Namespace) -> int:
     """Execute the ``tell`` subcommand."""
     base_path = Path(args.base)
+    rq_mode = getattr(args, "rq", False)
+    base: MaterialBase
 
-    # Load or create base
-    if base_path.exists():
-        base = MaterialBase.from_file(base_path)
-    elif args.create:
-        base = MaterialBase()
+    if rq_mode:
+        from pynmms.rq.base import RQMaterialBase
+
+        if base_path.exists():
+            base = RQMaterialBase.from_file(base_path)
+        elif args.create:
+            base = RQMaterialBase()
+        else:
+            print(
+                f"Error: Base file {base_path} does not exist. Use --create to create it.",
+                file=sys.stderr,
+            )
+            return 1
     else:
-        print(f"Error: Base file {base_path} does not exist. Use --create to create it.",
-              file=sys.stderr)
-        return 1
+        if base_path.exists():
+            base = MaterialBase.from_file(base_path)
+        elif args.create:
+            base = MaterialBase()
+        else:
+            print(
+                f"Error: Base file {base_path} does not exist. Use --create to create it.",
+                file=sys.stderr,
+            )
+            return 1
 
     try:
         kind, antecedent, consequent = _parse_tell_statement(args.statement)

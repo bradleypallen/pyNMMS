@@ -6,7 +6,7 @@
 [![CI](https://github.com/bradleypallen/nmms-reasoner/actions/workflows/ci.yml/badge.svg)](https://github.com/bradleypallen/nmms-reasoner/actions/workflows/ci.yml)
 [![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://bradleypallen.github.io/nmms-reasoner/)
 
-An automated reasoner for the Non-Monotonic Multi-Succedent (NMMS) propositional sequent calculus from Hlobil & Brandom 2025, Ch. 3.
+An automated reasoner for the Non-Monotonic Multi-Succedent (NMMS) sequent calculus from Hlobil & Brandom 2025, Ch. 3, with restricted quantifiers (`ALL R.C`, `SOME R.C`).
 
 **[Documentation](https://bradleypallen.github.io/nmms-reasoner/)** | **[PyPI](https://pypi.org/project/pyNMMS/)** | **[GitHub](https://github.com/bradleypallen/nmms-reasoner)**
 
@@ -73,6 +73,48 @@ pynmms ask -b base.json "A, C => B"     # NOT DERIVABLE
 pynmms repl -b base.json
 ```
 
+## Restricted Quantifiers
+
+The `pynmms.rq` subpackage extends propositional NMMS with ALC-style restricted quantifiers, avoiding the problems with unrestricted quantifiers in nonmonotonic settings (Hlobil 2025).
+
+```python
+from pynmms.rq import RQMaterialBase, NMMSRQReasoner
+
+base = RQMaterialBase(
+    language={
+        "hasChild(alice,bob)", "hasChild(alice,carol)",
+        "Happy(bob)", "Doctor(carol)",
+    },
+    consequences={
+        (frozenset({"hasChild(alice,bob)", "Doctor(bob)"}),
+         frozenset({"ParentOfDoctor(alice)"})),
+        (frozenset({"hasChild(alice,carol)", "Doctor(carol)"}),
+         frozenset({"ParentOfDoctor(alice)"})),
+    },
+)
+
+r = NMMSRQReasoner(base, max_depth=20)
+
+# ALL hasChild.Doctor(alice) with trigger bob
+r.query(
+    frozenset({"ALL hasChild.Doctor(alice)", "hasChild(alice,bob)"}),
+    frozenset({"ParentOfDoctor(alice)"}),
+)  # True
+
+# SOME hasChild.Doctor(alice) with known witness carol
+r.query(
+    frozenset({"hasChild(alice,carol)", "Doctor(carol)"}),
+    frozenset({"SOME hasChild.Doctor(alice)"}),
+)  # True
+```
+
+```bash
+# CLI with --rq flag
+pynmms tell -b rq_base.json --create --rq "atom hasChild(alice,bob)"
+pynmms ask -b rq_base.json --rq "ALL hasChild.Doctor(alice), hasChild(alice,bob) => ParentOfDoctor(alice)"
+pynmms repl --rq
+```
+
 ## Key Properties
 
 - **Nonmonotonicity**: Adding premises can defeat inferences (no Weakening)
@@ -94,7 +136,7 @@ The reasoner uses root-first backward proof search with memoization and backtrac
 
 ### Design decisions
 
-- Propositional fragment only; ALC restricted quantifiers deferred
+- Propositional core with restricted quantifiers (`ALL R.C`, `SOME R.C`) in `pynmms.rq` subpackage
 - Sets (frozensets), not multisets — Contraction is built in (per Proposition 21)
 - Sentences represented as strings, parsed on demand by a recursive descent parser producing frozen `Sentence` dataclass AST nodes
 - Base consequences use exact syntactic match — no subset/superset matching, which is what enforces the no-Weakening property
@@ -112,12 +154,10 @@ The reasoner uses root-first backward proof search with memoization and backtrac
 
 ### Test suite
 
-273 tests across 12 test files:
+554 tests across 20 test files:
 
-- Syntax parsing (29 tests), MaterialBase construction/serialization (21), individual rule correctness (17), axiom derivability (6), structural properties with deterministic bases (18: nonmonotonicity, nontransitivity, supraclassicality, DD/II/AA/SS), soundness audit checking each rule for containment-leak false positives (17), CLI integration (17), logging/tracing (9)
-- 63 tests from every concrete worked example in Ch. 3 (Toy Base T, monotonicity/transitivity failures, explicitating theorems, distribution failure, meta-modus-ponens failure, Mingle-Mix failure, conservative extension)
-- 17 Hypothesis property-based tests against randomly generated material bases verifying: Containment, supraclassicality schemas, DDT biconditional, no-Weakening, no-Cut, conservativity, base consequence derivability, idempotency, and serialization roundtrip
-- 59 cross-validation tests against ROLE.jl ground truth across 3 material base fragments, verifying agreement between pyNMMS backward proof search and ROLE.jl exhaustive semantic enumeration
+- **Propositional core (273 tests)**: Syntax parsing, MaterialBase construction/serialization, individual rule correctness, axiom derivability, structural properties (nonmonotonicity, nontransitivity, supraclassicality, DD/II/AA/SS), soundness audit, CLI integration, logging/tracing, Ch. 3 worked examples, Hypothesis property-based tests, cross-validation against ROLE.jl ground truth
+- **Restricted quantifiers (281 tests)**: RQ sentence parsing, RQMaterialBase construction/validation/schemas, individual rule correctness for all 4 quantifier rules, structural properties with quantifiers, soundness probes, concept/inference schemas with lazy evaluation, CLI `--rq` integration, RQ demo scenario equivalence (all 10 original demo scenarios), RQ logging/tracing
 
 ## Theoretical Background
 

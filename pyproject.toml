@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "pyNMMS"
 dynamic = ["version"]
-description = "Non-Monotonic Multi-Succedent sequent calculus — propositional NMMS from Hlobil & Brandom 2025"
+description = "Non-Monotonic Multi-Succedent sequent calculus — propositional NMMS with restricted quantifiers, from Hlobil & Brandom 2025"
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"

@@ -3,8 +3,10 @@
 Usage::
 
     pynmms tell -b base.json --create "A |~ B"
+    pynmms tell -b base.json --create --rq "Happy(alice) |~ Good(alice)"
     pynmms ask  -b base.json "A => B"
-    pynmms repl [-b base.json]
+    pynmms ask  -b base.json --rq "ALL hasChild.Happy(alice), hasChild(alice,bob) => Happy(bob)"
+    pynmms repl [-b base.json] [--rq]
 """
 
 from __future__ import annotations
@@ -32,6 +34,10 @@ def main(argv: list[str] | None = None) -> int:
         "--create", action="store_true", help="Create the base file if missing",
     )
     tell_parser.add_argument("statement", help='Statement: "A |~ B" or "atom A"')
+    tell_parser.add_argument(
+        "--rq", action="store_true",
+        help="Use restricted quantifier mode (concept/role assertions)",
+    )
 
     # --- ask ---
     ask_parser = subparsers.add_parser("ask", help="Query derivability of a sequent")
@@ -41,10 +47,18 @@ def main(argv: list[str] | None = None) -> int:
         "--max-depth", type=int, default=25, help="Max proof depth (default: 25)",
     )
     ask_parser.add_argument("sequent", help='Sequent: "A => B" or "A, B => C, D"')
+    ask_parser.add_argument(
+        "--rq", action="store_true",
+        help="Use restricted quantifier mode",
+    )
 
     # --- repl ---
     repl_parser = subparsers.add_parser("repl", help="Interactive REPL")
     repl_parser.add_argument("-b", "--base", default=None, help="Path to JSON base file to load")
+    repl_parser.add_argument(
+        "--rq", action="store_true",
+        help="Use restricted quantifier mode",
+    )
 
     args = parser.parse_args(argv)
 

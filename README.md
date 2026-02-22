@@ -123,7 +123,7 @@ The reasoner uses root-first backward proof search with memoization and backtrac
 
 This implements the NMMS sequent calculus from:
 
-- Hlobil, U. & Brandom, R. B. (2025). *Reasons for Logic, Logic for Reasons*. Ch. 3: "Introducing Logical Vocabulary."
+- Hlobil, U., & Brandom, R. B. (2025). Reasons for logic, logic for reasons: Pragmatics, semantics, and conceptual roles. Routledge.
 
 NMMS codifies *open reason relations* — consequence relations where Monotonicity and Transitivity can fail. The material base encodes defeasible material inferences among atomic sentences, and the Ketonen-style logical rules extend this to compound sentences while preserving nonmonotonicity.
 

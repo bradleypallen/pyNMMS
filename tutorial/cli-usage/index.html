@@ -487,6 +487,39 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#notation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#propositional-object-language" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Propositional Object Language
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-nmms_rq-object-language" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The NMMS_RQ Object Language
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#pynmms-tell" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1142,6 +1175,39 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#notation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#propositional-object-language" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Propositional Object Language
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-nmms_rq-object-language" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The NMMS_RQ Object Language
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#pynmms-tell" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1365,31 +1431,118 @@
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>pynmms<span class="w"> </span>ask<span class="w">    </span><span class="c1"># Query derivability</span>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>pynmms<span class="w"> </span>repl<span class="w">   </span><span class="c1"># Interactive REPL</span>
 </code></pre></div>
+<h2 id="notation">Notation<a class="headerlink" href="#notation" title="Permanent link">&para;</a></h2>
+<p><strong>Notational conventions.</strong></p>
+<ul>
+<li><em>A</em>, <em>B</em>, ... range over sentences of the object language.</li>
+<li><em>p</em>, <em>q</em>, <em>r</em>, ... range over atomic sentences.</li>
+<li>&Gamma;, &Delta; range over finite sets of sentences.</li>
+</ul>
+<p><strong>The two turnstiles:</strong></p>
+<ul>
+<li>&Gamma; <code>|~</code> &Delta; &mdash; a <strong>base consequence</strong>. The <code>tell</code> command <em>adds</em> the pair (&Gamma;, &Delta;) to the base consequence relation |~<sub>B</sub>. In the theory, |~<sub>B</sub> is a given relation (Definition 1, Ch. 3); in the tool it is built incrementally.</li>
+<li>&Gamma; <code>=&gt;</code> &Delta; &mdash; a <strong>sequent</strong>. The <code>ask</code> command tests whether the sequent &Gamma; &rArr; &Delta; is <em>derivable</em>, i.e., whether there exists a proof tree whose leaves are all axioms of the base.</li>
+</ul>
+<p>Note: <code>|~</code> is input (asserting into the base); <code>=&gt;</code> is query (testing derivability from the base). Both &Gamma; and &Delta; may be empty.</p>
+<h2 id="propositional-object-language">Propositional Object Language<a class="headerlink" href="#propositional-object-language" title="Permanent link">&para;</a></h2>
+<p>The propositional object language is defined by the following unambiguous grammar:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>sentence   ::=  impl
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>impl       ::=  disj ( &#39;-&gt;&#39; disj )*            (* right-associative *)
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>disj       ::=  conj ( &#39;|&#39; conj )*             (* left-associative *)
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>conj       ::=  unary ( &#39;&amp;&#39; unary )*           (* left-associative *)
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>unary      ::=  &#39;~&#39; unary | atom | &#39;(&#39; sentence &#39;)&#39;
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>atom       ::=  IDENTIFIER
+</code></pre></div>
+<p>Where <code>IDENTIFIER</code> is any non-empty string of letters, digits, and underscores beginning with a letter or underscore. Precedence (tightest to loosest): <code>~</code>, <code>&amp;</code>, <code>|</code>, <code>-&gt;</code>.</p>
+<p><strong>Connective glossary:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Symbol</th>
+<th>Name</th>
+<th>Arity</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>~</code></td>
+<td>negation</td>
+<td>prefix unary</td>
+</tr>
+<tr>
+<td><code>&amp;</code></td>
+<td>conjunction</td>
+<td>binary, left-associative</td>
+</tr>
+<tr>
+<td>&#124;</td>
+<td>disjunction</td>
+<td>binary, left-associative</td>
+</tr>
+<tr>
+<td><code>-&gt;</code></td>
+<td>conditional (implication)</td>
+<td>binary, right-associative</td>
+</tr>
+</tbody>
+</table>
+<h2 id="the-nmms_rq-object-language">The NMMS_RQ Object Language<a class="headerlink" href="#the-nmms_rq-object-language" title="Permanent link">&para;</a></h2>
+<p>The <code>--rq</code> flag enables <strong>NMMS_RQ</strong>, an extension of the propositional NMMS object language with ALC-style restricted quantifiers.</p>
+<p><strong>Atoms.</strong> In propositional NMMS, atoms are bare identifiers. In NMMS_RQ, atoms are <strong>ground atomic formulas</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Form</th>
+<th>Name</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><em>C</em>(<em>a</em>)</td>
+<td>concept assertion</td>
+<td><code>Happy(alice)</code></td>
+</tr>
+<tr>
+<td><em>R</em>(<em>a</em>, <em>b</em>)</td>
+<td>role assertion</td>
+<td><code>hasChild(alice,bob)</code></td>
+</tr>
+</tbody>
+</table>
+<p>Bare propositional letters are not valid in NMMS_RQ.</p>
+<p><strong>Grammar.</strong> The NMMS_RQ grammar replaces the propositional <code>atom</code> production:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>atom       ::=  CONCEPT &#39;(&#39; INDIVIDUAL &#39;)&#39;                  (* concept assertion *)
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>             |  ROLE &#39;(&#39; INDIVIDUAL &#39;,&#39; INDIVIDUAL &#39;)&#39;      (* role assertion *)
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>sentence   ::=  ...                                          (* all propositional forms *)
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>             |  &#39;ALL&#39; ROLE &#39;.&#39; CONCEPT &#39;(&#39; INDIVIDUAL &#39;)&#39;   (* universal restriction *)
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>             |  &#39;SOME&#39; ROLE &#39;.&#39; CONCEPT &#39;(&#39; INDIVIDUAL &#39;)&#39;  (* existential restriction *)
+</code></pre></div>
 <h2 id="pynmms-tell"><code>pynmms tell</code><a class="headerlink" href="#pynmms-tell" title="Permanent link">&para;</a></h2>
 <p>Add atoms or consequences to a JSON base file.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Create a new base and add a consequence</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>pynmms<span class="w"> </span>tell<span class="w"> </span>-b<span class="w"> </span>base.json<span class="w"> </span>--create<span class="w"> </span><span class="s2">&quot;A |~ B&quot;</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1"># Add more consequences (base file must exist)</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>pynmms<span class="w"> </span>tell<span class="w"> </span>-b<span class="w"> </span>base.json<span class="w"> </span><span class="s2">&quot;B |~ C&quot;</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="c1"># Add atoms</span>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>pynmms<span class="w"> </span>tell<span class="w"> </span>-b<span class="w"> </span>base.json<span class="w"> </span><span class="s2">&quot;atom X&quot;</span>
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="c1"># Add atoms with annotations</span>
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>pynmms<span class="w"> </span>tell<span class="w"> </span>-b<span class="w"> </span>base.json<span class="w"> </span><span class="s1">&#39;atom p &quot;Tara is human&quot;&#39;</span>
-<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>
-<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="c1"># Empty consequent (incompatibility)</span>
-<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>pynmms<span class="w"> </span>tell<span class="w"> </span>-b<span class="w"> </span>base.json<span class="w"> </span><span class="s2">&quot;s, t |~&quot;</span>
-<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>
-<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="c1"># Empty antecedent (theorem)</span>
-<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>pynmms<span class="w"> </span>tell<span class="w"> </span>-b<span class="w"> </span>base.json<span class="w"> </span><span class="s2">&quot;|~ p&quot;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Create a new base and add a consequence</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>pynmms<span class="w"> </span>tell<span class="w"> </span>-b<span class="w"> </span>base.json<span class="w"> </span>--create<span class="w"> </span><span class="s2">&quot;A |~ B&quot;</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1"># Add more consequences (base file must exist)</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>pynmms<span class="w"> </span>tell<span class="w"> </span>-b<span class="w"> </span>base.json<span class="w"> </span><span class="s2">&quot;B |~ C&quot;</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="c1"># Add atoms</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>pynmms<span class="w"> </span>tell<span class="w"> </span>-b<span class="w"> </span>base.json<span class="w"> </span><span class="s2">&quot;atom X&quot;</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="c1"># Add atoms with annotations</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>pynmms<span class="w"> </span>tell<span class="w"> </span>-b<span class="w"> </span>base.json<span class="w"> </span><span class="s1">&#39;atom p &quot;Tara is human&quot;&#39;</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="c1"># Empty consequent (incompatibility)</span>
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>pynmms<span class="w"> </span>tell<span class="w"> </span>-b<span class="w"> </span>base.json<span class="w"> </span><span class="s2">&quot;s, t |~&quot;</span>
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="c1"># Empty antecedent (unconditional assertion)</span>
+<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>pynmms<span class="w"> </span>tell<span class="w"> </span>-b<span class="w"> </span>base.json<span class="w"> </span><span class="s2">&quot;|~ p&quot;</span>
 </code></pre></div>
 <h3 id="syntax">Syntax<a class="headerlink" href="#syntax" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Consequence</strong>: <code>A |~ B</code> or <code>A, B |~ C, D</code> (comma-separated)</li>
 <li><strong>Incompatibility</strong>: <code>A, B |~</code> (empty consequent)</li>
-<li><strong>Theorem</strong>: <code>|~ A</code> (empty antecedent)</li>
+<li><strong>Unconditional assertion</strong>: <code>|~ A</code> (empty antecedent)</li>
 <li><strong>Atom</strong>: <code>atom X</code></li>
 <li><strong>Atom with annotation</strong>: <code>atom X "description"</code></li>
 </ul>
@@ -1430,11 +1583,11 @@
 </table>
 <h2 id="pynmms-ask"><code>pynmms ask</code><a class="headerlink" href="#pynmms-ask" title="Permanent link">&para;</a></h2>
 <p>Query whether a sequent is derivable.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>pynmms<span class="w"> </span>ask<span class="w"> </span>-b<span class="w"> </span>base.json<span class="w"> </span><span class="s2">&quot;A =&gt; B&quot;</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="c1"># Output: DERIVABLE</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>pynmms<span class="w"> </span>ask<span class="w"> </span>-b<span class="w"> </span>base.json<span class="w"> </span><span class="s2">&quot;A =&gt; C&quot;</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="c1"># Output: NOT DERIVABLE</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>pynmms<span class="w"> </span>ask<span class="w"> </span>-b<span class="w"> </span>base.json<span class="w"> </span><span class="s2">&quot;A =&gt; B&quot;</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="c1"># Output: DERIVABLE</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>pynmms<span class="w"> </span>ask<span class="w"> </span>-b<span class="w"> </span>base.json<span class="w"> </span><span class="s2">&quot;A =&gt; C&quot;</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="c1"># Output: NOT DERIVABLE</span>
 </code></pre></div>
 <h3 id="exit-codes">Exit codes<a class="headerlink" href="#exit-codes" title="Permanent link">&para;</a></h3>
 <p>Following the <code>grep</code>/<code>diff</code>/<code>cmp</code> convention:</p>
@@ -1500,33 +1653,33 @@
 </tbody>
 </table>
 <h3 id="json-output">JSON output<a class="headerlink" href="#json-output" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>pynmms<span class="w"> </span>ask<span class="w"> </span>-b<span class="w"> </span>base.json<span class="w"> </span>--json<span class="w"> </span><span class="s2">&quot;A =&gt; B&quot;</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="c1"># Output: {&quot;status&quot;:&quot;DERIVABLE&quot;,&quot;sequent&quot;:{&quot;antecedent&quot;:[&quot;A&quot;],&quot;consequent&quot;:[&quot;B&quot;]},&quot;depth_reached&quot;:0,&quot;cache_hits&quot;:0}</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>pynmms<span class="w"> </span>ask<span class="w"> </span>-b<span class="w"> </span>base.json<span class="w"> </span>--json<span class="w"> </span><span class="s2">&quot;A =&gt; B&quot;</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="c1"># Output: {&quot;status&quot;:&quot;DERIVABLE&quot;,&quot;sequent&quot;:{&quot;antecedent&quot;:[&quot;A&quot;],&quot;consequent&quot;:[&quot;B&quot;]},&quot;depth_reached&quot;:0,&quot;cache_hits&quot;:0}</span>
 </code></pre></div>
 <p>With <code>--trace</code>, adds a <code>"trace"</code> array.</p>
 <h3 id="stdin-input">Stdin input<a class="headerlink" href="#stdin-input" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;A =&gt; B&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>pynmms<span class="w"> </span>ask<span class="w"> </span>-b<span class="w"> </span>base.json<span class="w"> </span>-
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;A =&gt; B&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>pynmms<span class="w"> </span>ask<span class="w"> </span>-b<span class="w"> </span>base.json<span class="w"> </span>-
 </code></pre></div>
 <h3 id="batch-mode">Batch mode<a class="headerlink" href="#batch-mode" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>pynmms<span class="w"> </span>ask<span class="w"> </span>-b<span class="w"> </span>base.json<span class="w"> </span>--batch<span class="w"> </span>queries.txt
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>pynmms<span class="w"> </span>ask<span class="w"> </span>-b<span class="w"> </span>base.json<span class="w"> </span>--json<span class="w"> </span>--batch<span class="w"> </span>queries.txt
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>cat<span class="w"> </span>queries.txt<span class="w"> </span><span class="p">|</span><span class="w"> </span>pynmms<span class="w"> </span>ask<span class="w"> </span>-b<span class="w"> </span>base.json<span class="w"> </span>--batch<span class="w"> </span>-
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>pynmms<span class="w"> </span>ask<span class="w"> </span>-b<span class="w"> </span>base.json<span class="w"> </span>--batch<span class="w"> </span>queries.txt
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>pynmms<span class="w"> </span>ask<span class="w"> </span>-b<span class="w"> </span>base.json<span class="w"> </span>--json<span class="w"> </span>--batch<span class="w"> </span>queries.txt
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>cat<span class="w"> </span>queries.txt<span class="w"> </span><span class="p">|</span><span class="w"> </span>pynmms<span class="w"> </span>ask<span class="w"> </span>-b<span class="w"> </span>base.json<span class="w"> </span>--batch<span class="w"> </span>-
 </code></pre></div>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>pynmms<span class="w"> </span>ask<span class="w"> </span>-b<span class="w"> </span>base.json<span class="w"> </span>--trace<span class="w"> </span><span class="s2">&quot;=&gt; A -&gt; B&quot;</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="c1"># Output:</span>
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="c1"># DERIVABLE</span>
-<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="c1">#</span>
-<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="c1"># Proof trace:</span>
-<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="c1">#   [R→] on A -&gt; B</span>
-<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="c1">#     AXIOM: A =&gt; B</span>
-<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="c1">#</span>
-<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="c1"># Depth reached: 1</span>
-<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="c1"># Cache hits: 0</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>pynmms<span class="w"> </span>ask<span class="w"> </span>-b<span class="w"> </span>base.json<span class="w"> </span>--trace<span class="w"> </span><span class="s2">&quot;=&gt; A -&gt; B&quot;</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="c1"># Output:</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="c1"># DERIVABLE</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="c1">#</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="c1"># Proof trace:</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="c1">#   [R→] on A -&gt; B</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="c1">#     AXIOM: A =&gt; B</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="c1">#</span>
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="c1"># Depth reached: 1</span>
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="c1"># Cache hits: 0</span>
 </code></pre></div>
 <h2 id="pynmms-repl"><code>pynmms repl</code><a class="headerlink" href="#pynmms-repl" title="Permanent link">&para;</a></h2>
 <p>Interactive REPL for exploring reason relations.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>pynmms<span class="w"> </span>repl
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>pynmms<span class="w"> </span>repl<span class="w"> </span>-b<span class="w"> </span>base.json<span class="w">  </span><span class="c1"># Load existing base</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>pynmms<span class="w"> </span>repl
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>pynmms<span class="w"> </span>repl<span class="w"> </span>-b<span class="w"> </span>base.json<span class="w">  </span><span class="c1"># Load existing base</span>
 </code></pre></div>
 <h3 id="repl-commands">REPL Commands<a class="headerlink" href="#repl-commands" title="Permanent link">&para;</a></h3>
 <table>
@@ -1538,115 +1691,115 @@
 </thead>
 <tbody>
 <tr>
-<td><code>tell A \|~ B</code></td>
+<td>tell A &#124;~ B</td>
 <td>Add a consequence</td>
 </tr>
 <tr>
-<td><code>tell A, B \|~</code></td>
+<td>tell A, B &#124;~</td>
 <td>Add incompatibility (empty consequent)</td>
 </tr>
 <tr>
-<td><code>tell \|~ A</code></td>
-<td>Add theorem (empty antecedent)</td>
+<td>tell &#124;~ A</td>
+<td>Add unconditional assertion (empty antecedent)</td>
 </tr>
 <tr>
-<td><code>tell atom A</code></td>
+<td>tell atom A</td>
 <td>Add an atom</td>
 </tr>
 <tr>
-<td><code>tell atom A "desc"</code></td>
+<td>tell atom A "desc"</td>
 <td>Add an atom with annotation</td>
 </tr>
 <tr>
-<td><code>ask A =&gt; B</code></td>
+<td>ask A =&gt; B</td>
 <td>Query derivability</td>
 </tr>
 <tr>
-<td><code>show</code></td>
+<td>show</td>
 <td>Display the current base (with annotations)</td>
 </tr>
 <tr>
-<td><code>trace on/off</code></td>
+<td>trace on/off</td>
 <td>Toggle proof trace display</td>
 </tr>
 <tr>
-<td><code>save &lt;file&gt;</code></td>
+<td>save &lt;file&gt;</td>
 <td>Save base to JSON</td>
 </tr>
 <tr>
-<td><code>load &lt;file&gt;</code></td>
+<td>load &lt;file&gt;</td>
 <td>Load base from JSON</td>
 </tr>
 <tr>
-<td><code>help</code></td>
+<td>help</td>
 <td>Show available commands</td>
 </tr>
 <tr>
-<td><code>quit</code></td>
+<td>quit</td>
 <td>Exit the REPL</td>
 </tr>
 </tbody>
 </table>
 <h3 id="example-session">Example Session<a class="headerlink" href="#example-session" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>$ pynmms repl
-<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>Starting with empty base.
-<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>pyNMMS REPL. Type &#39;help&#39; for commands.
-<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>
-<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>pynmms&gt; tell atom p &quot;Tara is human&quot;
-<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>Added atom: p — Tara is human
-<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>pynmms&gt; tell atom q &quot;Tara&#39;s body temp is 37°C&quot;
-<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>Added atom: q — Tara&#39;s body temp is 37°C
-<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>pynmms&gt; tell p |~ q
-<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>Added: {&#39;p&#39;} |~ {&#39;q&#39;}
-<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a>pynmms&gt; tell s, t |~
-<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a>Added: set() |~ set()
-<a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a>pynmms&gt; ask p =&gt; q
-<a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a>DERIVABLE
-<a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a>pynmms&gt; ask p, r =&gt; q
-<a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a>NOT DERIVABLE
-<a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a>pynmms&gt; show
-<a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a>Language (4 atoms):
-<a id="__codelineno-8-19" name="__codelineno-8-19" href="#__codelineno-8-19"></a>  p — Tara is human
-<a id="__codelineno-8-20" name="__codelineno-8-20" href="#__codelineno-8-20"></a>  q — Tara&#39;s body temp is 37°C
-<a id="__codelineno-8-21" name="__codelineno-8-21" href="#__codelineno-8-21"></a>  s
-<a id="__codelineno-8-22" name="__codelineno-8-22" href="#__codelineno-8-22"></a>  t
-<a id="__codelineno-8-23" name="__codelineno-8-23" href="#__codelineno-8-23"></a>Consequences (2):
-<a id="__codelineno-8-24" name="__codelineno-8-24" href="#__codelineno-8-24"></a>  {&#39;p&#39;} |~ {&#39;q&#39;}
-<a id="__codelineno-8-25" name="__codelineno-8-25" href="#__codelineno-8-25"></a>  {&#39;s&#39;, &#39;t&#39;} |~ set()
-<a id="__codelineno-8-26" name="__codelineno-8-26" href="#__codelineno-8-26"></a>pynmms&gt; save mybase.json
-<a id="__codelineno-8-27" name="__codelineno-8-27" href="#__codelineno-8-27"></a>Saved to mybase.json
-<a id="__codelineno-8-28" name="__codelineno-8-28" href="#__codelineno-8-28"></a>pynmms&gt; quit
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>$ pynmms repl
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>Starting with empty base.
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>pyNMMS REPL. Type &#39;help&#39; for commands.
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>pynmms&gt; tell atom p &quot;Tara is human&quot;
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>Added atom: p — Tara is human
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>pynmms&gt; tell atom q &quot;Tara&#39;s body temp is 37°C&quot;
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>Added atom: q — Tara&#39;s body temp is 37°C
+<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>pynmms&gt; tell p |~ q
+<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a>Added: {&#39;p&#39;} |~ {&#39;q&#39;}
+<a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a>pynmms&gt; tell s, t |~
+<a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a>Added: set() |~ set()
+<a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a>pynmms&gt; ask p =&gt; q
+<a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a>DERIVABLE
+<a id="__codelineno-10-15" name="__codelineno-10-15" href="#__codelineno-10-15"></a>pynmms&gt; ask p, r =&gt; q
+<a id="__codelineno-10-16" name="__codelineno-10-16" href="#__codelineno-10-16"></a>NOT DERIVABLE
+<a id="__codelineno-10-17" name="__codelineno-10-17" href="#__codelineno-10-17"></a>pynmms&gt; show
+<a id="__codelineno-10-18" name="__codelineno-10-18" href="#__codelineno-10-18"></a>Language (4 atoms):
+<a id="__codelineno-10-19" name="__codelineno-10-19" href="#__codelineno-10-19"></a>  p — Tara is human
+<a id="__codelineno-10-20" name="__codelineno-10-20" href="#__codelineno-10-20"></a>  q — Tara&#39;s body temp is 37°C
+<a id="__codelineno-10-21" name="__codelineno-10-21" href="#__codelineno-10-21"></a>  s
+<a id="__codelineno-10-22" name="__codelineno-10-22" href="#__codelineno-10-22"></a>  t
+<a id="__codelineno-10-23" name="__codelineno-10-23" href="#__codelineno-10-23"></a>Consequences (2):
+<a id="__codelineno-10-24" name="__codelineno-10-24" href="#__codelineno-10-24"></a>  {&#39;p&#39;} |~ {&#39;q&#39;}
+<a id="__codelineno-10-25" name="__codelineno-10-25" href="#__codelineno-10-25"></a>  {&#39;s&#39;, &#39;t&#39;} |~ set()
+<a id="__codelineno-10-26" name="__codelineno-10-26" href="#__codelineno-10-26"></a>pynmms&gt; save mybase.json
+<a id="__codelineno-10-27" name="__codelineno-10-27" href="#__codelineno-10-27"></a>Saved to mybase.json
+<a id="__codelineno-10-28" name="__codelineno-10-28" href="#__codelineno-10-28"></a>pynmms&gt; quit
 </code></pre></div>
 <h2 id="batch-files">Batch files<a class="headerlink" href="#batch-files" title="Permanent link">&para;</a></h2>
 <h3 id="tell-batch-format">Tell batch format<a class="headerlink" href="#tell-batch-format" title="Permanent link">&para;</a></h3>
 <p>One statement per line. Blank lines and <code>#</code> comments are skipped:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a># mybase.base
-<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>atom p &quot;Tara is human&quot;
-<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>atom q &quot;Tara&#39;s body temp is 37°C&quot;
-<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>p |~ q
-<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>s, t |~
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a># mybase.base
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>atom p &quot;Tara is human&quot;
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>atom q &quot;Tara&#39;s body temp is 37°C&quot;
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>p |~ q
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>s, t |~
 </code></pre></div>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>pynmms<span class="w"> </span>tell<span class="w"> </span>-b<span class="w"> </span>base.json<span class="w"> </span>--create<span class="w"> </span>--batch<span class="w"> </span>mybase.base
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>pynmms<span class="w"> </span>tell<span class="w"> </span>-b<span class="w"> </span>base.json<span class="w"> </span>--create<span class="w"> </span>--batch<span class="w"> </span>mybase.base
 </code></pre></div>
 <h3 id="rq-batch-format">RQ batch format<a class="headerlink" href="#rq-batch-format" title="Permanent link">&para;</a></h3>
-<p>With <code>--rq</code>, batch files also support <code>schema</code> lines:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>atom Happy(alice) &quot;Alice is happy&quot;
-<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>atom hasChild(alice,bob)
-<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>Happy(alice) |~ Good(alice)
-<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>schema concept hasChild alice Happy
-<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>schema inference hasChild alice Serious HeartAttack
+<p>With <code>--rq</code>, batch files also support <code>schema</code> lines (with optional quoted annotations):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>atom Happy(alice) &quot;Alice is happy&quot;
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>atom hasChild(alice,bob)
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>Happy(alice) |~ Good(alice)
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>schema concept hasChild alice Happy &quot;All children of alice are happy&quot;
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>schema inference hasChild alice Serious HeartAttack &quot;Serious children risk heart attacks&quot;
 </code></pre></div>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>pynmms<span class="w"> </span>tell<span class="w"> </span>-b<span class="w"> </span>rq_base.json<span class="w"> </span>--create<span class="w"> </span>--rq<span class="w"> </span>--batch<span class="w"> </span>rq_base.base
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>pynmms<span class="w"> </span>tell<span class="w"> </span>-b<span class="w"> </span>rq_base.json<span class="w"> </span>--create<span class="w"> </span>--rq<span class="w"> </span>--batch<span class="w"> </span>rq_base.base
 </code></pre></div>
 <h3 id="ask-batch-format">Ask batch format<a class="headerlink" href="#ask-batch-format" title="Permanent link">&para;</a></h3>
 <p>One sequent per line:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a># queries.txt
-<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>A =&gt; B
-<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>A, B =&gt; C
-<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>=&gt; A -&gt; B
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a># queries.txt
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>A =&gt; B
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>A, B =&gt; C
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>=&gt; A -&gt; B
 </code></pre></div>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>pynmms<span class="w"> </span>ask<span class="w"> </span>-b<span class="w"> </span>base.json<span class="w"> </span>--batch<span class="w"> </span>queries.txt
-<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>pynmms<span class="w"> </span>ask<span class="w"> </span>-b<span class="w"> </span>base.json<span class="w"> </span>--json<span class="w"> </span>--batch<span class="w"> </span>queries.txt<span class="w">  </span><span class="c1"># JSONL output</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>pynmms<span class="w"> </span>ask<span class="w"> </span>-b<span class="w"> </span>base.json<span class="w"> </span>--batch<span class="w"> </span>queries.txt
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>pynmms<span class="w"> </span>ask<span class="w"> </span>-b<span class="w"> </span>base.json<span class="w"> </span>--json<span class="w"> </span>--batch<span class="w"> </span>queries.txt<span class="w">  </span><span class="c1"># JSONL output</span>
 </code></pre></div>
 
 

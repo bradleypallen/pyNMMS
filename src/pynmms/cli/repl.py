@@ -234,7 +234,10 @@ def run_repl(args: argparse.Namespace) -> int:
                         base.register_subclass(
                             sub_concept, super_concept, annotation=annotation
                         )
-                        msg = f"Registered subClassOf schema: {{{sub_concept}(x)}} |~ {{{super_concept}(x)}}"
+                        msg = (
+                            f"Registered subClassOf schema:"
+                            f" {{{sub_concept}(x)}} |~ {{{super_concept}(x)}}"
+                        )
                         if annotation:
                             msg += f" \u2014 {annotation}"
                         print(msg)
@@ -257,7 +260,10 @@ def run_repl(args: argparse.Namespace) -> int:
                         base.register_subproperty(
                             sub_role, super_role, annotation=annotation
                         )
-                        msg = f"Registered subPropertyOf schema: {{{sub_role}(x,y)}} |~ {{{super_role}(x,y)}}"
+                        msg = (
+                            f"Registered subPropertyOf schema:"
+                            f" {{{sub_role}(x,y)}} |~ {{{super_role}(x,y)}}"
+                        )
                         if annotation:
                             msg += f" \u2014 {annotation}"
                         print(msg)

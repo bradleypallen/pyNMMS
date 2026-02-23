@@ -10,6 +10,14 @@ The vocabulary is borrowed from W3C RDFS and OWL for familiarity, but the semant
 
 The resulting system, NMMS_Onto, occupies a distinctive niche: it supports defeasible ontological reasoning (class hierarchies, role constraints, property hierarchies, concept and property incompatibilities) within a framework where adding premises can defeat inferences and chaining good inferences can yield bad ones -- precisely the features that distinguish NMMS from classical and monotonic nonclassical logics.
 
+### 1.1 Discursive Context: Schemas in the Game of Giving and Asking for Reasons
+
+The intended use of NMMS_Onto is modeling **ontological commitments** within a **game of giving and asking for reasons** (Brandom 1994). The six schema types capture common patterns of **classificatory discursive practice**: asserting that something falls under a concept (`subClassOf`), that a role relates two individuals (`range`, `domain`, `subPropertyOf`), and that certain commitments are materially incompatible (`disjointWith`, `disjointProperties`). These are not abstract formal specifications imposed from outside -- they codify the inferential commitments that competent practitioners undertake when they classify, relate, and distinguish things in a domain.
+
+When coupled with a dialogue system like **Elenchus**, the schemas provide the **structured vocabulary layer** that lets the system recognize classificatory patterns in a respondent's natural language commitments and map them to material inferential commitments in the base. A respondent who asserts "Socrates is a man" undertakes a commitment that Elenchus can recognize as an instance of `Man(socrates)`, which then interacts with registered schemas (e.g., `subClassOf(Man, Mortal)`) to determine what further commitments the respondent is committed to and what commitments would be incompatible with what they have asserted.
+
+This positions NMMS_Onto not as a standalone formal ontology specification language but as a component of a larger **inferentialist knowledge engineering practice** -- one where ontological structure is articulated through the material inferential commitments that practitioners recognize, rather than through model-theoretic stipulation of what exists.
+
 
 ## 2. Design Decision: Axiom Extensions, Not Proof Rules
 
@@ -239,14 +247,16 @@ To be explicit about the boundaries of the extension:
 
 2. **Retraction semantics**: The `CommitmentStore` supports retracting schemas by source label. What are the formal properties of retraction? Does retracting a schema correspond to a well-defined operation on the consequence relation? How does retraction interact with cached proof results?
 
-3. **Relationship to preferential and rational consequence relations**: The defeasible description logic literature (Casini & Straccia 2010, Giordano et al. 2013) works with preferential and rational consequence relations from the KLM framework. How does the NMMS notion of defeasibility (failure of Weakening) relate to the KLM notion (failure of Monotonicity in preferential models)? Are there translations or embeddings between the two frameworks?
+3. **NMMS and KLM as different normative projects**: The defeasible description logic literature (Casini & Straccia 2010, Giordano et al. 2013) works with preferential and rational consequence relations from the KLM framework. NMMS and KLM are asking **different questions**. KLM asks what a rational agent should believe by default -- it models defeasible inference through preferential models and rational closure, where exceptions are handled by minimizing abnormality. NMMS asks what an agent is **committed to** given specific reasons -- it codifies material inferential commitments, not default beliefs. The two frameworks operate at different levels of the normative landscape: KLM at the level of idealized rational belief revision, NMMS at the level of discursive practice and the commitments one undertakes in making assertions. The interesting question is not embedding one framework in the other but understanding what each makes explicit about reasoning practice.
 
-4. **Completeness relative to intended models**: NMMS_Onto is sound by construction (all axioms are explicitly registered). But is there a natural model-theoretic semantics for ontology schemas in the NMMS framework, and if so, is the system complete with respect to that semantics?
+4. **Adequacy as a question about discursive practice, not model correspondence**: In an inferentialist framework, **the proof theory is the semantics** -- meaning is constituted by inferential role, not by correspondence to model-theoretic structures. The question of completeness relative to a model-theoretic semantics presupposes that meaning is fixed by models, which is precisely what inferentialism rejects. The more appropriate question for NMMS_Onto is whether the six schema types adequately capture the material inferential commitments that competent practitioners would recognize as constitutive of ontological vocabulary -- whether `subClassOf`, `range`, `domain`, `subPropertyOf`, `disjointWith`, and `disjointProperties` suffice for the classificatory discursive practices one encounters in knowledge engineering. This is an empirical question about discursive practice, not a mathematical question about model correspondence.
 
 5. **Scaling properties**: The lazy evaluation strategy avoids combinatorial explosion in schema grounding, but the proof search itself has exponential worst-case complexity (due to the multi-premise Ketonen rules for [L->], [L|], [R&]). How does the addition of ontology schemas affect proof search performance in practice? Are there heuristics for ordering schema checks to improve average-case behavior?
 
 
 ## 9. References
+
+- Brandom, R. B. (1994). *Making It Explicit: Reasoning, Representing, and Discursive Commitment*. Harvard University Press.
 
 - Hlobil, U. & Brandom, R. B. (2025). *Reasons for Logic, Logic for Reasons*. Chapter 3: "Introducing Logical Vocabulary."
 

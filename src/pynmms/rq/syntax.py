@@ -10,9 +10,10 @@ Grammar additions (beyond propositional)::
     concept_atom  ::= CONCEPT '(' INDIVIDUAL ')'
     role_atom     ::= ROLE '(' INDIVIDUAL ',' INDIVIDUAL ')'
 
-The parser tries RQ-specific patterns first (quantifiers, role assertions,
-concept assertions), then falls through to propositional binary connectives,
-then bare atoms.
+The parser tries binary connectives first (at depth-0), then RQ-specific
+patterns (quantifiers, role assertions, concept assertions). Bare
+propositional atoms are rejected — use concept assertions ``C(a)`` or
+role assertions ``R(a,b)`` instead.
 """
 
 from __future__ import annotations
@@ -20,7 +21,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-from pynmms.syntax import ATOM, CONJ, DISJ, IMPL, NEG, Sentence, parse_sentence
+from pynmms.syntax import CONJ, DISJ, IMPL, NEG, Sentence, parse_sentence
 
 # RQ-specific sentence type constants
 ATOM_CONCEPT = "concept"
@@ -205,8 +206,11 @@ def parse_rq_sentence(s: str) -> Sentence | RQSentence:
             individual=m.group(2),
         )
 
-    # Fall through to bare atom (propositional)
-    return Sentence(type=ATOM, name=s)
+    # Bare propositional atoms are not valid in NMMS_RQ.
+    raise ValueError(
+        f"Bare atom {s!r} is not valid in NMMS_RQ. "
+        f"Use concept assertions C(a) or role assertions R(a,b)."
+    )
 
 
 # -------------------------------------------------------------------
@@ -246,7 +250,10 @@ def collect_individuals(sentences: frozenset[str]) -> set[str]:
     """Extract all individual names mentioned in a set of sentences."""
     individuals: set[str] = set()
     for s in sentences:
-        parsed = parse_rq_sentence(s)
+        try:
+            parsed = parse_rq_sentence(s)
+        except ValueError:
+            continue
         if isinstance(parsed, RQSentence):
             if parsed.type == ATOM_CONCEPT:
                 individuals.add(parsed.individual)  # type: ignore[arg-type]
@@ -311,11 +318,14 @@ def find_blocking_individual(
 
 
 def is_rq_atomic(s: str) -> bool:
-    """Return True if *s* is a concept assertion, role assertion, or bare atom."""
-    parsed = parse_rq_sentence(s)
+    """Return True if *s* is a concept assertion or role assertion."""
+    try:
+        parsed = parse_rq_sentence(s)
+    except ValueError:
+        return False
     if isinstance(parsed, RQSentence):
         return parsed.type in (ATOM_CONCEPT, ATOM_ROLE)
-    return parsed.type == ATOM
+    return False
 
 
 def all_rq_atomic(sentences: frozenset[str]) -> bool:

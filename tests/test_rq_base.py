@@ -37,10 +37,9 @@ class TestRQMaterialBaseConstruction:
         assert base.individuals == frozenset({"alice", "bob"})
         assert base.roles == frozenset({"hasChild"})
 
-    def test_with_bare_atoms(self):
-        base = RQMaterialBase(language={"A", "B"})
-        assert "A" in base.language
-        assert base.individuals == frozenset()
+    def test_rejects_bare_atoms(self):
+        with pytest.raises(ValueError, match="not valid in NMMS_RQ"):
+            RQMaterialBase(language={"A", "B"})
 
     def test_with_consequences(self):
         base = RQMaterialBase(
@@ -52,18 +51,18 @@ class TestRQMaterialBaseConstruction:
         assert len(base.consequences) == 1
 
     def test_rejects_quantifier_in_language(self):
-        with pytest.raises(ValueError, match="logically complex"):
+        with pytest.raises(ValueError, match="not valid in NMMS_RQ"):
             RQMaterialBase(language={"ALL hasChild.Happy(alice)"})
 
     def test_rejects_negation_in_language(self):
-        with pytest.raises(ValueError, match="logically complex"):
+        with pytest.raises(ValueError, match="not valid in NMMS_RQ"):
             RQMaterialBase(language={"~A"})
 
     def test_rejects_conjunction_in_consequence(self):
-        with pytest.raises(ValueError, match="logically complex"):
+        with pytest.raises(ValueError, match="not valid in NMMS_RQ"):
             RQMaterialBase(
                 consequences={
-                    (frozenset({"A & B"}), frozenset({"C"})),
+                    (frozenset({"P(a) & Q(a)"}), frozenset({"R(a)"})),
                 },
             )
 
@@ -75,8 +74,9 @@ class TestRQMaterialBaseValidateAtomic:
     def test_role_assertion_ok(self):
         _validate_rq_atomic("hasChild(alice,bob)", "test")
 
-    def test_bare_atom_ok(self):
-        _validate_rq_atomic("A", "test")
+    def test_bare_atom_rejected(self):
+        with pytest.raises(ValueError, match="not valid in NMMS_RQ"):
+            _validate_rq_atomic("A", "test")
 
     def test_quantifier_rejected(self):
         with pytest.raises(ValueError):
@@ -122,12 +122,12 @@ class TestRQMaterialBaseMutation:
     def test_add_atom_rejects_complex(self):
         base = RQMaterialBase()
         with pytest.raises(ValueError):
-            base.add_atom("~A")
+            base.add_atom("~Happy(alice)")
 
     def test_add_consequence_rejects_complex(self):
         base = RQMaterialBase()
         with pytest.raises(ValueError):
-            base.add_consequence(frozenset({"A -> B"}), frozenset({"C"}))
+            base.add_consequence(frozenset({"P(a) -> Q(a)"}), frozenset({"R(a)"}))
 
 
 # -------------------------------------------------------------------
@@ -209,8 +209,8 @@ class TestRQMaterialBaseIsAxiom:
         )
 
     def test_no_match(self):
-        base = RQMaterialBase(language={"A"})
-        assert not base.is_axiom(frozenset({"A"}), frozenset({"B"}))
+        base = RQMaterialBase(language={"P(a)"})
+        assert not base.is_axiom(frozenset({"P(a)"}), frozenset({"Q(a)"}))
 
 
 # -------------------------------------------------------------------
@@ -332,16 +332,16 @@ class TestCommitmentStore:
 
     def test_compile_caches(self):
         cs = CommitmentStore()
-        cs.add_assertion("A")
+        cs.add_assertion("P(a)")
         base1 = cs.compile()
         base2 = cs.compile()
         assert base1 is base2
 
     def test_compile_invalidated_by_assertion(self):
         cs = CommitmentStore()
-        cs.add_assertion("A")
+        cs.add_assertion("P(a)")
         base1 = cs.compile()
-        cs.add_assertion("B")
+        cs.add_assertion("Q(a)")
         base2 = cs.compile()
         assert base1 is not base2
 
@@ -375,7 +375,7 @@ class TestCommitmentStore:
     def test_rejects_complex_assertion(self):
         cs = CommitmentStore()
         with pytest.raises(ValueError):
-            cs.add_assertion("~A")
+            cs.add_assertion("~Happy(alice)")
 
 
 class TestInferenceSchema:

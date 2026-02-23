@@ -163,12 +163,17 @@ def run_repl(args: argparse.Namespace) -> int:
             if rq_mode and line == "show schemas":
                 assert isinstance(base, RQMaterialBase)  # type: ignore[unreachable]
                 schemas = base._inference_schemas
+                annotations = base.schema_annotations
                 print(f"Schemas ({len(schemas)}):")
-                for s_role, s_subject, s_premise, s_concl in schemas:
+                for idx, (s_role, s_subject, s_premise, s_concl) in enumerate(schemas):
                     if s_premise:
-                        print(f"  {s_role}({s_subject}, x), {s_premise}(x) |~ {s_concl}")
+                        desc = f"  {s_role}({s_subject}, x), {s_premise}(x) |~ {s_concl}"
                     else:
-                        print(f"  {s_role}({s_subject}, x) |~ {s_concl}")
+                        desc = f"  {s_role}({s_subject}, x) |~ {s_concl}"
+                    ann = annotations[idx] if idx < len(annotations) else None
+                    if ann:
+                        desc += f" \u2014 {ann}"
+                    print(desc)
                 continue
 
             if rq_mode and line == "show individuals":
@@ -214,24 +219,36 @@ def run_repl(args: argparse.Namespace) -> int:
             # Schema commands (RQ mode only)
             if rq_mode and line.startswith("tell schema "):
                 assert isinstance(base, RQMaterialBase)  # type: ignore[unreachable]
+                from pynmms.cli.tell import _extract_trailing_annotation
+
                 rest = line[len("tell schema "):].strip()
-                parts = rest.split()
+                body, annotation = _extract_trailing_annotation(rest)
+                parts = body.split()
                 try:
                     if parts[0] == "concept" and len(parts) == 4:
                         _, role, subject, concept = parts
-                        base.register_concept_schema(role, subject, concept)
-                        print(f"Registered concept schema: {role}({subject}, x) |~ {concept}(x)")
+                        base.register_concept_schema(
+                            role, subject, concept, annotation=annotation
+                        )
+                        msg = f"Registered concept schema: {role}({subject}, x) |~ {concept}(x)"
+                        if annotation:
+                            msg += f" \u2014 {annotation}"
+                        print(msg)
                     elif parts[0] == "inference" and len(parts) == 5:
                         _, role, subject, premise, concl_name = parts
                         from pynmms.rq.syntax import make_concept_assertion
                         base.register_inference_schema(
                             role, subject, premise,
                             {make_concept_assertion(concl_name, "__OBJ__")},
+                            annotation=annotation,
                         )
-                        print(
+                        msg = (
                             f"Registered inference schema: "
                             f"{role}({subject}, x), {premise}(x) |~ {concl_name}(x)"
                         )
+                        if annotation:
+                            msg += f" \u2014 {annotation}"
+                        print(msg)
                     else:
                         print(
                             "Usage: tell schema concept <role> <subject> <concept>\n"

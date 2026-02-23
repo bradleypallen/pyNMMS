@@ -10,6 +10,68 @@ pynmms ask    # Query derivability
 pynmms repl   # Interactive REPL
 ```
 
+## Notation
+
+**Notational conventions.**
+
+- *A*, *B*, ... range over sentences of the object language.
+- *p*, *q*, *r*, ... range over atomic sentences.
+- &Gamma;, &Delta; range over finite sets of sentences.
+
+**The two turnstiles:**
+
+- &Gamma; `|~` &Delta; &mdash; a **base consequence**. The `tell` command *adds* the pair (&Gamma;, &Delta;) to the base consequence relation |~<sub>B</sub>. In the theory, |~<sub>B</sub> is a given relation (Definition 1, Ch. 3); in the tool it is built incrementally.
+- &Gamma; `=>` &Delta; &mdash; a **sequent**. The `ask` command tests whether the sequent &Gamma; &rArr; &Delta; is *derivable*, i.e., whether there exists a proof tree whose leaves are all axioms of the base.
+
+Note: `|~` is input (asserting into the base); `=>` is query (testing derivability from the base). Both &Gamma; and &Delta; may be empty.
+
+## Propositional Object Language
+
+The propositional object language is defined by the following unambiguous grammar:
+
+```
+sentence   ::=  impl
+impl       ::=  disj ( '->' disj )*            (* right-associative *)
+disj       ::=  conj ( '|' conj )*             (* left-associative *)
+conj       ::=  unary ( '&' unary )*           (* left-associative *)
+unary      ::=  '~' unary | atom | '(' sentence ')'
+atom       ::=  IDENTIFIER
+```
+
+Where `IDENTIFIER` is any non-empty string of letters, digits, and underscores beginning with a letter or underscore. Precedence (tightest to loosest): `~`, `&`, `|`, `->`.
+
+**Connective glossary:**
+
+| Symbol | Name | Arity |
+|--------|------|-------|
+| `~` | negation | prefix unary |
+| `&` | conjunction | binary, left-associative |
+| &#124; | disjunction | binary, left-associative |
+| `->` | conditional (implication) | binary, right-associative |
+
+## The NMMS_RQ Object Language
+
+The `--rq` flag enables **NMMS_RQ**, an extension of the propositional NMMS object language with ALC-style restricted quantifiers.
+
+**Atoms.** In propositional NMMS, atoms are bare identifiers. In NMMS_RQ, atoms are **ground atomic formulas**:
+
+| Form | Name | Example |
+|------|------|---------|
+| *C*(*a*) | concept assertion | `Happy(alice)` |
+| *R*(*a*, *b*) | role assertion | `hasChild(alice,bob)` |
+
+Bare propositional letters are not valid in NMMS_RQ.
+
+**Grammar.** The NMMS_RQ grammar replaces the propositional `atom` production:
+
+```
+atom       ::=  CONCEPT '(' INDIVIDUAL ')'                  (* concept assertion *)
+             |  ROLE '(' INDIVIDUAL ',' INDIVIDUAL ')'      (* role assertion *)
+sentence   ::=  ...                                          (* all propositional forms *)
+             |  'ALL' ROLE '.' CONCEPT '(' INDIVIDUAL ')'   (* universal restriction *)
+             |  'SOME' ROLE '.' CONCEPT '(' INDIVIDUAL ')'  (* existential restriction *)
+```
+
 ## `pynmms tell`
 
 Add atoms or consequences to a JSON base file.
@@ -30,7 +92,7 @@ pynmms tell -b base.json 'atom p "Tara is human"'
 # Empty consequent (incompatibility)
 pynmms tell -b base.json "s, t |~"
 
-# Empty antecedent (theorem)
+# Empty antecedent (unconditional assertion)
 pynmms tell -b base.json "|~ p"
 ```
 
@@ -38,7 +100,7 @@ pynmms tell -b base.json "|~ p"
 
 - **Consequence**: `A |~ B` or `A, B |~ C, D` (comma-separated)
 - **Incompatibility**: `A, B |~` (empty consequent)
-- **Theorem**: `|~ A` (empty antecedent)
+- **Unconditional assertion**: `|~ A` (empty antecedent)
 - **Atom**: `atom X`
 - **Atom with annotation**: `atom X "description"`
 
@@ -136,18 +198,18 @@ pynmms repl -b base.json  # Load existing base
 
 | Command | Description |
 |---------|-------------|
-| `tell A \|~ B` | Add a consequence |
-| `tell A, B \|~` | Add incompatibility (empty consequent) |
-| `tell \|~ A` | Add theorem (empty antecedent) |
-| `tell atom A` | Add an atom |
-| `tell atom A "desc"` | Add an atom with annotation |
-| `ask A => B` | Query derivability |
-| `show` | Display the current base (with annotations) |
-| `trace on/off` | Toggle proof trace display |
-| `save <file>` | Save base to JSON |
-| `load <file>` | Load base from JSON |
-| `help` | Show available commands |
-| `quit` | Exit the REPL |
+| tell A &#124;~ B | Add a consequence |
+| tell A, B &#124;~ | Add incompatibility (empty consequent) |
+| tell &#124;~ A | Add unconditional assertion (empty antecedent) |
+| tell atom A | Add an atom |
+| tell atom A "desc" | Add an atom with annotation |
+| ask A => B | Query derivability |
+| show | Display the current base (with annotations) |
+| trace on/off | Toggle proof trace display |
+| save &lt;file&gt; | Save base to JSON |
+| load &lt;file&gt; | Load base from JSON |
+| help | Show available commands |
+| quit | Exit the REPL |
 
 ### Example Session
 
@@ -202,14 +264,14 @@ pynmms tell -b base.json --create --batch mybase.base
 
 ### RQ batch format
 
-With `--rq`, batch files also support `schema` lines:
+With `--rq`, batch files also support `schema` lines (with optional quoted annotations):
 
 ```
 atom Happy(alice) "Alice is happy"
 atom hasChild(alice,bob)
 Happy(alice) |~ Good(alice)
-schema concept hasChild alice Happy
-schema inference hasChild alice Serious HeartAttack
+schema concept hasChild alice Happy "All children of alice are happy"
+schema inference hasChild alice Serious HeartAttack "Serious children risk heart attacks"
 ```
 
 ```bash

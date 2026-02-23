@@ -211,6 +211,24 @@ def _run_tell_batch(
     return EXIT_ERROR if had_error else EXIT_SUCCESS
 
 
+def _extract_trailing_annotation(text: str) -> tuple[str, str | None]:
+    """Extract an optional trailing quoted annotation from *text*.
+
+    Returns (remaining_text, annotation_or_None).
+    """
+    for quote_char in ('"', "'"):
+        idx = text.find(quote_char)
+        if idx != -1:
+            end_idx = text.find(quote_char, idx + 1)
+            if end_idx == -1:
+                annotation = text[idx + 1:].strip()
+            else:
+                annotation = text[idx + 1:end_idx]
+            remaining = text[:idx].strip()
+            return remaining, annotation if annotation else None
+    return text, None
+
+
 def _process_rq_schema_line(
     line: str,
     base: object,
@@ -224,16 +242,24 @@ def _process_rq_schema_line(
     from pynmms.rq.base import RQMaterialBase
 
     assert isinstance(base, RQMaterialBase)
-    parts = line.split()
+
+    # Extract optional trailing quoted annotation
+    body, annotation = _extract_trailing_annotation(line)
+    parts = body.split()
+
     try:
         if len(parts) >= 5 and parts[1] == "concept":
             _, _, role, subject, concept = parts[:5]
-            base.register_concept_schema(role, subject, concept)
+            base.register_concept_schema(role, subject, concept, annotation=annotation)
+            details = f"{role}({subject}, x) |~ {concept}(x)"
             if json_mode:
                 emit_json(tell_schema_response(
-                    "concept", f"{role}({subject}, x) |~ {concept}(x)", str(base_path)))
+                    "concept", details, str(base_path), annotation=annotation))
             elif not quiet:
-                print(f"Registered concept schema: {role}({subject}, x) |~ {concept}(x)")
+                msg = f"Registered concept schema: {details}"
+                if annotation:
+                    msg += f" \u2014 {annotation}"
+                print(msg)
             return EXIT_SUCCESS
         elif len(parts) >= 6 and parts[1] == "inference":
             _, _, role, subject, premise, concl_name = parts[:6]
@@ -241,16 +267,17 @@ def _process_rq_schema_line(
             base.register_inference_schema(
                 role, subject, premise,
                 {make_concept_assertion(concl_name, "__OBJ__")},
+                annotation=annotation,
             )
+            details = f"{role}({subject}, x), {premise}(x) |~ {concl_name}(x)"
             if json_mode:
                 emit_json(tell_schema_response(
-                    "inference",
-                    f"{role}({subject}, x), {premise}(x) |~ {concl_name}(x)",
-                    str(base_path),
-                ))
+                    "inference", details, str(base_path), annotation=annotation))
             elif not quiet:
-                print(f"Registered inference schema: "
-                      f"{role}({subject}, x), {premise}(x) |~ {concl_name}(x)")
+                msg = f"Registered inference schema: {details}"
+                if annotation:
+                    msg += f" \u2014 {annotation}"
+                print(msg)
             return EXIT_SUCCESS
         else:
             emit_error(f"Invalid schema line: {line!r}", json_mode=json_mode, quiet=quiet)

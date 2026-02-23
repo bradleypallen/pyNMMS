@@ -65,13 +65,21 @@ def tell_consequence_response(
     }
 
 
-def tell_schema_response(schema_type: str, details: str, base_file: str) -> dict:
+def tell_schema_response(
+    schema_type: str,
+    details: str,
+    base_file: str,
+    annotation: str | None = None,
+) -> dict:
     """Build a tell-schema response dict."""
-    return {
+    d: dict = {
         "action": f"registered_{schema_type}_schema",
         "details": details,
         "base_file": base_file,
     }
+    if annotation is not None:
+        d["annotation"] = annotation
+    return d
 
 
 def error_response(message: str) -> dict:

@@ -56,8 +56,8 @@ class TestRQRuleTraces:
         assert "[R\u2200R.C]" in trace
 
     def test_propositional_rules_in_trace(self):
-        r = _r(language={"A", "B"})
-        result = r.derives(frozenset({"A & B"}), frozenset({"A"}))
+        r = _r(language={"P(a)", "Q(a)"})
+        result = r.derives(frozenset({"P(a) & Q(a)"}), frozenset({"P(a)"}))
         assert result.derivable
         trace = "\n".join(result.trace)
         assert "[L\u2227]" in trace
@@ -72,7 +72,7 @@ class TestRQRuleTraces:
 
     def test_depth_limit_in_trace(self):
         r = _r(max_depth=0)
-        result = r.derives(frozenset({"A -> B"}), frozenset({"C"}))
+        result = r.derives(frozenset({"P(a) -> Q(a)"}), frozenset({"R(a)"}))
         assert not result.derivable
         assert any("DEPTH LIMIT" in t for t in result.trace)
 

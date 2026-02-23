@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -24,6 +25,9 @@ logger = logging.getLogger(__name__)
 # A sequent is a pair of frozensets of atomic sentence strings.
 Sequent = tuple[frozenset[str], frozenset[str]]
 
+# Matches concept assertions C(a) and role assertions R(a,b).
+_STRUCTURED_ATOM_RE = re.compile(r"^\w+\(\w+(?:,\s*\w+)?\)$")
+
 
 def _validate_atomic(s: str, context: str) -> None:
     """Raise ValueError if *s* is not an atomic sentence."""
@@ -31,6 +35,11 @@ def _validate_atomic(s: str, context: str) -> None:
         raise ValueError(
             f"{context}: found logically complex sentence '{s}'. "
             f"Only bare atoms are permitted in the material base."
+        )
+    if _STRUCTURED_ATOM_RE.match(s):
+        raise ValueError(
+            f"{context}: '{s}' looks like a concept or role assertion. "
+            f"Use --rq mode for NMMS_RQ atoms, or rename to a plain identifier."
         )
 
 

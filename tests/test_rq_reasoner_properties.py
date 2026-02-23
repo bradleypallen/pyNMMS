@@ -24,10 +24,10 @@ def _r(language=None, consequences=None, max_depth=25):
 
 class TestNonmonotonicity:
     def test_propositional(self):
-        """A => B holds, but A, C => B fails."""
-        r = _r(consequences={(frozenset({"A"}), frozenset({"B"}))})
-        assert r.query(frozenset({"A"}), frozenset({"B"}))
-        assert not r.query(frozenset({"A", "C"}), frozenset({"B"}))
+        """P(a) => Q(a) holds, but P(a), R(a) => Q(a) fails."""
+        r = _r(consequences={(frozenset({"P(a)"}), frozenset({"Q(a)"}))})
+        assert r.query(frozenset({"P(a)"}), frozenset({"Q(a)"}))
+        assert not r.query(frozenset({"P(a)", "R(a)"}), frozenset({"Q(a)"}))
 
     def test_all_defeats_inference(self):
         """ALL R.C adds defeating concept."""
@@ -102,12 +102,12 @@ class TestNonmonotonicity:
 class TestNontransitivity:
     def test_propositional(self):
         r = _r(consequences={
-            (frozenset({"A"}), frozenset({"B"})),
-            (frozenset({"B"}), frozenset({"C"})),
+            (frozenset({"P(a)"}), frozenset({"Q(a)"})),
+            (frozenset({"Q(a)"}), frozenset({"R(a)"})),
         })
-        assert r.query(frozenset({"A"}), frozenset({"B"}))
-        assert r.query(frozenset({"B"}), frozenset({"C"}))
-        assert not r.query(frozenset({"A"}), frozenset({"C"}))
+        assert r.query(frozenset({"P(a)"}), frozenset({"Q(a)"}))
+        assert r.query(frozenset({"Q(a)"}), frozenset({"R(a)"}))
+        assert not r.query(frozenset({"P(a)"}), frozenset({"R(a)"}))
 
     def test_with_concept_assertions(self):
         r = _r(consequences={
@@ -127,7 +127,7 @@ class TestNontransitivity:
 class TestSupraclassicality:
     def test_lem(self):
         r = _r()
-        assert r.query(frozenset(), frozenset({"A | ~A"}))
+        assert r.query(frozenset(), frozenset({"P(a) | ~P(a)"}))
 
     def test_lem_quantified(self):
         r = _r()
@@ -137,13 +137,13 @@ class TestSupraclassicality:
         )
 
     def test_double_negation(self):
-        r = _r(language={"A"})
-        assert r.query(frozenset({"A"}), frozenset({"~~A"}))
-        assert r.query(frozenset({"~~A"}), frozenset({"A"}))
+        r = _r(language={"P(a)"})
+        assert r.query(frozenset({"P(a)"}), frozenset({"~~P(a)"}))
+        assert r.query(frozenset({"~~P(a)"}), frozenset({"P(a)"}))
 
     def test_explosion(self):
-        r = _r(language={"A", "D"})
-        assert r.query(frozenset({"A", "~A"}), frozenset({"D"}))
+        r = _r(language={"P(a)", "S(a)"})
+        assert r.query(frozenset({"P(a)", "~P(a)"}), frozenset({"S(a)"}))
 
     def test_explosion_with_concept_assertions(self):
         r = _r(language={"Happy(alice)", "Sad(alice)"})
@@ -153,8 +153,8 @@ class TestSupraclassicality:
         )
 
     def test_modus_ponens(self):
-        r = _r(language={"A", "B"})
-        assert r.query(frozenset({"A", "A -> B"}), frozenset({"B"}))
+        r = _r(language={"P(a)", "Q(a)"})
+        assert r.query(frozenset({"P(a)", "P(a) -> Q(a)"}), frozenset({"Q(a)"}))
 
 
 # -------------------------------------------------------------------
@@ -164,8 +164,8 @@ class TestSupraclassicality:
 
 class TestDDT:
     def test_propositional(self):
-        r = _r(consequences={(frozenset({"A"}), frozenset({"B"}))})
-        assert r.query(frozenset(), frozenset({"A -> B"}))
+        r = _r(consequences={(frozenset({"P(a)"}), frozenset({"Q(a)"}))})
+        assert r.query(frozenset(), frozenset({"P(a) -> Q(a)"}))
 
     def test_with_quantifier_antecedent(self):
         """DDT: hasChild(a,b) => ALL R.C(a) -> C(b)."""
@@ -192,13 +192,12 @@ class TestDDT:
 
 class TestII:
     def test_negation_left_right(self):
-        """Gamma, A => Delta iff Gamma => ~A, Delta."""
-        r = _r(language={"A", "B"})
-        # A, B => A is containment (True)
-        # so B => ~A should be... no wait.
-        # II: Gamma |~ ~A, Delta iff Gamma, A |~ Delta
-        # Test: {} |~ ~A, A  iff  A |~ A  (containment)
-        assert r.query(frozenset(), frozenset({"~A", "A"}))
+        """Gamma, P(a) => Delta iff Gamma => ~P(a), Delta."""
+        r = _r(language={"P(a)", "Q(a)"})
+        # P(a), Q(a) => P(a) is containment (True)
+        # II: Gamma |~ ~P(a), Delta iff Gamma, P(a) |~ Delta
+        # Test: {} |~ ~P(a), P(a)  iff  P(a) |~ P(a)  (containment)
+        assert r.query(frozenset(), frozenset({"~P(a)", "P(a)"}))
 
 
 # -------------------------------------------------------------------
@@ -208,18 +207,18 @@ class TestII:
 
 class TestAA:
     def test_conjunction_left(self):
-        """Gamma, A & B => Delta iff Gamma, A, B => Delta."""
-        r = _r(language={"A", "B"})
-        assert r.query(frozenset({"A & B"}), frozenset({"A"}))
-        assert r.query(frozenset({"A", "B"}), frozenset({"A"}))
+        """Gamma, P(a) & Q(a) => Delta iff Gamma, P(a), Q(a) => Delta."""
+        r = _r(language={"P(a)", "Q(a)"})
+        assert r.query(frozenset({"P(a) & Q(a)"}), frozenset({"P(a)"}))
+        assert r.query(frozenset({"P(a)", "Q(a)"}), frozenset({"P(a)"}))
 
 
 class TestSS:
     def test_disjunction_right(self):
-        """Gamma => A | B, Delta iff Gamma => A, B, Delta."""
-        r = _r(language={"A"})
-        assert r.query(frozenset({"A"}), frozenset({"A | B"}))
-        assert r.query(frozenset({"A"}), frozenset({"A", "B"}))
+        """Gamma => P(a) | Q(a), Delta iff Gamma => P(a), Q(a), Delta."""
+        r = _r(language={"P(a)"})
+        assert r.query(frozenset({"P(a)"}), frozenset({"P(a) | Q(a)"}))
+        assert r.query(frozenset({"P(a)"}), frozenset({"P(a)", "Q(a)"}))
 
 
 # -------------------------------------------------------------------

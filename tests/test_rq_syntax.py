@@ -19,7 +19,7 @@ from pynmms.rq.syntax import (
     make_role_assertion,
     parse_rq_sentence,
 )
-from pynmms.syntax import ATOM, CONJ, DISJ, IMPL, NEG, Sentence
+from pynmms.syntax import CONJ, DISJ, IMPL, NEG, Sentence
 
 # -------------------------------------------------------------------
 # Parsing: RQ-specific sentence types
@@ -98,11 +98,9 @@ class TestParseSomeRestrict:
 
 
 class TestParsePropositional:
-    def test_bare_atom(self):
-        p = parse_rq_sentence("A")
-        assert isinstance(p, Sentence)
-        assert p.type == ATOM
-        assert p.name == "A"
+    def test_bare_atom_rejected(self):
+        with pytest.raises(ValueError, match="not valid in NMMS_RQ"):
+            parse_rq_sentence("A")
 
     def test_negation(self):
         p = parse_rq_sentence("~A")
@@ -281,7 +279,7 @@ class TestIsRQAtomic:
         assert is_rq_atomic("hasChild(alice,bob)") is True
 
     def test_bare_atom(self):
-        assert is_rq_atomic("A") is True
+        assert is_rq_atomic("A") is False
 
     def test_quantifier_not_atomic(self):
         assert is_rq_atomic("ALL hasChild.Happy(alice)") is False
@@ -295,8 +293,12 @@ class TestIsRQAtomic:
 
 class TestAllRQAtomic:
     def test_all_atomic(self):
-        sentences = frozenset({"Happy(alice)", "hasChild(alice,bob)", "A"})
+        sentences = frozenset({"Happy(alice)", "hasChild(alice,bob)"})
         assert all_rq_atomic(sentences) is True
+
+    def test_bare_atom_not_atomic(self):
+        sentences = frozenset({"Happy(alice)", "A"})
+        assert all_rq_atomic(sentences) is False
 
     def test_has_complex(self):
         sentences = frozenset({"Happy(alice)", "ALL hasChild.Happy(alice)"})

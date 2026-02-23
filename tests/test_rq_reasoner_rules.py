@@ -30,64 +30,64 @@ class TestPropositionalBackwardCompat:
     """The RQ reasoner should produce identical results for propositional queries."""
 
     def test_containment(self):
-        r = _r(language={"A"})
-        assert r.query(frozenset({"A"}), frozenset({"A"}))
+        r = _r(language={"P(a)"})
+        assert r.query(frozenset({"P(a)"}), frozenset({"P(a)"}))
 
     def test_base_consequence(self):
-        r = _r(consequences={(frozenset({"A"}), frozenset({"B"}))})
-        assert r.query(frozenset({"A"}), frozenset({"B"}))
+        r = _r(consequences={(frozenset({"P(a)"}), frozenset({"Q(a)"}))})
+        assert r.query(frozenset({"P(a)"}), frozenset({"Q(a)"}))
 
     def test_nontransitivity(self):
         r = _r(consequences={
-            (frozenset({"A"}), frozenset({"B"})),
-            (frozenset({"B"}), frozenset({"C"})),
+            (frozenset({"P(a)"}), frozenset({"Q(a)"})),
+            (frozenset({"Q(a)"}), frozenset({"R(a)"})),
         })
-        assert not r.query(frozenset({"A"}), frozenset({"C"}))
+        assert not r.query(frozenset({"P(a)"}), frozenset({"R(a)"}))
 
     def test_nonmonotonicity(self):
-        r = _r(consequences={(frozenset({"A"}), frozenset({"B"}))})
-        assert not r.query(frozenset({"A", "C"}), frozenset({"B"}))
+        r = _r(consequences={(frozenset({"P(a)"}), frozenset({"Q(a)"}))})
+        assert not r.query(frozenset({"P(a)", "R(a)"}), frozenset({"Q(a)"}))
 
     def test_lem(self):
-        r = _r(language={"A"})
-        assert r.query(frozenset(), frozenset({"A | ~A"}))
+        r = _r(language={"P(a)"})
+        assert r.query(frozenset(), frozenset({"P(a) | ~P(a)"}))
 
     def test_ddt(self):
-        r = _r(consequences={(frozenset({"A"}), frozenset({"B"}))})
-        assert r.query(frozenset(), frozenset({"A -> B"}))
+        r = _r(consequences={(frozenset({"P(a)"}), frozenset({"Q(a)"}))})
+        assert r.query(frozenset(), frozenset({"P(a) -> Q(a)"}))
 
     def test_left_negation(self):
-        r = _r(language={"A", "D"})
-        assert r.query(frozenset({"~A", "A"}), frozenset({"D"}))
+        r = _r(language={"P(a)", "S(a)"})
+        assert r.query(frozenset({"~P(a)", "P(a)"}), frozenset({"S(a)"}))
 
     def test_right_negation(self):
-        r = _r(language={"A"})
-        assert r.query(frozenset({"A"}), frozenset({"~~A"}))
+        r = _r(language={"P(a)"})
+        assert r.query(frozenset({"P(a)"}), frozenset({"~~P(a)"}))
 
     def test_left_conjunction(self):
-        r = _r(language={"A", "B"})
-        assert r.query(frozenset({"A & B"}), frozenset({"A"}))
+        r = _r(language={"P(a)", "Q(a)"})
+        assert r.query(frozenset({"P(a) & Q(a)"}), frozenset({"P(a)"}))
 
     def test_right_conjunction(self):
-        r = _r(language={"A", "B"})
-        assert r.query(frozenset({"A", "B"}), frozenset({"A & B"}))
+        r = _r(language={"P(a)", "Q(a)"})
+        assert r.query(frozenset({"P(a)", "Q(a)"}), frozenset({"P(a) & Q(a)"}))
 
     def test_left_disjunction(self):
-        r = _r(language={"A", "B"})
-        # A | B => A, B (both disjuncts land in succedent via containment)
-        assert r.query(frozenset({"A | B"}), frozenset({"A", "B"}))
+        r = _r(language={"P(a)", "Q(a)"})
+        # P(a) | Q(a) => P(a), Q(a) (both disjuncts land in succedent via containment)
+        assert r.query(frozenset({"P(a) | Q(a)"}), frozenset({"P(a)", "Q(a)"}))
 
     def test_right_disjunction(self):
-        r = _r(language={"A"})
-        assert r.query(frozenset({"A"}), frozenset({"A | B"}))
+        r = _r(language={"P(a)"})
+        assert r.query(frozenset({"P(a)"}), frozenset({"P(a) | Q(a)"}))
 
     def test_left_implication(self):
-        r = _r(consequences={(frozenset({"A"}), frozenset({"B"}))})
-        assert r.query(frozenset({"A -> B", "A"}), frozenset({"B"}))
+        r = _r(consequences={(frozenset({"P(a)"}), frozenset({"Q(a)"}))})
+        assert r.query(frozenset({"P(a) -> Q(a)", "P(a)"}), frozenset({"Q(a)"}))
 
     def test_right_implication(self):
-        r = _r(language={"A"})
-        assert r.query(frozenset(), frozenset({"A -> A"}))
+        r = _r(language={"P(a)"})
+        assert r.query(frozenset(), frozenset({"P(a) -> P(a)"}))
 
 
 # -------------------------------------------------------------------

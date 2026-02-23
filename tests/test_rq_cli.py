@@ -44,7 +44,7 @@ class TestRQTellCommand:
         Path(path).unlink()
 
     def test_tell_rq_no_create_missing(self):
-        result = main(["tell", "-b", "/nonexistent/rq_base.json", "--rq", "A |~ B"])
+        result = main(["tell", "-b", "/nonexistent/rq_base.json", "--rq", "P(a) |~ Q(a)"])
         assert result == 1
 
 
@@ -151,3 +151,12 @@ class TestRQReplCommand:
             "show schemas",
         ])
         assert result == 0
+
+    def test_repl_rq_schema_with_annotation(self, capsys):
+        result = self._run_repl([
+            'tell schema concept hasChild alice Happy "All children are happy"',
+            "show schemas",
+        ])
+        assert result == 0
+        out = capsys.readouterr().out
+        assert "All children are happy" in out

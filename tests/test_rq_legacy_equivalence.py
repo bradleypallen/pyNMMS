@@ -29,34 +29,34 @@ class TestDemo1PropositionalBackwardCompat:
     @pytest.fixture
     def reasoner(self):
         return _r(
-            language={"A", "B", "C"},
+            language={"P(a)", "Q(a)", "R(a)"},
             consequences={
-                (frozenset({"A"}), frozenset({"B"})),
-                (frozenset({"B"}), frozenset({"C"})),
+                (frozenset({"P(a)"}), frozenset({"Q(a)"})),
+                (frozenset({"Q(a)"}), frozenset({"R(a)"})),
             },
             max_depth=15,
         )
 
     def test_containment(self, reasoner):
-        assert reasoner.query(frozenset({"A"}), frozenset({"A"}))
+        assert reasoner.query(frozenset({"P(a)"}), frozenset({"P(a)"}))
 
     def test_base_consequence_ab(self, reasoner):
-        assert reasoner.query(frozenset({"A"}), frozenset({"B"}))
+        assert reasoner.query(frozenset({"P(a)"}), frozenset({"Q(a)"}))
 
     def test_base_consequence_bc(self, reasoner):
-        assert reasoner.query(frozenset({"B"}), frozenset({"C"}))
+        assert reasoner.query(frozenset({"Q(a)"}), frozenset({"R(a)"}))
 
     def test_nontransitivity(self, reasoner):
-        assert not reasoner.query(frozenset({"A"}), frozenset({"C"}))
+        assert not reasoner.query(frozenset({"P(a)"}), frozenset({"R(a)"}))
 
     def test_nonmonotonicity(self, reasoner):
-        assert not reasoner.query(frozenset({"A", "C"}), frozenset({"B"}))
+        assert not reasoner.query(frozenset({"P(a)", "R(a)"}), frozenset({"Q(a)"}))
 
     def test_lem(self, reasoner):
-        assert reasoner.query(frozenset(), frozenset({"A | ~A"}))
+        assert reasoner.query(frozenset(), frozenset({"P(a) | ~P(a)"}))
 
     def test_ddt(self, reasoner):
-        assert reasoner.query(frozenset(), frozenset({"A -> B"}))
+        assert reasoner.query(frozenset(), frozenset({"P(a) -> Q(a)"}))
 
 
 # -------------------------------------------------------------------

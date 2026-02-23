@@ -25,9 +25,9 @@ def _validate_rq_atomic(s: str, context: str) -> None:
     """Raise ValueError if *s* is not an RQ-atomic sentence."""
     if not is_rq_atomic(s):
         raise ValueError(
-            f"{context}: found logically complex sentence '{s}'. "
-            f"Only concept assertions, role assertions, and bare atoms "
-            f"are permitted in the material base."
+            f"{context}: '{s}' is not valid in NMMS_RQ. "
+            f"Only concept assertions C(a) and role assertions R(a,b) "
+            f"are permitted in the RQ material base."
         )
 
 
@@ -72,6 +72,7 @@ class RQMaterialBase(MaterialBase):
         self._inference_schemas: list[
             tuple[str, str, str | None, frozenset[str]]
         ] = []
+        self._schema_annotations: list[str | None] = []
         # Temporarily bypass parent validation — we override _validate
         self._rq_language: set[str] = set(language) if language else set()
         self._rq_consequences: set[Sequent] = set()
@@ -132,6 +133,11 @@ class RQMaterialBase(MaterialBase):
         """Known roles (read-only)."""
         return frozenset(self._roles)
 
+    @property
+    def schema_annotations(self) -> list[str | None]:
+        """Schema annotations (read-only view)."""
+        return list(self._schema_annotations)
+
     # --- Mutation ---
 
     def add_atom(self, s: str) -> None:
@@ -162,7 +168,11 @@ class RQMaterialBase(MaterialBase):
     # --- Schema registration ---
 
     def register_concept_schema(
-        self, role: str, subject: str, concept: str
+        self,
+        role: str,
+        subject: str,
+        concept: str,
+        annotation: str | None = None,
     ) -> None:
         """Register: for all role(subject, x), assert concept(x).
 
@@ -174,6 +184,7 @@ class RQMaterialBase(MaterialBase):
             None,
             frozenset({make_concept_assertion(concept, "__OBJ__")}),
         ))
+        self._schema_annotations.append(annotation)
         logger.debug(
             "Registered concept schema: %s(%s, x) |~ %s(x)", role, subject, concept
         )
@@ -184,6 +195,7 @@ class RQMaterialBase(MaterialBase):
         subject: str,
         premise_concept: str | None,
         conclusion: set[str],
+        annotation: str | None = None,
     ) -> None:
         """Register: for all role(subject, x) with premise_concept(x), conclude.
 
@@ -194,6 +206,7 @@ class RQMaterialBase(MaterialBase):
         self._inference_schemas.append(
             (role, subject, premise_concept, conclusion_fs)
         )
+        self._schema_annotations.append(annotation)
         logger.debug(
             "Registered inference schema: %s(%s, x), %s(x) |~ %s",
             role,
@@ -277,8 +290,13 @@ class RQMaterialBase(MaterialBase):
                 "subject": subject,
                 "premise_concept": premise_concept,
                 "conclusion": sorted(conclusion),
+                **({"annotation": self._schema_annotations[i]}
+                   if i < len(self._schema_annotations)
+                   and self._schema_annotations[i]
+                   else {}),
             }
-            for role, subject, premise_concept, conclusion in self._inference_schemas
+            for i, (role, subject, premise_concept, conclusion)
+            in enumerate(self._inference_schemas)
         ]
         return base_dict
 
@@ -303,6 +321,7 @@ class RQMaterialBase(MaterialBase):
                 schema["premise_concept"],
                 frozenset(schema["conclusion"]),
             ))
+            base._schema_annotations.append(schema.get("annotation"))
 
         return base
 

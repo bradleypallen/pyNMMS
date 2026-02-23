@@ -550,14 +550,14 @@
   
   
     <li class="md-nav__item">
-      <a href="tutorial/rdfs-tutorial/" class="md-nav__link">
+      <a href="tutorial/onto-tutorial/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    RDFS Extension
+    Ontology Extension
   
 
     
@@ -723,14 +723,14 @@
   
   
     <li class="md-nav__item">
-      <a href="api/rdfs-base/" class="md-nav__link">
+      <a href="api/onto-base/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    RDFS Material Base
+    Ontology Material Base
   
 
     
@@ -751,14 +751,14 @@
   
   
     <li class="md-nav__item">
-      <a href="api/rdfs-syntax/" class="md-nav__link">
+      <a href="api/onto-syntax/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    RDFS Syntax
+    Ontology Syntax
   
 
     
@@ -868,14 +868,14 @@
   
   
     <li class="md-nav__item">
-      <a href="theory/rdfs-extension/" class="md-nav__link">
+      <a href="theory/onto-extension/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    RDFS Extension
+    Ontology Extension
   
 
     
@@ -974,7 +974,7 @@
 
 <h1 id="pynmms">pyNMMS<a class="headerlink" href="#pynmms" title="Permanent link">&para;</a></h1>
 <p><strong>An automated reasoner for the Non-Monotonic Multi-Succedent (NMMS) propositional sequent calculus</strong> from Hlobil &amp; Brandom 2025, Ch. 3.</p>
-<p>pyNMMS implements a proof search engine for the NMMS sequent calculus, which codifies <em>open reason relations</em> — consequence relations where Monotonicity and Transitivity can fail.</p>
+<p>pyNMMS implements a proof search engine for the NMMS sequent calculus, which codifies <em>open reason relations</em> -- consequence relations where Monotonicity and Transitivity can fail.</p>
 <h2 id="why-pynmms">Why pyNMMS?<a class="headerlink" href="#why-pynmms" title="Permanent link">&para;</a></h2>
 <p>Traditional logics assume that adding premises never defeats an inference (Monotonicity) and that chaining good inferences always yields good inferences (Transitivity). But real-world reasoning is often <strong>defeasible</strong>: new information can override previous conclusions.</p>
 <p>pyNMMS provides:</p>
@@ -984,7 +984,7 @@
 <li><strong>Supraclassicality</strong>: all classically valid sequents remain derivable</li>
 <li>A <strong>Tell/Ask CLI</strong> and <strong>interactive REPL</strong> for exploring reason relations</li>
 <li>Full <strong>proof traces</strong> for understanding derivations</li>
-<li><strong>RDFS extension</strong> with defeasible subClassOf, range, domain, and subPropertyOf axiom schemas</li>
+<li><strong>Ontology extension</strong> with schema-level macros for material inferential commitments and incompatibilities (subClassOf, range, domain, subPropertyOf, disjointWith, disjointProperties)</li>
 </ul>
 <h2 id="quick-example">Quick Example<a class="headerlink" href="#quick-example" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pynmms</span><span class="w"> </span><span class="kn">import</span> <span class="n">MaterialBase</span><span class="p">,</span> <span class="n">NMMSReasoner</span>

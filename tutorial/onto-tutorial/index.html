@@ -1,0 +1,2691 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="An automated reasoner for the Non-Monotonic Multi-Succedent (NMMS) propositional sequent calculus">
+      
+      
+      
+        <link rel="canonical" href="https://bradleypallen.github.io/pyNMMS/tutorial/onto-tutorial/">
+      
+      
+        <link rel="prev" href="../chapter3-walkthrough/">
+      
+      
+        <link rel="next" href="../../api/base/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Ontology Extension - pyNMMS</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#ontology-extension-tutorial" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="pyNMMS" class="md-header__button md-logo" aria-label="pyNMMS" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            pyNMMS
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Ontology Extension
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="pyNMMS" class="md-nav__button md-logo" aria-label="pyNMMS" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    pyNMMS
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorial
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Tutorial
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Key Concepts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../material-bases/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Material Bases
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../proof-search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Proof Search
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cli-usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI Usage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../chapter3-walkthrough/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter 3 Walkthrough
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ontology Extension
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ontology Extension
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-building-an-ontology-material-base" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Building an Ontology Material Base
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Building an Ontology Material Base">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#abox-concept-and-role-assertions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ABox: Concept and Role Assertions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#base-consequences" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Base Consequences
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-adding-ontology-schemas-tbox" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Adding Ontology Schemas (TBox)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Adding Ontology Schemas (TBox)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#subclassof" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        subClassOf
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#range" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        range
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#domain" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        domain
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#subpropertyof" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        subPropertyOf
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#disjointwith" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        disjointWith
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#disjointproperties" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        disjointProperties
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#annotations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Annotations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#complete-tbox-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Complete TBox Example
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lazy-evaluation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lazy Evaluation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-querying-with-nmmsreasoner" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Querying with NMMSReasoner
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Querying with NMMSReasoner">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#range-and-domain-queries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Range and Domain Queries
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#subproperty-queries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SubProperty Queries
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#incompatibility-queries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Incompatibility Queries
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#proof-traces" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Proof Traces
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-defeasibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Defeasibility
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Defeasibility">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#range-defeasibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Range Defeasibility
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-non-transitivity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Non-transitivity
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-deduction-detachment-theorem-ddt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Deduction-Detachment Theorem (DDT)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-using-commitmentstore" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Using CommitmentStore
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Using CommitmentStore">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#building-commitments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Building Commitments
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#describing-commitments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Describing Commitments
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adding-ground-defeasible-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding Ground Defeasible Rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#retracting-schemas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Retracting Schemas
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caching" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Caching
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-cli-usage-with-onto" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. CLI Usage with --onto
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. CLI Usage with --onto">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pynmms-tell-onto" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pynmms tell --onto
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pynmms-ask-onto" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pynmms ask --onto
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pynmms-repl-onto" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pynmms repl --onto
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#batch-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Batch Mode
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-repl-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. REPL Commands
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. REPL Commands">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#schema-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Schema Commands
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#inspection-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inspection Commands
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#complete-command-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Complete Command Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-repl-session" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example REPL Session
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/base/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MaterialBase
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/reasoner/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    NMMSReasoner
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/syntax/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Syntax
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/onto-base/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ontology Material Base
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/onto-syntax/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ontology Syntax
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Theory
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Theory
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../theory/nmms-calculus/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    NMMS Calculus
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../theory/onto-extension/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ontology Extension
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-building-an-ontology-material-base" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Building an Ontology Material Base
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Building an Ontology Material Base">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#abox-concept-and-role-assertions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ABox: Concept and Role Assertions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#base-consequences" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Base Consequences
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-adding-ontology-schemas-tbox" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Adding Ontology Schemas (TBox)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Adding Ontology Schemas (TBox)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#subclassof" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        subClassOf
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#range" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        range
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#domain" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        domain
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#subpropertyof" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        subPropertyOf
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#disjointwith" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        disjointWith
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#disjointproperties" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        disjointProperties
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#annotations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Annotations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#complete-tbox-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Complete TBox Example
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lazy-evaluation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lazy Evaluation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-querying-with-nmmsreasoner" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Querying with NMMSReasoner
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Querying with NMMSReasoner">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#range-and-domain-queries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Range and Domain Queries
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#subproperty-queries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SubProperty Queries
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#incompatibility-queries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Incompatibility Queries
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#proof-traces" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Proof Traces
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-defeasibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Defeasibility
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Defeasibility">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#range-defeasibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Range Defeasibility
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-non-transitivity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Non-transitivity
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-deduction-detachment-theorem-ddt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Deduction-Detachment Theorem (DDT)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-using-commitmentstore" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Using CommitmentStore
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Using CommitmentStore">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#building-commitments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Building Commitments
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#describing-commitments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Describing Commitments
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adding-ground-defeasible-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding Ground Defeasible Rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#retracting-schemas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Retracting Schemas
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caching" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Caching
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-cli-usage-with-onto" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. CLI Usage with --onto
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. CLI Usage with --onto">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pynmms-tell-onto" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pynmms tell --onto
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pynmms-ask-onto" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pynmms ask --onto
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pynmms-repl-onto" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pynmms repl --onto
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#batch-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Batch Mode
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-repl-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. REPL Commands
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. REPL Commands">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#schema-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Schema Commands
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#inspection-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inspection Commands
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#complete-command-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Complete Command Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-repl-session" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example REPL Session
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="ontology-extension-tutorial">Ontology Extension Tutorial<a class="headerlink" href="#ontology-extension-tutorial" title="Permanent link">&para;</a></h1>
+<p>This tutorial introduces the <strong>NMMS_Onto</strong> ontology engineering extension of pyNMMS, which provides schema-level macros for material inferential commitments and incompatibilities within the NMMS sequent calculus. Ontology schemas (subClassOf, range, domain, subPropertyOf, disjointWith, disjointProperties) are encoded as lazy axiom schemas in the material base, evaluated at query time with exact match to preserve nonmonotonicity.</p>
+<p>The vocabulary is borrowed from W3C RDFS and OWL for familiarity, but the semantics are those of NMMS -- exact-match defeasibility, no weakening, no transitivity. These schemas add no new reasoning capabilities; they are macros that generate ordinary base axioms.</p>
+<p>The ontology extension lives in the <code>pynmms.onto</code> subpackage and uses the standard <code>NMMSReasoner</code> for proof search -- no special reasoner is required.</p>
+<hr />
+<h2 id="1-building-an-ontology-material-base">1. Building an Ontology Material Base<a class="headerlink" href="#1-building-an-ontology-material-base" title="Permanent link">&para;</a></h2>
+<p>An <code>OntoMaterialBase</code> extends the propositional <code>MaterialBase</code> with ontology-style vocabulary tracking. Atoms in an ontology base are <strong>ground atomic formulas</strong>: concept assertions <code>C(a)</code> and role assertions <code>R(a,b)</code>. Bare propositional letters are not permitted.</p>
+<h3 id="abox-concept-and-role-assertions">ABox: Concept and Role Assertions<a class="headerlink" href="#abox-concept-and-role-assertions" title="Permanent link">&para;</a></h3>
+<p>The ABox (assertional box) is built from concept assertions and role assertions that describe particular individuals:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pynmms.onto</span><span class="w"> </span><span class="kn">import</span> <span class="n">OntoMaterialBase</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c1"># Create a base with concept and role assertions</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">base</span> <span class="o">=</span> <span class="n">OntoMaterialBase</span><span class="p">(</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">language</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Man(socrates)&quot;</span><span class="p">,</span> <span class="s2">&quot;hasChild(alice,bob)&quot;</span><span class="p">}</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="p">)</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="c1"># The base automatically tracks vocabulary</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="nb">print</span><span class="p">(</span><span class="n">base</span><span class="o">.</span><span class="n">individuals</span><span class="p">)</span>  <span class="c1"># frozenset({&#39;socrates&#39;, &#39;alice&#39;, &#39;bob&#39;})</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="nb">print</span><span class="p">(</span><span class="n">base</span><span class="o">.</span><span class="n">concepts</span><span class="p">)</span>     <span class="c1"># frozenset({&#39;Man&#39;})</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="nb">print</span><span class="p">(</span><span class="n">base</span><span class="o">.</span><span class="n">roles</span><span class="p">)</span>        <span class="c1"># frozenset({&#39;hasChild&#39;})</span>
+</code></pre></div>
+<p>You can also add atoms incrementally:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">base</span> <span class="o">=</span> <span class="n">OntoMaterialBase</span><span class="p">()</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">base</span><span class="o">.</span><span class="n">add_atom</span><span class="p">(</span><span class="s2">&quot;Man(socrates)&quot;</span><span class="p">)</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="n">base</span><span class="o">.</span><span class="n">add_atom</span><span class="p">(</span><span class="s2">&quot;Greek(socrates)&quot;</span><span class="p">)</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="n">base</span><span class="o">.</span><span class="n">add_atom</span><span class="p">(</span><span class="s2">&quot;hasChild(alice,bob)&quot;</span><span class="p">)</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="n">base</span><span class="o">.</span><span class="n">add_atom</span><span class="p">(</span><span class="s2">&quot;Doctor(bob)&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="base-consequences">Base Consequences<a class="headerlink" href="#base-consequences" title="Permanent link">&para;</a></h3>
+<p>Explicit base consequences (material inferences among atomic sentences) can be added at construction time or later:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># At construction time</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">base</span> <span class="o">=</span> <span class="n">OntoMaterialBase</span><span class="p">(</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    <span class="n">language</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Man(socrates)&quot;</span><span class="p">,</span> <span class="s2">&quot;Mortal(socrates)&quot;</span><span class="p">},</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    <span class="n">consequences</span><span class="o">=</span><span class="p">{</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>        <span class="p">(</span><span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;Man(socrates)&quot;</span><span class="p">}),</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;Mortal(socrates)&quot;</span><span class="p">})),</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    <span class="p">},</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="p">)</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="c1"># Or incrementally</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="n">base</span><span class="o">.</span><span class="n">add_consequence</span><span class="p">(</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>    <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;Greek(socrates)&quot;</span><span class="p">}),</span>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>    <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;Philosopher(socrates)&quot;</span><span class="p">}),</span>
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="p">)</span>
+</code></pre></div>
+<p>These are exact-match axioms with no weakening -- adding extra premises will defeat the inference, which is the hallmark of nonmonotonic reasoning.</p>
+<hr />
+<h2 id="2-adding-ontology-schemas-tbox">2. Adding Ontology Schemas (TBox)<a class="headerlink" href="#2-adding-ontology-schemas-tbox" title="Permanent link">&para;</a></h2>
+<p>The TBox (terminological box) consists of <strong>ontology schema macros</strong> that generate families of axiom instances via lazy evaluation. Six schema types are supported:</p>
+<h3 id="subclassof">subClassOf<a class="headerlink" href="#subclassof" title="Permanent link">&para;</a></h3>
+<p>Registers a subsumption relationship between concepts. For any individual x, <code>{C(x)} |~ {D(x)}</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">base</span> <span class="o">=</span> <span class="n">OntoMaterialBase</span><span class="p">(</span><span class="n">language</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Man(socrates)&quot;</span><span class="p">})</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="c1"># Man is a subclass of Mortal</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="n">base</span><span class="o">.</span><span class="n">register_subclass</span><span class="p">(</span><span class="s2">&quot;Man&quot;</span><span class="p">,</span> <span class="s2">&quot;Mortal&quot;</span><span class="p">)</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="c1"># This makes {Man(socrates)} |~ {Mortal(socrates)} an axiom,</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="c1"># and likewise for any other individual that appears in the base.</span>
+</code></pre></div>
+<h3 id="range">range<a class="headerlink" href="#range" title="Permanent link">&para;</a></h3>
+<p>Registers a range constraint on a role. For any x, y, <code>{R(x,y)} |~ {C(y)}</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">base</span> <span class="o">=</span> <span class="n">OntoMaterialBase</span><span class="p">(</span><span class="n">language</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;hasChild(alice,bob)&quot;</span><span class="p">})</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="c1"># The range of hasChild is Person</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="n">base</span><span class="o">.</span><span class="n">register_range</span><span class="p">(</span><span class="s2">&quot;hasChild&quot;</span><span class="p">,</span> <span class="s2">&quot;Person&quot;</span><span class="p">)</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="c1"># This makes {hasChild(alice,bob)} |~ {Person(bob)} an axiom.</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="c1"># The concept is applied to the second argument (the object).</span>
+</code></pre></div>
+<h3 id="domain">domain<a class="headerlink" href="#domain" title="Permanent link">&para;</a></h3>
+<p>Registers a domain constraint on a role. For any x, y, <code>{R(x,y)} |~ {C(x)}</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">base</span> <span class="o">=</span> <span class="n">OntoMaterialBase</span><span class="p">(</span><span class="n">language</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;hasChild(alice,bob)&quot;</span><span class="p">})</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="c1"># The domain of hasChild is Parent</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="n">base</span><span class="o">.</span><span class="n">register_domain</span><span class="p">(</span><span class="s2">&quot;hasChild&quot;</span><span class="p">,</span> <span class="s2">&quot;Parent&quot;</span><span class="p">)</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="c1"># This makes {hasChild(alice,bob)} |~ {Parent(alice)} an axiom.</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="c1"># The concept is applied to the first argument (the subject).</span>
+</code></pre></div>
+<h3 id="subpropertyof">subPropertyOf<a class="headerlink" href="#subpropertyof" title="Permanent link">&para;</a></h3>
+<p>Registers a sub-property relationship between roles. For any x, y, <code>{R(x,y)} |~ {S(x,y)}</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">base</span> <span class="o">=</span> <span class="n">OntoMaterialBase</span><span class="p">(</span><span class="n">language</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;hasChild(alice,bob)&quot;</span><span class="p">})</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="c1"># hasChild is a sub-property of hasDescendant</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="n">base</span><span class="o">.</span><span class="n">register_subproperty</span><span class="p">(</span><span class="s2">&quot;hasChild&quot;</span><span class="p">,</span> <span class="s2">&quot;hasDescendant&quot;</span><span class="p">)</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="c1"># This makes {hasChild(alice,bob)} |~ {hasDescendant(alice,bob)} an axiom.</span>
+</code></pre></div>
+<h3 id="disjointwith">disjointWith<a class="headerlink" href="#disjointwith" title="Permanent link">&para;</a></h3>
+<p>Registers an incompatibility between concepts. For any individual x, <code>{C(x), D(x)} |~ {}</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">base</span> <span class="o">=</span> <span class="n">OntoMaterialBase</span><span class="p">(</span><span class="n">language</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Alive(socrates)&quot;</span><span class="p">,</span> <span class="s2">&quot;Dead(socrates)&quot;</span><span class="p">})</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="c1"># Alive and Dead are incompatible concepts</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="n">base</span><span class="o">.</span><span class="n">register_disjoint_concepts</span><span class="p">(</span><span class="s2">&quot;Alive&quot;</span><span class="p">,</span> <span class="s2">&quot;Dead&quot;</span><span class="p">)</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="c1"># This makes {Alive(socrates), Dead(socrates)} |~ {} an axiom.</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="c1"># The empty consequent means the pair of premises is incoherent.</span>
+</code></pre></div>
+<p>Incompatibility is foundational in Brandom's framework -- it is prior to negation, not derived from it. The <code>disjointWith</code> schema directly encodes material incompatibility between concepts.</p>
+<h3 id="disjointproperties">disjointProperties<a class="headerlink" href="#disjointproperties" title="Permanent link">&para;</a></h3>
+<p>Registers an incompatibility between roles. For any individuals x, y, <code>{R(x,y), S(x,y)} |~ {}</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="n">base</span> <span class="o">=</span> <span class="n">OntoMaterialBase</span><span class="p">(</span><span class="n">language</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;employs(alice,bob)&quot;</span><span class="p">,</span> <span class="s2">&quot;isEmployedBy(alice,bob)&quot;</span><span class="p">})</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="c1"># employs and isEmployedBy are incompatible for the same pair</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="n">base</span><span class="o">.</span><span class="n">register_disjoint_properties</span><span class="p">(</span><span class="s2">&quot;employs&quot;</span><span class="p">,</span> <span class="s2">&quot;isEmployedBy&quot;</span><span class="p">)</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="c1"># This makes {employs(alice,bob), isEmployedBy(alice,bob)} |~ {} an axiom.</span>
+</code></pre></div>
+<h3 id="annotations">Annotations<a class="headerlink" href="#annotations" title="Permanent link">&para;</a></h3>
+<p>All schema registration methods accept an optional <code>annotation</code> parameter for documentation:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="n">base</span><span class="o">.</span><span class="n">register_subclass</span><span class="p">(</span><span class="s2">&quot;Man&quot;</span><span class="p">,</span> <span class="s2">&quot;Mortal&quot;</span><span class="p">,</span> <span class="n">annotation</span><span class="o">=</span><span class="s2">&quot;All men are mortal&quot;</span><span class="p">)</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="n">base</span><span class="o">.</span><span class="n">register_range</span><span class="p">(</span><span class="s2">&quot;hasChild&quot;</span><span class="p">,</span> <span class="s2">&quot;Person&quot;</span><span class="p">,</span> <span class="n">annotation</span><span class="o">=</span><span class="s2">&quot;Children are persons&quot;</span><span class="p">)</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="n">base</span><span class="o">.</span><span class="n">register_disjoint_concepts</span><span class="p">(</span><span class="s2">&quot;Alive&quot;</span><span class="p">,</span> <span class="s2">&quot;Dead&quot;</span><span class="p">,</span> <span class="n">annotation</span><span class="o">=</span><span class="s2">&quot;Life and death are incompatible&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="complete-tbox-example">Complete TBox Example<a class="headerlink" href="#complete-tbox-example" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pynmms.onto</span><span class="w"> </span><span class="kn">import</span> <span class="n">OntoMaterialBase</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="n">base</span> <span class="o">=</span> <span class="n">OntoMaterialBase</span><span class="p">(</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>    <span class="n">language</span><span class="o">=</span><span class="p">{</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>        <span class="s2">&quot;Man(socrates)&quot;</span><span class="p">,</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>        <span class="s2">&quot;hasChild(alice,bob)&quot;</span><span class="p">,</span>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>        <span class="s2">&quot;Doctor(bob)&quot;</span><span class="p">,</span>
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>        <span class="s2">&quot;Alive(socrates)&quot;</span><span class="p">,</span>
+<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>    <span class="p">}</span>
+<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="p">)</span>
+<a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a>
+<a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a><span class="n">base</span><span class="o">.</span><span class="n">register_subclass</span><span class="p">(</span><span class="s2">&quot;Man&quot;</span><span class="p">,</span> <span class="s2">&quot;Mortal&quot;</span><span class="p">)</span>
+<a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a><span class="n">base</span><span class="o">.</span><span class="n">register_range</span><span class="p">(</span><span class="s2">&quot;hasChild&quot;</span><span class="p">,</span> <span class="s2">&quot;Person&quot;</span><span class="p">)</span>
+<a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a><span class="n">base</span><span class="o">.</span><span class="n">register_domain</span><span class="p">(</span><span class="s2">&quot;hasChild&quot;</span><span class="p">,</span> <span class="s2">&quot;Parent&quot;</span><span class="p">)</span>
+<a id="__codelineno-10-15" name="__codelineno-10-15" href="#__codelineno-10-15"></a><span class="n">base</span><span class="o">.</span><span class="n">register_subproperty</span><span class="p">(</span><span class="s2">&quot;hasChild&quot;</span><span class="p">,</span> <span class="s2">&quot;hasDescendant&quot;</span><span class="p">)</span>
+<a id="__codelineno-10-16" name="__codelineno-10-16" href="#__codelineno-10-16"></a><span class="n">base</span><span class="o">.</span><span class="n">register_disjoint_concepts</span><span class="p">(</span><span class="s2">&quot;Alive&quot;</span><span class="p">,</span> <span class="s2">&quot;Dead&quot;</span><span class="p">)</span>
+<a id="__codelineno-10-17" name="__codelineno-10-17" href="#__codelineno-10-17"></a><span class="n">base</span><span class="o">.</span><span class="n">register_disjoint_properties</span><span class="p">(</span><span class="s2">&quot;employs&quot;</span><span class="p">,</span> <span class="s2">&quot;isEmployedBy&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="lazy-evaluation">Lazy Evaluation<a class="headerlink" href="#lazy-evaluation" title="Permanent link">&para;</a></h3>
+<p>Schemas are <strong>not</strong> eagerly grounded over all known individuals. Instead, they are checked lazily during axiom evaluation: when the reasoner encounters a candidate sequent <code>{C(a)} =&gt; {D(a)}</code>, it tests whether any registered schema matches. This avoids combinatorial blowup and preserves the exact-match semantics needed for nonmonotonicity.</p>
+<hr />
+<h2 id="3-querying-with-nmmsreasoner">3. Querying with NMMSReasoner<a class="headerlink" href="#3-querying-with-nmmsreasoner" title="Permanent link">&para;</a></h2>
+<p>The standard <code>NMMSReasoner</code> works transparently with <code>OntoMaterialBase</code> because ontology schemas are evaluated at the axiom level (via the overridden <code>is_axiom</code> method). No special reasoner class is needed.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pynmms.onto</span><span class="w"> </span><span class="kn">import</span> <span class="n">OntoMaterialBase</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pynmms.reasoner</span><span class="w"> </span><span class="kn">import</span> <span class="n">NMMSReasoner</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="c1"># Build the base</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="n">base</span> <span class="o">=</span> <span class="n">OntoMaterialBase</span><span class="p">(</span><span class="n">language</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Man(socrates)&quot;</span><span class="p">})</span>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="n">base</span><span class="o">.</span><span class="n">register_subclass</span><span class="p">(</span><span class="s2">&quot;Man&quot;</span><span class="p">,</span> <span class="s2">&quot;Mortal&quot;</span><span class="p">)</span>
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="c1"># Create a standard reasoner</span>
+<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="n">r</span> <span class="o">=</span> <span class="n">NMMSReasoner</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">max_depth</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+<a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a>
+<a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a><span class="c1"># Query: Man(socrates) =&gt; Mortal(socrates)?</span>
+<a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a><span class="n">result</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">derives</span><span class="p">(</span>
+<a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a>    <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;Man(socrates)&quot;</span><span class="p">}),</span>
+<a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a>    <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;Mortal(socrates)&quot;</span><span class="p">})</span>
+<a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a><span class="p">)</span>
+<a id="__codelineno-11-16" name="__codelineno-11-16" href="#__codelineno-11-16"></a><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">derivable</span><span class="p">)</span>  <span class="c1"># True</span>
+<a id="__codelineno-11-17" name="__codelineno-11-17" href="#__codelineno-11-17"></a>
+<a id="__codelineno-11-18" name="__codelineno-11-18" href="#__codelineno-11-18"></a><span class="c1"># Convenience method</span>
+<a id="__codelineno-11-19" name="__codelineno-11-19" href="#__codelineno-11-19"></a><span class="nb">print</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+<a id="__codelineno-11-20" name="__codelineno-11-20" href="#__codelineno-11-20"></a>    <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;Man(socrates)&quot;</span><span class="p">}),</span>
+<a id="__codelineno-11-21" name="__codelineno-11-21" href="#__codelineno-11-21"></a>    <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;Mortal(socrates)&quot;</span><span class="p">})</span>
+<a id="__codelineno-11-22" name="__codelineno-11-22" href="#__codelineno-11-22"></a><span class="p">))</span>  <span class="c1"># True</span>
+</code></pre></div>
+<h3 id="range-and-domain-queries">Range and Domain Queries<a class="headerlink" href="#range-and-domain-queries" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="n">base</span> <span class="o">=</span> <span class="n">OntoMaterialBase</span><span class="p">(</span><span class="n">language</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;hasChild(alice,bob)&quot;</span><span class="p">})</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="n">base</span><span class="o">.</span><span class="n">register_range</span><span class="p">(</span><span class="s2">&quot;hasChild&quot;</span><span class="p">,</span> <span class="s2">&quot;Person&quot;</span><span class="p">)</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="n">base</span><span class="o">.</span><span class="n">register_domain</span><span class="p">(</span><span class="s2">&quot;hasChild&quot;</span><span class="p">,</span> <span class="s2">&quot;Parent&quot;</span><span class="p">)</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="n">r</span> <span class="o">=</span> <span class="n">NMMSReasoner</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">max_depth</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="c1"># Range: hasChild(alice,bob) =&gt; Person(bob)?</span>
+<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="nb">print</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a>    <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;hasChild(alice,bob)&quot;</span><span class="p">}),</span>
+<a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a>    <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;Person(bob)&quot;</span><span class="p">})</span>
+<a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a><span class="p">))</span>  <span class="c1"># True</span>
+<a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a>
+<a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a><span class="c1"># Domain: hasChild(alice,bob) =&gt; Parent(alice)?</span>
+<a id="__codelineno-12-14" name="__codelineno-12-14" href="#__codelineno-12-14"></a><span class="nb">print</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+<a id="__codelineno-12-15" name="__codelineno-12-15" href="#__codelineno-12-15"></a>    <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;hasChild(alice,bob)&quot;</span><span class="p">}),</span>
+<a id="__codelineno-12-16" name="__codelineno-12-16" href="#__codelineno-12-16"></a>    <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;Parent(alice)&quot;</span><span class="p">})</span>
+<a id="__codelineno-12-17" name="__codelineno-12-17" href="#__codelineno-12-17"></a><span class="p">))</span>  <span class="c1"># True</span>
+</code></pre></div>
+<h3 id="subproperty-queries">SubProperty Queries<a class="headerlink" href="#subproperty-queries" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="n">base</span> <span class="o">=</span> <span class="n">OntoMaterialBase</span><span class="p">(</span><span class="n">language</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;hasChild(alice,bob)&quot;</span><span class="p">})</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="n">base</span><span class="o">.</span><span class="n">register_subproperty</span><span class="p">(</span><span class="s2">&quot;hasChild&quot;</span><span class="p">,</span> <span class="s2">&quot;hasDescendant&quot;</span><span class="p">)</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="n">r</span> <span class="o">=</span> <span class="n">NMMSReasoner</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">max_depth</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="c1"># hasChild(alice,bob) =&gt; hasDescendant(alice,bob)?</span>
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="nb">print</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>    <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;hasChild(alice,bob)&quot;</span><span class="p">}),</span>
+<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a>    <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;hasDescendant(alice,bob)&quot;</span><span class="p">})</span>
+<a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a><span class="p">))</span>  <span class="c1"># True</span>
+</code></pre></div>
+<h3 id="incompatibility-queries">Incompatibility Queries<a class="headerlink" href="#incompatibility-queries" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="n">base</span> <span class="o">=</span> <span class="n">OntoMaterialBase</span><span class="p">(</span><span class="n">language</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Alive(socrates)&quot;</span><span class="p">,</span> <span class="s2">&quot;Dead(socrates)&quot;</span><span class="p">})</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="n">base</span><span class="o">.</span><span class="n">register_disjoint_concepts</span><span class="p">(</span><span class="s2">&quot;Alive&quot;</span><span class="p">,</span> <span class="s2">&quot;Dead&quot;</span><span class="p">)</span>
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="n">r</span> <span class="o">=</span> <span class="n">NMMSReasoner</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">max_depth</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="c1"># Incompatibility: Alive(socrates), Dead(socrates) =&gt; {} (empty consequent)?</span>
+<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="nb">print</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+<a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>    <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;Alive(socrates)&quot;</span><span class="p">,</span> <span class="s2">&quot;Dead(socrates)&quot;</span><span class="p">}),</span>
+<a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a>    <span class="nb">frozenset</span><span class="p">()</span>
+<a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a><span class="p">))</span>  <span class="c1"># True</span>
+<a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a>
+<a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a><span class="c1"># With extra premise, the incompatibility is defeated</span>
+<a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a><span class="nb">print</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+<a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a>    <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;Alive(socrates)&quot;</span><span class="p">,</span> <span class="s2">&quot;Dead(socrates)&quot;</span><span class="p">,</span> <span class="s2">&quot;Zombie(socrates)&quot;</span><span class="p">}),</span>
+<a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a>    <span class="nb">frozenset</span><span class="p">()</span>
+<a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a><span class="p">))</span>  <span class="c1"># False</span>
+</code></pre></div>
+<h3 id="proof-traces">Proof Traces<a class="headerlink" href="#proof-traces" title="Permanent link">&para;</a></h3>
+<p>The <code>derives</code> method returns a <code>ProofResult</code> with a human-readable trace:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="n">result</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">derives</span><span class="p">(</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>    <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;Man(socrates)&quot;</span><span class="p">}),</span>
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>    <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;Mortal(socrates)&quot;</span><span class="p">})</span>
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="p">)</span>
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">trace</span><span class="p">:</span>
+<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a>    <span class="nb">print</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+<a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a><span class="c1"># AXIOM: Man(socrates) =&gt; Mortal(socrates)</span>
+</code></pre></div>
+<hr />
+<h2 id="4-defeasibility">4. Defeasibility<a class="headerlink" href="#4-defeasibility" title="Permanent link">&para;</a></h2>
+<p>Because NMMS omits the structural rule of Weakening, ontology inferences are <strong>defeasible</strong>: adding extra premises can defeat an otherwise good inference.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pynmms.onto</span><span class="w"> </span><span class="kn">import</span> <span class="n">OntoMaterialBase</span>
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pynmms.reasoner</span><span class="w"> </span><span class="kn">import</span> <span class="n">NMMSReasoner</span>
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="n">base</span> <span class="o">=</span> <span class="n">OntoMaterialBase</span><span class="p">(</span><span class="n">language</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Man(socrates)&quot;</span><span class="p">})</span>
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="n">base</span><span class="o">.</span><span class="n">register_subclass</span><span class="p">(</span><span class="s2">&quot;Man&quot;</span><span class="p">,</span> <span class="s2">&quot;Mortal&quot;</span><span class="p">)</span>
+<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>
+<a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a><span class="n">r</span> <span class="o">=</span> <span class="n">NMMSReasoner</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">max_depth</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+<a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a>
+<a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a><span class="c1"># The basic inference holds</span>
+<a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a><span class="nb">print</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+<a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a>    <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;Man(socrates)&quot;</span><span class="p">}),</span>
+<a id="__codelineno-16-12" name="__codelineno-16-12" href="#__codelineno-16-12"></a>    <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;Mortal(socrates)&quot;</span><span class="p">})</span>
+<a id="__codelineno-16-13" name="__codelineno-16-13" href="#__codelineno-16-13"></a><span class="p">))</span>  <span class="c1"># True</span>
+<a id="__codelineno-16-14" name="__codelineno-16-14" href="#__codelineno-16-14"></a>
+<a id="__codelineno-16-15" name="__codelineno-16-15" href="#__codelineno-16-15"></a><span class="c1"># Adding an extra premise defeats it -- nonmonotonicity!</span>
+<a id="__codelineno-16-16" name="__codelineno-16-16" href="#__codelineno-16-16"></a><span class="nb">print</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+<a id="__codelineno-16-17" name="__codelineno-16-17" href="#__codelineno-16-17"></a>    <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;Man(socrates)&quot;</span><span class="p">,</span> <span class="s2">&quot;Divine(socrates)&quot;</span><span class="p">}),</span>
+<a id="__codelineno-16-18" name="__codelineno-16-18" href="#__codelineno-16-18"></a>    <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;Mortal(socrates)&quot;</span><span class="p">})</span>
+<a id="__codelineno-16-19" name="__codelineno-16-19" href="#__codelineno-16-19"></a><span class="p">))</span>  <span class="c1"># False</span>
+</code></pre></div>
+<p>The schema <code>{Man(x)} |~ {Mortal(x)}</code> is an exact-match axiom: it requires the antecedent to be exactly <code>{Man(socrates)}</code> and the consequent to be exactly <code>{Mortal(socrates)}</code>. The sequent <code>{Man(socrates), Divine(socrates)} =&gt; {Mortal(socrates)}</code> has an extra premise <code>Divine(socrates)</code>, so the schema does not fire. Without Weakening, there is no way to derive the strengthened sequent from the weaker one.</p>
+<p>This models a natural reasoning pattern: we normally infer that Socrates is mortal from his being a man, but learning that he is divine defeats that inference. In NMMS, the defeat is structural -- it follows from the absence of Weakening, not from any explicit exception mechanism.</p>
+<h3 id="range-defeasibility">Range Defeasibility<a class="headerlink" href="#range-defeasibility" title="Permanent link">&para;</a></h3>
+<p>The same holds for range, domain, subPropertyOf, disjointWith, and disjointProperties schemas:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="n">base</span> <span class="o">=</span> <span class="n">OntoMaterialBase</span><span class="p">(</span><span class="n">language</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;hasChild(alice,bob)&quot;</span><span class="p">})</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="n">base</span><span class="o">.</span><span class="n">register_range</span><span class="p">(</span><span class="s2">&quot;hasChild&quot;</span><span class="p">,</span> <span class="s2">&quot;Person&quot;</span><span class="p">)</span>
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="n">r</span> <span class="o">=</span> <span class="n">NMMSReasoner</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">max_depth</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a>
+<a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a><span class="c1"># Range inference holds</span>
+<a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a><span class="nb">print</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+<a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a>    <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;hasChild(alice,bob)&quot;</span><span class="p">}),</span>
+<a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a>    <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;Person(bob)&quot;</span><span class="p">})</span>
+<a id="__codelineno-17-10" name="__codelineno-17-10" href="#__codelineno-17-10"></a><span class="p">))</span>  <span class="c1"># True</span>
+<a id="__codelineno-17-11" name="__codelineno-17-11" href="#__codelineno-17-11"></a>
+<a id="__codelineno-17-12" name="__codelineno-17-12" href="#__codelineno-17-12"></a><span class="c1"># Extra premise defeats it</span>
+<a id="__codelineno-17-13" name="__codelineno-17-13" href="#__codelineno-17-13"></a><span class="nb">print</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+<a id="__codelineno-17-14" name="__codelineno-17-14" href="#__codelineno-17-14"></a>    <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;hasChild(alice,bob)&quot;</span><span class="p">,</span> <span class="s2">&quot;Robot(bob)&quot;</span><span class="p">}),</span>
+<a id="__codelineno-17-15" name="__codelineno-17-15" href="#__codelineno-17-15"></a>    <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;Person(bob)&quot;</span><span class="p">})</span>
+<a id="__codelineno-17-16" name="__codelineno-17-16" href="#__codelineno-17-16"></a><span class="p">))</span>  <span class="c1"># False</span>
+</code></pre></div>
+<hr />
+<h2 id="5-non-transitivity">5. Non-transitivity<a class="headerlink" href="#5-non-transitivity" title="Permanent link">&para;</a></h2>
+<p>NMMS also omits the structural rule of Mixed-Cut (Transitivity). This means that chaining individually good inferences can yield a bad inference -- subClassOf chains do <strong>not</strong> automatically propagate.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pynmms.onto</span><span class="w"> </span><span class="kn">import</span> <span class="n">OntoMaterialBase</span>
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pynmms.reasoner</span><span class="w"> </span><span class="kn">import</span> <span class="n">NMMSReasoner</span>
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>
+<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="n">base</span> <span class="o">=</span> <span class="n">OntoMaterialBase</span><span class="p">(</span><span class="n">language</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Man(socrates)&quot;</span><span class="p">})</span>
+<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="n">base</span><span class="o">.</span><span class="n">register_subclass</span><span class="p">(</span><span class="s2">&quot;Man&quot;</span><span class="p">,</span> <span class="s2">&quot;Mortal&quot;</span><span class="p">)</span>
+<a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a><span class="n">base</span><span class="o">.</span><span class="n">register_subclass</span><span class="p">(</span><span class="s2">&quot;Mortal&quot;</span><span class="p">,</span> <span class="s2">&quot;Perishable&quot;</span><span class="p">)</span>
+<a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a>
+<a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a><span class="n">r</span> <span class="o">=</span> <span class="n">NMMSReasoner</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">max_depth</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+<a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a>
+<a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a><span class="c1"># Each step holds individually</span>
+<a id="__codelineno-18-11" name="__codelineno-18-11" href="#__codelineno-18-11"></a><span class="nb">print</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+<a id="__codelineno-18-12" name="__codelineno-18-12" href="#__codelineno-18-12"></a>    <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;Man(socrates)&quot;</span><span class="p">}),</span>
+<a id="__codelineno-18-13" name="__codelineno-18-13" href="#__codelineno-18-13"></a>    <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;Mortal(socrates)&quot;</span><span class="p">})</span>
+<a id="__codelineno-18-14" name="__codelineno-18-14" href="#__codelineno-18-14"></a><span class="p">))</span>  <span class="c1"># True</span>
+<a id="__codelineno-18-15" name="__codelineno-18-15" href="#__codelineno-18-15"></a>
+<a id="__codelineno-18-16" name="__codelineno-18-16" href="#__codelineno-18-16"></a><span class="nb">print</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+<a id="__codelineno-18-17" name="__codelineno-18-17" href="#__codelineno-18-17"></a>    <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;Mortal(socrates)&quot;</span><span class="p">}),</span>
+<a id="__codelineno-18-18" name="__codelineno-18-18" href="#__codelineno-18-18"></a>    <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;Perishable(socrates)&quot;</span><span class="p">})</span>
+<a id="__codelineno-18-19" name="__codelineno-18-19" href="#__codelineno-18-19"></a><span class="p">))</span>  <span class="c1"># True</span>
+<a id="__codelineno-18-20" name="__codelineno-18-20" href="#__codelineno-18-20"></a>
+<a id="__codelineno-18-21" name="__codelineno-18-21" href="#__codelineno-18-21"></a><span class="c1"># But the chain does NOT propagate</span>
+<a id="__codelineno-18-22" name="__codelineno-18-22" href="#__codelineno-18-22"></a><span class="nb">print</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+<a id="__codelineno-18-23" name="__codelineno-18-23" href="#__codelineno-18-23"></a>    <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;Man(socrates)&quot;</span><span class="p">}),</span>
+<a id="__codelineno-18-24" name="__codelineno-18-24" href="#__codelineno-18-24"></a>    <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;Perishable(socrates)&quot;</span><span class="p">})</span>
+<a id="__codelineno-18-25" name="__codelineno-18-25" href="#__codelineno-18-25"></a><span class="p">))</span>  <span class="c1"># False</span>
+</code></pre></div>
+<p>The sequent <code>{Man(socrates)} =&gt; {Perishable(socrates)}</code> is not derivable because:</p>
+<ol>
+<li>The subClassOf schema for Man/Mortal only fires on <code>{Man(x)} |~ {Mortal(x)}</code>.</li>
+<li>The subClassOf schema for Mortal/Perishable only fires on <code>{Mortal(x)} |~ {Perishable(x)}</code>.</li>
+<li>There is no Mixed-Cut rule to chain these two axioms.</li>
+</ol>
+<p>This is a feature, not a bug. In open reason relations, transitivity failure models situations where each inference step is individually good but their composition is not -- for example, "penguins are birds" and "birds fly" are individually good inferences, but "penguins fly" is not.</p>
+<p>If you <strong>want</strong> the transitive closure, you must explicitly add the composed consequence:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="n">base</span><span class="o">.</span><span class="n">add_consequence</span><span class="p">(</span>
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>    <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;Man(socrates)&quot;</span><span class="p">}),</span>
+<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>    <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;Perishable(socrates)&quot;</span><span class="p">})</span>
+<a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="p">)</span>
+<a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a>
+<a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a><span class="c1"># Now the chain holds (as an explicit base consequence)</span>
+<a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a><span class="nb">print</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+<a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a>    <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;Man(socrates)&quot;</span><span class="p">}),</span>
+<a id="__codelineno-19-9" name="__codelineno-19-9" href="#__codelineno-19-9"></a>    <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;Perishable(socrates)&quot;</span><span class="p">})</span>
+<a id="__codelineno-19-10" name="__codelineno-19-10" href="#__codelineno-19-10"></a><span class="p">))</span>  <span class="c1"># True</span>
+</code></pre></div>
+<hr />
+<h2 id="6-deduction-detachment-theorem-ddt">6. Deduction-Detachment Theorem (DDT)<a class="headerlink" href="#6-deduction-detachment-theorem-ddt" title="Permanent link">&para;</a></h2>
+<p>The DDT is a fundamental property of NMMS: a conditional <code>A -&gt; B</code> is derivable on the right exactly when <code>B</code> is derivable from <code>A</code>. More precisely:</p>
+<blockquote>
+<p>Gamma |~ A -&gt; B, Delta &nbsp;&nbsp;iff&nbsp;&nbsp; Gamma, A |~ B, Delta</p>
+</blockquote>
+<p>This means ontology schema consequences can be expressed in conditional form. If <code>{Man(socrates)} |~ {Mortal(socrates)}</code> is an axiom, then the conditional <code>Man(socrates) -&gt; Mortal(socrates)</code> is derivable as a theorem:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pynmms.onto</span><span class="w"> </span><span class="kn">import</span> <span class="n">OntoMaterialBase</span>
+<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pynmms.reasoner</span><span class="w"> </span><span class="kn">import</span> <span class="n">NMMSReasoner</span>
+<a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>
+<a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="n">base</span> <span class="o">=</span> <span class="n">OntoMaterialBase</span><span class="p">(</span><span class="n">language</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Man(socrates)&quot;</span><span class="p">})</span>
+<a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a><span class="n">base</span><span class="o">.</span><span class="n">register_subclass</span><span class="p">(</span><span class="s2">&quot;Man&quot;</span><span class="p">,</span> <span class="s2">&quot;Mortal&quot;</span><span class="p">)</span>
+<a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a>
+<a id="__codelineno-20-7" name="__codelineno-20-7" href="#__codelineno-20-7"></a><span class="n">r</span> <span class="o">=</span> <span class="n">NMMSReasoner</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">max_depth</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+<a id="__codelineno-20-8" name="__codelineno-20-8" href="#__codelineno-20-8"></a>
+<a id="__codelineno-20-9" name="__codelineno-20-9" href="#__codelineno-20-9"></a><span class="c1"># The material inference holds</span>
+<a id="__codelineno-20-10" name="__codelineno-20-10" href="#__codelineno-20-10"></a><span class="nb">print</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+<a id="__codelineno-20-11" name="__codelineno-20-11" href="#__codelineno-20-11"></a>    <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;Man(socrates)&quot;</span><span class="p">}),</span>
+<a id="__codelineno-20-12" name="__codelineno-20-12" href="#__codelineno-20-12"></a>    <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;Mortal(socrates)&quot;</span><span class="p">})</span>
+<a id="__codelineno-20-13" name="__codelineno-20-13" href="#__codelineno-20-13"></a><span class="p">))</span>  <span class="c1"># True</span>
+<a id="__codelineno-20-14" name="__codelineno-20-14" href="#__codelineno-20-14"></a>
+<a id="__codelineno-20-15" name="__codelineno-20-15" href="#__codelineno-20-15"></a><span class="c1"># So the conditional form is derivable (DDT, left-to-right)</span>
+<a id="__codelineno-20-16" name="__codelineno-20-16" href="#__codelineno-20-16"></a><span class="nb">print</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+<a id="__codelineno-20-17" name="__codelineno-20-17" href="#__codelineno-20-17"></a>    <span class="nb">frozenset</span><span class="p">(),</span>
+<a id="__codelineno-20-18" name="__codelineno-20-18" href="#__codelineno-20-18"></a>    <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;Man(socrates) -&gt; Mortal(socrates)&quot;</span><span class="p">})</span>
+<a id="__codelineno-20-19" name="__codelineno-20-19" href="#__codelineno-20-19"></a><span class="p">))</span>  <span class="c1"># True</span>
+</code></pre></div>
+<p>The proof works via the [R-&gt;] rule:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>  To derive: {} =&gt; {Man(socrates) -&gt; Mortal(socrates)}
+<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>  Apply [R-&gt;]: need {Man(socrates)} =&gt; {Mortal(socrates)}
+<a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>  This is an axiom (subClassOf schema).
+</code></pre></div>
+<p>DDT also interacts with defeasibility. Since the conditional form is a theorem (derivable from the empty antecedent), it holds without any premises. But the material inference <code>{Man(socrates)} |~ {Mortal(socrates)}</code> is defeasible -- adding extra premises defeats it. The conditional "makes explicit" the defeasible reason relation by encoding it as a logical constant that can appear in further inferences.</p>
+<hr />
+<h2 id="7-using-commitmentstore">7. Using CommitmentStore<a class="headerlink" href="#7-using-commitmentstore" title="Permanent link">&para;</a></h2>
+<p>The <code>CommitmentStore</code> provides a higher-level API for managing ontology assertions and schemas. It accumulates commitments and compiles them into an <code>OntoMaterialBase</code> on demand. Each schema commitment includes a <code>source</code> string for provenance tracking and selective retraction.</p>
+<h3 id="building-commitments">Building Commitments<a class="headerlink" href="#building-commitments" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pynmms.onto</span><span class="w"> </span><span class="kn">import</span> <span class="n">OntoMaterialBase</span><span class="p">,</span> <span class="n">CommitmentStore</span>
+<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pynmms.reasoner</span><span class="w"> </span><span class="kn">import</span> <span class="n">NMMSReasoner</span>
+<a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a>
+<a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a><span class="n">store</span> <span class="o">=</span> <span class="n">CommitmentStore</span><span class="p">()</span>
+<a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a>
+<a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a><span class="c1"># Add ABox assertions</span>
+<a id="__codelineno-22-7" name="__codelineno-22-7" href="#__codelineno-22-7"></a><span class="n">store</span><span class="o">.</span><span class="n">add_concept</span><span class="p">(</span><span class="s2">&quot;Man&quot;</span><span class="p">,</span> <span class="s2">&quot;socrates&quot;</span><span class="p">)</span>
+<a id="__codelineno-22-8" name="__codelineno-22-8" href="#__codelineno-22-8"></a><span class="n">store</span><span class="o">.</span><span class="n">add_concept</span><span class="p">(</span><span class="s2">&quot;Greek&quot;</span><span class="p">,</span> <span class="s2">&quot;socrates&quot;</span><span class="p">)</span>
+<a id="__codelineno-22-9" name="__codelineno-22-9" href="#__codelineno-22-9"></a><span class="n">store</span><span class="o">.</span><span class="n">add_role</span><span class="p">(</span><span class="s2">&quot;hasChild&quot;</span><span class="p">,</span> <span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="s2">&quot;bob&quot;</span><span class="p">)</span>
+<a id="__codelineno-22-10" name="__codelineno-22-10" href="#__codelineno-22-10"></a><span class="n">store</span><span class="o">.</span><span class="n">add_concept</span><span class="p">(</span><span class="s2">&quot;Doctor&quot;</span><span class="p">,</span> <span class="s2">&quot;bob&quot;</span><span class="p">)</span>
+<a id="__codelineno-22-11" name="__codelineno-22-11" href="#__codelineno-22-11"></a>
+<a id="__codelineno-22-12" name="__codelineno-22-12" href="#__codelineno-22-12"></a><span class="c1"># Add TBox schemas with source attribution</span>
+<a id="__codelineno-22-13" name="__codelineno-22-13" href="#__codelineno-22-13"></a><span class="n">store</span><span class="o">.</span><span class="n">commit_subclass</span><span class="p">(</span><span class="s2">&quot;ontology-v1&quot;</span><span class="p">,</span> <span class="s2">&quot;Man&quot;</span><span class="p">,</span> <span class="s2">&quot;Mortal&quot;</span><span class="p">)</span>
+<a id="__codelineno-22-14" name="__codelineno-22-14" href="#__codelineno-22-14"></a><span class="n">store</span><span class="o">.</span><span class="n">commit_range</span><span class="p">(</span><span class="s2">&quot;ontology-v1&quot;</span><span class="p">,</span> <span class="s2">&quot;hasChild&quot;</span><span class="p">,</span> <span class="s2">&quot;Person&quot;</span><span class="p">)</span>
+<a id="__codelineno-22-15" name="__codelineno-22-15" href="#__codelineno-22-15"></a><span class="n">store</span><span class="o">.</span><span class="n">commit_domain</span><span class="p">(</span><span class="s2">&quot;ontology-v1&quot;</span><span class="p">,</span> <span class="s2">&quot;hasChild&quot;</span><span class="p">,</span> <span class="s2">&quot;Parent&quot;</span><span class="p">)</span>
+<a id="__codelineno-22-16" name="__codelineno-22-16" href="#__codelineno-22-16"></a><span class="n">store</span><span class="o">.</span><span class="n">commit_subproperty</span><span class="p">(</span><span class="s2">&quot;ontology-v1&quot;</span><span class="p">,</span> <span class="s2">&quot;hasChild&quot;</span><span class="p">,</span> <span class="s2">&quot;hasDescendant&quot;</span><span class="p">)</span>
+<a id="__codelineno-22-17" name="__codelineno-22-17" href="#__codelineno-22-17"></a><span class="n">store</span><span class="o">.</span><span class="n">commit_disjoint_concepts</span><span class="p">(</span><span class="s2">&quot;ontology-v1&quot;</span><span class="p">,</span> <span class="s2">&quot;Alive&quot;</span><span class="p">,</span> <span class="s2">&quot;Dead&quot;</span><span class="p">)</span>
+<a id="__codelineno-22-18" name="__codelineno-22-18" href="#__codelineno-22-18"></a><span class="n">store</span><span class="o">.</span><span class="n">commit_disjoint_properties</span><span class="p">(</span><span class="s2">&quot;ontology-v1&quot;</span><span class="p">,</span> <span class="s2">&quot;employs&quot;</span><span class="p">,</span> <span class="s2">&quot;isEmployedBy&quot;</span><span class="p">)</span>
+<a id="__codelineno-22-19" name="__codelineno-22-19" href="#__codelineno-22-19"></a>
+<a id="__codelineno-22-20" name="__codelineno-22-20" href="#__codelineno-22-20"></a><span class="c1"># Compile to a base and query</span>
+<a id="__codelineno-22-21" name="__codelineno-22-21" href="#__codelineno-22-21"></a><span class="n">base</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">compile</span><span class="p">()</span>
+<a id="__codelineno-22-22" name="__codelineno-22-22" href="#__codelineno-22-22"></a><span class="n">r</span> <span class="o">=</span> <span class="n">NMMSReasoner</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">max_depth</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+<a id="__codelineno-22-23" name="__codelineno-22-23" href="#__codelineno-22-23"></a>
+<a id="__codelineno-22-24" name="__codelineno-22-24" href="#__codelineno-22-24"></a><span class="nb">print</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+<a id="__codelineno-22-25" name="__codelineno-22-25" href="#__codelineno-22-25"></a>    <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;Man(socrates)&quot;</span><span class="p">}),</span>
+<a id="__codelineno-22-26" name="__codelineno-22-26" href="#__codelineno-22-26"></a>    <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;Mortal(socrates)&quot;</span><span class="p">})</span>
+<a id="__codelineno-22-27" name="__codelineno-22-27" href="#__codelineno-22-27"></a><span class="p">))</span>  <span class="c1"># True</span>
+<a id="__codelineno-22-28" name="__codelineno-22-28" href="#__codelineno-22-28"></a>
+<a id="__codelineno-22-29" name="__codelineno-22-29" href="#__codelineno-22-29"></a><span class="nb">print</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+<a id="__codelineno-22-30" name="__codelineno-22-30" href="#__codelineno-22-30"></a>    <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;hasChild(alice,bob)&quot;</span><span class="p">}),</span>
+<a id="__codelineno-22-31" name="__codelineno-22-31" href="#__codelineno-22-31"></a>    <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;Person(bob)&quot;</span><span class="p">})</span>
+<a id="__codelineno-22-32" name="__codelineno-22-32" href="#__codelineno-22-32"></a><span class="p">))</span>  <span class="c1"># True</span>
+</code></pre></div>
+<h3 id="describing-commitments">Describing Commitments<a class="headerlink" href="#describing-commitments" title="Permanent link">&para;</a></h3>
+<p>The <code>describe()</code> method provides a human-readable summary:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="nb">print</span><span class="p">(</span><span class="n">store</span><span class="o">.</span><span class="n">describe</span><span class="p">())</span>
+<a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a><span class="c1"># Commitment Store:</span>
+<a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="c1">#   Assertions: 4</span>
+<a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a><span class="c1">#     Doctor(bob)</span>
+<a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a><span class="c1">#     Greek(socrates)</span>
+<a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a><span class="c1">#     Man(socrates)</span>
+<a id="__codelineno-23-7" name="__codelineno-23-7" href="#__codelineno-23-7"></a><span class="c1">#     hasChild(alice,bob)</span>
+<a id="__codelineno-23-8" name="__codelineno-23-8" href="#__codelineno-23-8"></a><span class="c1">#   Ontology Schemas: 6</span>
+<a id="__codelineno-23-9" name="__codelineno-23-9" href="#__codelineno-23-9"></a><span class="c1">#     [ontology-v1] subClassOf: Man(x) |~ Mortal(x)</span>
+<a id="__codelineno-23-10" name="__codelineno-23-10" href="#__codelineno-23-10"></a><span class="c1">#     [ontology-v1] range: hasChild(x,y) |~ Person(y)</span>
+<a id="__codelineno-23-11" name="__codelineno-23-11" href="#__codelineno-23-11"></a><span class="c1">#     [ontology-v1] domain: hasChild(x,y) |~ Parent(x)</span>
+<a id="__codelineno-23-12" name="__codelineno-23-12" href="#__codelineno-23-12"></a><span class="c1">#     [ontology-v1] subPropertyOf: hasChild(x,y) |~ hasDescendant(x,y)</span>
+<a id="__codelineno-23-13" name="__codelineno-23-13" href="#__codelineno-23-13"></a><span class="c1">#     [ontology-v1] disjointWith: Alive(x), Dead(x) |~</span>
+<a id="__codelineno-23-14" name="__codelineno-23-14" href="#__codelineno-23-14"></a><span class="c1">#     [ontology-v1] disjointProperties: employs(x,y), isEmployedBy(x,y) |~</span>
+</code></pre></div>
+<h3 id="adding-ground-defeasible-rules">Adding Ground Defeasible Rules<a class="headerlink" href="#adding-ground-defeasible-rules" title="Permanent link">&para;</a></h3>
+<p>Beyond ontology schemas, the <code>CommitmentStore</code> supports arbitrary ground defeasible rules:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="n">store</span><span class="o">.</span><span class="n">commit_defeasible_rule</span><span class="p">(</span>
+<a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a>    <span class="s2">&quot;domain-expert&quot;</span><span class="p">,</span>
+<a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a>    <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;Doctor(bob)&quot;</span><span class="p">}),</span>
+<a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a>    <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;Educated(bob)&quot;</span><span class="p">}),</span>
+<a id="__codelineno-24-5" name="__codelineno-24-5" href="#__codelineno-24-5"></a><span class="p">)</span>
+<a id="__codelineno-24-6" name="__codelineno-24-6" href="#__codelineno-24-6"></a>
+<a id="__codelineno-24-7" name="__codelineno-24-7" href="#__codelineno-24-7"></a><span class="n">base</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">compile</span><span class="p">()</span>
+<a id="__codelineno-24-8" name="__codelineno-24-8" href="#__codelineno-24-8"></a><span class="n">r</span> <span class="o">=</span> <span class="n">NMMSReasoner</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">max_depth</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+<a id="__codelineno-24-9" name="__codelineno-24-9" href="#__codelineno-24-9"></a>
+<a id="__codelineno-24-10" name="__codelineno-24-10" href="#__codelineno-24-10"></a><span class="nb">print</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+<a id="__codelineno-24-11" name="__codelineno-24-11" href="#__codelineno-24-11"></a>    <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;Doctor(bob)&quot;</span><span class="p">}),</span>
+<a id="__codelineno-24-12" name="__codelineno-24-12" href="#__codelineno-24-12"></a>    <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;Educated(bob)&quot;</span><span class="p">})</span>
+<a id="__codelineno-24-13" name="__codelineno-24-13" href="#__codelineno-24-13"></a><span class="p">))</span>  <span class="c1"># True</span>
+</code></pre></div>
+<h3 id="retracting-schemas">Retracting Schemas<a class="headerlink" href="#retracting-schemas" title="Permanent link">&para;</a></h3>
+<p>Schemas can be retracted by source:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="n">store</span><span class="o">.</span><span class="n">retract_schema</span><span class="p">(</span><span class="s2">&quot;ontology-v1&quot;</span><span class="p">)</span>
+<a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a>
+<a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a><span class="n">base</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">compile</span><span class="p">()</span>
+<a id="__codelineno-25-4" name="__codelineno-25-4" href="#__codelineno-25-4"></a><span class="n">r</span> <span class="o">=</span> <span class="n">NMMSReasoner</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">max_depth</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+<a id="__codelineno-25-5" name="__codelineno-25-5" href="#__codelineno-25-5"></a>
+<a id="__codelineno-25-6" name="__codelineno-25-6" href="#__codelineno-25-6"></a><span class="c1"># The subClassOf schema no longer fires</span>
+<a id="__codelineno-25-7" name="__codelineno-25-7" href="#__codelineno-25-7"></a><span class="nb">print</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+<a id="__codelineno-25-8" name="__codelineno-25-8" href="#__codelineno-25-8"></a>    <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;Man(socrates)&quot;</span><span class="p">}),</span>
+<a id="__codelineno-25-9" name="__codelineno-25-9" href="#__codelineno-25-9"></a>    <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;Mortal(socrates)&quot;</span><span class="p">})</span>
+<a id="__codelineno-25-10" name="__codelineno-25-10" href="#__codelineno-25-10"></a><span class="p">))</span>  <span class="c1"># False</span>
+</code></pre></div>
+<h3 id="caching">Caching<a class="headerlink" href="#caching" title="Permanent link">&para;</a></h3>
+<p>The <code>compile()</code> method caches the result. Any mutation (adding assertions, committing schemas, retracting) invalidates the cache so the next <code>compile()</code> call rebuilds the base.</p>
+<hr />
+<h2 id="8-cli-usage-with-onto">8. CLI Usage with <code>--onto</code><a class="headerlink" href="#8-cli-usage-with-onto" title="Permanent link">&para;</a></h2>
+<p>The <code>--onto</code> flag on the <code>tell</code>, <code>ask</code>, and <code>repl</code> subcommands activates ontology mode. In this mode, atoms must be concept assertions <code>C(a)</code> or role assertions <code>R(a,b)</code>.</p>
+<h3 id="pynmms-tell-onto"><code>pynmms tell --onto</code><a class="headerlink" href="#pynmms-tell-onto" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="c1"># Create a new ontology base with an atom</span>
+<a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a>pynmms<span class="w"> </span>tell<span class="w"> </span>-b<span class="w"> </span>onto_base.json<span class="w"> </span>--create<span class="w"> </span>--onto<span class="w"> </span><span class="s2">&quot;atom Man(socrates)&quot;</span>
+<a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a>
+<a id="__codelineno-26-4" name="__codelineno-26-4" href="#__codelineno-26-4"></a><span class="c1"># Add more atoms</span>
+<a id="__codelineno-26-5" name="__codelineno-26-5" href="#__codelineno-26-5"></a>pynmms<span class="w"> </span>tell<span class="w"> </span>-b<span class="w"> </span>onto_base.json<span class="w"> </span>--onto<span class="w"> </span><span class="s2">&quot;atom hasChild(alice,bob)&quot;</span>
+<a id="__codelineno-26-6" name="__codelineno-26-6" href="#__codelineno-26-6"></a>pynmms<span class="w"> </span>tell<span class="w"> </span>-b<span class="w"> </span>onto_base.json<span class="w"> </span>--onto<span class="w"> </span><span class="s2">&quot;atom Doctor(bob)&quot;</span>
+<a id="__codelineno-26-7" name="__codelineno-26-7" href="#__codelineno-26-7"></a>
+<a id="__codelineno-26-8" name="__codelineno-26-8" href="#__codelineno-26-8"></a><span class="c1"># Add atoms with annotations</span>
+<a id="__codelineno-26-9" name="__codelineno-26-9" href="#__codelineno-26-9"></a>pynmms<span class="w"> </span>tell<span class="w"> </span>-b<span class="w"> </span>onto_base.json<span class="w"> </span>--onto<span class="w"> </span><span class="s1">&#39;atom Man(socrates) &quot;Socrates is a man&quot;&#39;</span>
+<a id="__codelineno-26-10" name="__codelineno-26-10" href="#__codelineno-26-10"></a>
+<a id="__codelineno-26-11" name="__codelineno-26-11" href="#__codelineno-26-11"></a><span class="c1"># Add a base consequence</span>
+<a id="__codelineno-26-12" name="__codelineno-26-12" href="#__codelineno-26-12"></a>pynmms<span class="w"> </span>tell<span class="w"> </span>-b<span class="w"> </span>onto_base.json<span class="w"> </span>--onto<span class="w"> </span><span class="s2">&quot;Man(socrates) |~ Greek(socrates)&quot;</span>
+<a id="__codelineno-26-13" name="__codelineno-26-13" href="#__codelineno-26-13"></a>
+<a id="__codelineno-26-14" name="__codelineno-26-14" href="#__codelineno-26-14"></a><span class="c1"># Add incompatibility (empty consequent)</span>
+<a id="__codelineno-26-15" name="__codelineno-26-15" href="#__codelineno-26-15"></a>pynmms<span class="w"> </span>tell<span class="w"> </span>-b<span class="w"> </span>onto_base.json<span class="w"> </span>--onto<span class="w"> </span><span class="s2">&quot;Alive(socrates), Dead(socrates) |~&quot;</span>
+<a id="__codelineno-26-16" name="__codelineno-26-16" href="#__codelineno-26-16"></a>
+<a id="__codelineno-26-17" name="__codelineno-26-17" href="#__codelineno-26-17"></a><span class="c1"># Add theorem (empty antecedent)</span>
+<a id="__codelineno-26-18" name="__codelineno-26-18" href="#__codelineno-26-18"></a>pynmms<span class="w"> </span>tell<span class="w"> </span>-b<span class="w"> </span>onto_base.json<span class="w"> </span>--onto<span class="w"> </span><span class="s2">&quot;|~ Exists(socrates)&quot;</span>
+</code></pre></div>
+<h3 id="pynmms-ask-onto"><code>pynmms ask --onto</code><a class="headerlink" href="#pynmms-ask-onto" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a><span class="c1"># Query derivability</span>
+<a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a>pynmms<span class="w"> </span>ask<span class="w"> </span>-b<span class="w"> </span>onto_base.json<span class="w"> </span>--onto<span class="w"> </span><span class="s2">&quot;Man(socrates) =&gt; Greek(socrates)&quot;</span>
+<a id="__codelineno-27-3" name="__codelineno-27-3" href="#__codelineno-27-3"></a><span class="c1"># Output: DERIVABLE</span>
+<a id="__codelineno-27-4" name="__codelineno-27-4" href="#__codelineno-27-4"></a>
+<a id="__codelineno-27-5" name="__codelineno-27-5" href="#__codelineno-27-5"></a><span class="c1"># JSON output</span>
+<a id="__codelineno-27-6" name="__codelineno-27-6" href="#__codelineno-27-6"></a>pynmms<span class="w"> </span>ask<span class="w"> </span>-b<span class="w"> </span>onto_base.json<span class="w"> </span>--onto<span class="w"> </span>--json<span class="w"> </span><span class="s2">&quot;Man(socrates) =&gt; Greek(socrates)&quot;</span>
+<a id="__codelineno-27-7" name="__codelineno-27-7" href="#__codelineno-27-7"></a>
+<a id="__codelineno-27-8" name="__codelineno-27-8" href="#__codelineno-27-8"></a><span class="c1"># Quiet mode (exit code only)</span>
+<a id="__codelineno-27-9" name="__codelineno-27-9" href="#__codelineno-27-9"></a>pynmms<span class="w"> </span>ask<span class="w"> </span>-b<span class="w"> </span>onto_base.json<span class="w"> </span>--onto<span class="w"> </span>-q<span class="w"> </span><span class="s2">&quot;Man(socrates) =&gt; Greek(socrates)&quot;</span>
+<a id="__codelineno-27-10" name="__codelineno-27-10" href="#__codelineno-27-10"></a><span class="nb">echo</span><span class="w"> </span><span class="nv">$?</span><span class="w">  </span><span class="c1"># 0 = derivable, 2 = not derivable</span>
+<a id="__codelineno-27-11" name="__codelineno-27-11" href="#__codelineno-27-11"></a>
+<a id="__codelineno-27-12" name="__codelineno-27-12" href="#__codelineno-27-12"></a><span class="c1"># Proof trace</span>
+<a id="__codelineno-27-13" name="__codelineno-27-13" href="#__codelineno-27-13"></a>pynmms<span class="w"> </span>ask<span class="w"> </span>-b<span class="w"> </span>onto_base.json<span class="w"> </span>--onto<span class="w"> </span>--trace<span class="w"> </span><span class="s2">&quot;Man(socrates) =&gt; Greek(socrates)&quot;</span>
+</code></pre></div>
+<h3 id="pynmms-repl-onto"><code>pynmms repl --onto</code><a class="headerlink" href="#pynmms-repl-onto" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a>pynmms<span class="w"> </span>repl<span class="w"> </span>--onto
+<a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a>pynmms<span class="w"> </span>repl<span class="w"> </span>--onto<span class="w"> </span>-b<span class="w"> </span>onto_base.json
+</code></pre></div>
+<h3 id="batch-mode">Batch Mode<a class="headerlink" href="#batch-mode" title="Permanent link">&para;</a></h3>
+<p>Batch files support <code>schema</code> lines in ontology mode:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a># onto_base.txt
+<a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a>atom Man(socrates) &quot;Socrates is a man&quot;
+<a id="__codelineno-29-3" name="__codelineno-29-3" href="#__codelineno-29-3"></a>atom hasChild(alice,bob)
+<a id="__codelineno-29-4" name="__codelineno-29-4" href="#__codelineno-29-4"></a>atom Doctor(bob)
+<a id="__codelineno-29-5" name="__codelineno-29-5" href="#__codelineno-29-5"></a>Man(socrates) |~ Greek(socrates)
+<a id="__codelineno-29-6" name="__codelineno-29-6" href="#__codelineno-29-6"></a>schema subClassOf Man Mortal
+<a id="__codelineno-29-7" name="__codelineno-29-7" href="#__codelineno-29-7"></a>schema range hasChild Person
+<a id="__codelineno-29-8" name="__codelineno-29-8" href="#__codelineno-29-8"></a>schema domain hasChild Parent
+<a id="__codelineno-29-9" name="__codelineno-29-9" href="#__codelineno-29-9"></a>schema subPropertyOf hasChild hasDescendant
+<a id="__codelineno-29-10" name="__codelineno-29-10" href="#__codelineno-29-10"></a>schema disjointWith Alive Dead
+<a id="__codelineno-29-11" name="__codelineno-29-11" href="#__codelineno-29-11"></a>schema disjointProperties employs isEmployedBy
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a>pynmms<span class="w"> </span>tell<span class="w"> </span>-b<span class="w"> </span>onto_base.json<span class="w"> </span>--create<span class="w"> </span>--onto<span class="w"> </span>--batch<span class="w"> </span>onto_base.txt
+</code></pre></div>
+<p>Query batch:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a># queries.txt
+<a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a>Man(socrates) =&gt; Mortal(socrates)
+<a id="__codelineno-31-3" name="__codelineno-31-3" href="#__codelineno-31-3"></a>hasChild(alice,bob) =&gt; Person(bob)
+<a id="__codelineno-31-4" name="__codelineno-31-4" href="#__codelineno-31-4"></a>hasChild(alice,bob) =&gt; Parent(alice)
+<a id="__codelineno-31-5" name="__codelineno-31-5" href="#__codelineno-31-5"></a>hasChild(alice,bob) =&gt; hasDescendant(alice,bob)
+<a id="__codelineno-31-6" name="__codelineno-31-6" href="#__codelineno-31-6"></a>Man(socrates) =&gt; Perishable(socrates)
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a>pynmms<span class="w"> </span>ask<span class="w"> </span>-b<span class="w"> </span>onto_base.json<span class="w"> </span>--onto<span class="w"> </span>--batch<span class="w"> </span>queries.txt
+</code></pre></div>
+<hr />
+<h2 id="9-repl-commands">9. REPL Commands<a class="headerlink" href="#9-repl-commands" title="Permanent link">&para;</a></h2>
+<p>The ontology REPL (activated with <code>pynmms repl --onto</code>) provides all the standard REPL commands plus ontology-specific commands for managing schemas and inspecting vocabulary.</p>
+<h3 id="schema-commands">Schema Commands<a class="headerlink" href="#schema-commands" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>tell schema subClassOf C D</code></td>
+<td>Register subClassOf: {C(x)} |~ {D(x)}</td>
+</tr>
+<tr>
+<td><code>tell schema range R C</code></td>
+<td>Register range: {R(x,y)} |~ {C(y)}</td>
+</tr>
+<tr>
+<td><code>tell schema domain R C</code></td>
+<td>Register domain: {R(x,y)} |~ {C(x)}</td>
+</tr>
+<tr>
+<td><code>tell schema subPropertyOf R S</code></td>
+<td>Register subPropertyOf: {R(x,y)} |~ {S(x,y)}</td>
+</tr>
+<tr>
+<td><code>tell schema disjointWith C D</code></td>
+<td>Register disjointWith: {C(x), D(x)} |~ {}</td>
+</tr>
+<tr>
+<td><code>tell schema disjointProperties R S</code></td>
+<td>Register disjointProperties: {R(x,y), S(x,y)} |~ {}</td>
+</tr>
+</tbody>
+</table>
+<h3 id="inspection-commands">Inspection Commands<a class="headerlink" href="#inspection-commands" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>show</code></td>
+<td>Display atoms, annotations, and consequences</td>
+</tr>
+<tr>
+<td><code>show schemas</code></td>
+<td>Display all registered ontology schemas</td>
+</tr>
+<tr>
+<td><code>show individuals</code></td>
+<td>Display known individuals, concepts, and roles</td>
+</tr>
+</tbody>
+</table>
+<h3 id="complete-command-reference">Complete Command Reference<a class="headerlink" href="#complete-command-reference" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>tell A \|~ B</code></td>
+<td>Add a consequence to the base</td>
+</tr>
+<tr>
+<td><code>tell A, B \|~</code></td>
+<td>Add incompatibility (empty consequent)</td>
+</tr>
+<tr>
+<td><code>tell \|~ A</code></td>
+<td>Add theorem (empty antecedent)</td>
+</tr>
+<tr>
+<td><code>tell atom C(a)</code></td>
+<td>Add a concept assertion</td>
+</tr>
+<tr>
+<td><code>tell atom R(a,b)</code></td>
+<td>Add a role assertion</td>
+</tr>
+<tr>
+<td><code>tell atom C(a) "desc"</code></td>
+<td>Add an atom with annotation</td>
+</tr>
+<tr>
+<td><code>tell schema subClassOf C D</code></td>
+<td>Register subClassOf schema</td>
+</tr>
+<tr>
+<td><code>tell schema range R C</code></td>
+<td>Register range schema</td>
+</tr>
+<tr>
+<td><code>tell schema domain R C</code></td>
+<td>Register domain schema</td>
+</tr>
+<tr>
+<td><code>tell schema subPropertyOf R S</code></td>
+<td>Register subPropertyOf schema</td>
+</tr>
+<tr>
+<td><code>tell schema disjointWith C D</code></td>
+<td>Register disjointWith schema</td>
+</tr>
+<tr>
+<td><code>tell schema disjointProperties R S</code></td>
+<td>Register disjointProperties schema</td>
+</tr>
+<tr>
+<td><code>ask A =&gt; B</code></td>
+<td>Query derivability</td>
+</tr>
+<tr>
+<td><code>show</code></td>
+<td>Display the current base</td>
+</tr>
+<tr>
+<td><code>show schemas</code></td>
+<td>Display registered schemas</td>
+</tr>
+<tr>
+<td><code>show individuals</code></td>
+<td>Display vocabulary (individuals, concepts, roles)</td>
+</tr>
+<tr>
+<td><code>trace on/off</code></td>
+<td>Toggle proof trace display</td>
+</tr>
+<tr>
+<td><code>save &lt;file&gt;</code></td>
+<td>Save base to JSON</td>
+</tr>
+<tr>
+<td><code>load &lt;file&gt;</code></td>
+<td>Load base from JSON</td>
+</tr>
+<tr>
+<td><code>help</code></td>
+<td>Show available commands</td>
+</tr>
+<tr>
+<td><code>quit</code></td>
+<td>Exit the REPL</td>
+</tr>
+</tbody>
+</table>
+<h3 id="example-repl-session">Example REPL Session<a class="headerlink" href="#example-repl-session" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a>$ pynmms repl --onto
+<a id="__codelineno-33-2" name="__codelineno-33-2" href="#__codelineno-33-2"></a>Starting with empty ontology base.
+<a id="__codelineno-33-3" name="__codelineno-33-3" href="#__codelineno-33-3"></a>pyNMMS REPL (ontology mode). Type &#39;help&#39; for commands.
+<a id="__codelineno-33-4" name="__codelineno-33-4" href="#__codelineno-33-4"></a>
+<a id="__codelineno-33-5" name="__codelineno-33-5" href="#__codelineno-33-5"></a>pynmms[onto]&gt; tell atom Man(socrates) &quot;Socrates is a man&quot;
+<a id="__codelineno-33-6" name="__codelineno-33-6" href="#__codelineno-33-6"></a>Added atom: Man(socrates) -- Socrates is a man
+<a id="__codelineno-33-7" name="__codelineno-33-7" href="#__codelineno-33-7"></a>
+<a id="__codelineno-33-8" name="__codelineno-33-8" href="#__codelineno-33-8"></a>pynmms[onto]&gt; tell atom hasChild(alice,bob)
+<a id="__codelineno-33-9" name="__codelineno-33-9" href="#__codelineno-33-9"></a>Added atom: hasChild(alice,bob)
+<a id="__codelineno-33-10" name="__codelineno-33-10" href="#__codelineno-33-10"></a>
+<a id="__codelineno-33-11" name="__codelineno-33-11" href="#__codelineno-33-11"></a>pynmms[onto]&gt; tell schema subClassOf Man Mortal
+<a id="__codelineno-33-12" name="__codelineno-33-12" href="#__codelineno-33-12"></a>Registered subClassOf schema: {Man(x)} |~ {Mortal(x)}
+<a id="__codelineno-33-13" name="__codelineno-33-13" href="#__codelineno-33-13"></a>
+<a id="__codelineno-33-14" name="__codelineno-33-14" href="#__codelineno-33-14"></a>pynmms[onto]&gt; tell schema range hasChild Person
+<a id="__codelineno-33-15" name="__codelineno-33-15" href="#__codelineno-33-15"></a>Registered range schema: {hasChild(x,y)} |~ {Person(y)}
+<a id="__codelineno-33-16" name="__codelineno-33-16" href="#__codelineno-33-16"></a>
+<a id="__codelineno-33-17" name="__codelineno-33-17" href="#__codelineno-33-17"></a>pynmms[onto]&gt; tell schema domain hasChild Parent
+<a id="__codelineno-33-18" name="__codelineno-33-18" href="#__codelineno-33-18"></a>Registered domain schema: {hasChild(x,y)} |~ {Parent(x)}
+<a id="__codelineno-33-19" name="__codelineno-33-19" href="#__codelineno-33-19"></a>
+<a id="__codelineno-33-20" name="__codelineno-33-20" href="#__codelineno-33-20"></a>pynmms[onto]&gt; tell schema subPropertyOf hasChild hasDescendant
+<a id="__codelineno-33-21" name="__codelineno-33-21" href="#__codelineno-33-21"></a>Registered subPropertyOf schema: {hasChild(x,y)} |~ {hasDescendant(x,y)}
+<a id="__codelineno-33-22" name="__codelineno-33-22" href="#__codelineno-33-22"></a>
+<a id="__codelineno-33-23" name="__codelineno-33-23" href="#__codelineno-33-23"></a>pynmms[onto]&gt; tell schema disjointWith Alive Dead
+<a id="__codelineno-33-24" name="__codelineno-33-24" href="#__codelineno-33-24"></a>Registered disjointWith schema: {Alive(x), Dead(x)} |~ {}
+<a id="__codelineno-33-25" name="__codelineno-33-25" href="#__codelineno-33-25"></a>
+<a id="__codelineno-33-26" name="__codelineno-33-26" href="#__codelineno-33-26"></a>pynmms[onto]&gt; tell schema disjointProperties employs isEmployedBy
+<a id="__codelineno-33-27" name="__codelineno-33-27" href="#__codelineno-33-27"></a>Registered disjointProperties schema: {employs(x,y), isEmployedBy(x,y)} |~ {}
+<a id="__codelineno-33-28" name="__codelineno-33-28" href="#__codelineno-33-28"></a>
+<a id="__codelineno-33-29" name="__codelineno-33-29" href="#__codelineno-33-29"></a>pynmms[onto]&gt; show schemas
+<a id="__codelineno-33-30" name="__codelineno-33-30" href="#__codelineno-33-30"></a>Schemas (6):
+<a id="__codelineno-33-31" name="__codelineno-33-31" href="#__codelineno-33-31"></a>  subClassOf: {Man(x)} |~ {Mortal(x)}
+<a id="__codelineno-33-32" name="__codelineno-33-32" href="#__codelineno-33-32"></a>  range: {hasChild(x,y)} |~ {Person(y)}
+<a id="__codelineno-33-33" name="__codelineno-33-33" href="#__codelineno-33-33"></a>  domain: {hasChild(x,y)} |~ {Parent(x)}
+<a id="__codelineno-33-34" name="__codelineno-33-34" href="#__codelineno-33-34"></a>  subPropertyOf: {hasChild(x,y)} |~ {hasDescendant(x,y)}
+<a id="__codelineno-33-35" name="__codelineno-33-35" href="#__codelineno-33-35"></a>  disjointWith: {Alive(x), Dead(x)} |~ {}
+<a id="__codelineno-33-36" name="__codelineno-33-36" href="#__codelineno-33-36"></a>  disjointProperties: {employs(x,y), isEmployedBy(x,y)} |~ {}
+<a id="__codelineno-33-37" name="__codelineno-33-37" href="#__codelineno-33-37"></a>
+<a id="__codelineno-33-38" name="__codelineno-33-38" href="#__codelineno-33-38"></a>pynmms[onto]&gt; show individuals
+<a id="__codelineno-33-39" name="__codelineno-33-39" href="#__codelineno-33-39"></a>Individuals: [&#39;alice&#39;, &#39;bob&#39;, &#39;socrates&#39;]
+<a id="__codelineno-33-40" name="__codelineno-33-40" href="#__codelineno-33-40"></a>Concepts: [&#39;Man&#39;]
+<a id="__codelineno-33-41" name="__codelineno-33-41" href="#__codelineno-33-41"></a>Roles: [&#39;hasChild&#39;]
+<a id="__codelineno-33-42" name="__codelineno-33-42" href="#__codelineno-33-42"></a>
+<a id="__codelineno-33-43" name="__codelineno-33-43" href="#__codelineno-33-43"></a>pynmms[onto]&gt; ask Man(socrates) =&gt; Mortal(socrates)
+<a id="__codelineno-33-44" name="__codelineno-33-44" href="#__codelineno-33-44"></a>DERIVABLE
+<a id="__codelineno-33-45" name="__codelineno-33-45" href="#__codelineno-33-45"></a>
+<a id="__codelineno-33-46" name="__codelineno-33-46" href="#__codelineno-33-46"></a>pynmms[onto]&gt; ask hasChild(alice,bob) =&gt; Person(bob)
+<a id="__codelineno-33-47" name="__codelineno-33-47" href="#__codelineno-33-47"></a>DERIVABLE
+<a id="__codelineno-33-48" name="__codelineno-33-48" href="#__codelineno-33-48"></a>
+<a id="__codelineno-33-49" name="__codelineno-33-49" href="#__codelineno-33-49"></a>pynmms[onto]&gt; ask hasChild(alice,bob) =&gt; Parent(alice)
+<a id="__codelineno-33-50" name="__codelineno-33-50" href="#__codelineno-33-50"></a>DERIVABLE
+<a id="__codelineno-33-51" name="__codelineno-33-51" href="#__codelineno-33-51"></a>
+<a id="__codelineno-33-52" name="__codelineno-33-52" href="#__codelineno-33-52"></a>pynmms[onto]&gt; ask hasChild(alice,bob) =&gt; hasDescendant(alice,bob)
+<a id="__codelineno-33-53" name="__codelineno-33-53" href="#__codelineno-33-53"></a>DERIVABLE
+<a id="__codelineno-33-54" name="__codelineno-33-54" href="#__codelineno-33-54"></a>
+<a id="__codelineno-33-55" name="__codelineno-33-55" href="#__codelineno-33-55"></a>pynmms[onto]&gt; ask Man(socrates), Divine(socrates) =&gt; Mortal(socrates)
+<a id="__codelineno-33-56" name="__codelineno-33-56" href="#__codelineno-33-56"></a>NOT DERIVABLE
+<a id="__codelineno-33-57" name="__codelineno-33-57" href="#__codelineno-33-57"></a>
+<a id="__codelineno-33-58" name="__codelineno-33-58" href="#__codelineno-33-58"></a>pynmms[onto]&gt; trace on
+<a id="__codelineno-33-59" name="__codelineno-33-59" href="#__codelineno-33-59"></a>Trace: ON
+<a id="__codelineno-33-60" name="__codelineno-33-60" href="#__codelineno-33-60"></a>
+<a id="__codelineno-33-61" name="__codelineno-33-61" href="#__codelineno-33-61"></a>pynmms[onto]&gt; ask Man(socrates) =&gt; Mortal(socrates)
+<a id="__codelineno-33-62" name="__codelineno-33-62" href="#__codelineno-33-62"></a>DERIVABLE
+<a id="__codelineno-33-63" name="__codelineno-33-63" href="#__codelineno-33-63"></a>  AXIOM: Man(socrates) =&gt; Mortal(socrates)
+<a id="__codelineno-33-64" name="__codelineno-33-64" href="#__codelineno-33-64"></a>  Depth: 0, Cache hits: 0
+<a id="__codelineno-33-65" name="__codelineno-33-65" href="#__codelineno-33-65"></a>
+<a id="__codelineno-33-66" name="__codelineno-33-66" href="#__codelineno-33-66"></a>pynmms[onto]&gt; save my_onto_base.json
+<a id="__codelineno-33-67" name="__codelineno-33-67" href="#__codelineno-33-67"></a>Saved to my_onto_base.json
+<a id="__codelineno-33-68" name="__codelineno-33-68" href="#__codelineno-33-68"></a>
+<a id="__codelineno-33-69" name="__codelineno-33-69" href="#__codelineno-33-69"></a>pynmms[onto]&gt; quit
+</code></pre></div>
+<hr />
+<h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">&para;</a></h2>
+<p>The ontology extension provides schema-level macros for material inferential commitments and incompatibilities within the NMMS framework:</p>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Mechanism</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>ABox assertions</strong></td>
+<td>Concept <code>C(a)</code> and role <code>R(a,b)</code> atoms in the material base</td>
+</tr>
+<tr>
+<td><strong>TBox schemas</strong></td>
+<td><code>register_subclass</code>, <code>register_range</code>, <code>register_domain</code>, <code>register_subproperty</code>, <code>register_disjoint_concepts</code>, <code>register_disjoint_properties</code></td>
+</tr>
+<tr>
+<td><strong>Lazy evaluation</strong></td>
+<td>Schemas checked at query time, not eagerly grounded</td>
+</tr>
+<tr>
+<td><strong>Exact match</strong></td>
+<td>No weakening -- preserves defeasibility</td>
+</tr>
+<tr>
+<td><strong>Standard reasoner</strong></td>
+<td><code>NMMSReasoner</code> works transparently with <code>OntoMaterialBase</code></td>
+</tr>
+<tr>
+<td><strong>Defeasibility</strong></td>
+<td>Extra premises defeat ontology inferences (no Weakening)</td>
+</tr>
+<tr>
+<td><strong>Non-transitivity</strong></td>
+<td>SubClassOf chains do not propagate (no Mixed-Cut)</td>
+</tr>
+<tr>
+<td><strong>Incompatibility</strong></td>
+<td><code>disjointWith</code> and <code>disjointProperties</code> encode material incompatibility directly</td>
+</tr>
+<tr>
+<td><strong>DDT</strong></td>
+<td>Conditional form <code>A -&gt; B</code> derivable when material inference holds</td>
+</tr>
+<tr>
+<td><strong>CommitmentStore</strong></td>
+<td>Higher-level API with source tracking and retraction</td>
+</tr>
+<tr>
+<td><strong>CLI</strong></td>
+<td><code>--onto</code> flag on <code>tell</code>, <code>ask</code>, <code>repl</code></td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.code.copy", "navigation.sections", "navigation.expand"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

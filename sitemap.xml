@@ -13,11 +13,11 @@
          <lastmod>2026-02-23</lastmod>
     </url>
     <url>
-         <loc>https://bradleypallen.github.io/pyNMMS/api/rdfs-base/</loc>
+         <loc>https://bradleypallen.github.io/pyNMMS/api/onto-base/</loc>
          <lastmod>2026-02-23</lastmod>
     </url>
     <url>
-         <loc>https://bradleypallen.github.io/pyNMMS/api/rdfs-syntax/</loc>
+         <loc>https://bradleypallen.github.io/pyNMMS/api/onto-syntax/</loc>
          <lastmod>2026-02-23</lastmod>
     </url>
     <url>
@@ -33,7 +33,7 @@
          <lastmod>2026-02-23</lastmod>
     </url>
     <url>
-         <loc>https://bradleypallen.github.io/pyNMMS/theory/rdfs-extension/</loc>
+         <loc>https://bradleypallen.github.io/pyNMMS/theory/onto-extension/</loc>
          <lastmod>2026-02-23</lastmod>
     </url>
     <url>
@@ -53,11 +53,11 @@
          <lastmod>2026-02-23</lastmod>
     </url>
     <url>
-         <loc>https://bradleypallen.github.io/pyNMMS/tutorial/proof-search/</loc>
+         <loc>https://bradleypallen.github.io/pyNMMS/tutorial/onto-tutorial/</loc>
          <lastmod>2026-02-23</lastmod>
     </url>
     <url>
-         <loc>https://bradleypallen.github.io/pyNMMS/tutorial/rdfs-tutorial/</loc>
+         <loc>https://bradleypallen.github.io/pyNMMS/tutorial/proof-search/</loc>
          <lastmod>2026-02-23</lastmod>
     </url>
 </urlset>

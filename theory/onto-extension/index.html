@@ -10,7 +10,7 @@
       
       
       
-        <link rel="canonical" href="https://bradleypallen.github.io/pyNMMS/theory/rdfs-extension/">
+        <link rel="canonical" href="https://bradleypallen.github.io/pyNMMS/theory/onto-extension/">
       
       
         <link rel="prev" href="../nmms-calculus/">
@@ -25,7 +25,7 @@
     
     
       
-        <title>RDFS Extension - pyNMMS</title>
+        <title>Ontology Extension - pyNMMS</title>
       
     
     
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#the-nmms_rdfs-extension-defeasible-rdfs-axiom-schemas" class="md-skip">
+        <a href="#the-nmms_onto-extension-schema-level-macros-for-material-inferential-commitments" class="md-skip">
           Skip to content
         </a>
       
@@ -114,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              RDFS Extension
+              Ontology Extension
             
           </span>
         </div>
@@ -470,14 +470,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../tutorial/rdfs-tutorial/" class="md-nav__link">
+      <a href="../../tutorial/onto-tutorial/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    RDFS Extension
+    Ontology Extension
   
 
     
@@ -643,14 +643,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api/rdfs-base/" class="md-nav__link">
+      <a href="../../api/onto-base/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    RDFS Material Base
+    Ontology Material Base
   
 
     
@@ -671,14 +671,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api/rdfs-syntax/" class="md-nav__link">
+      <a href="../../api/onto-syntax/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    RDFS Syntax
+    Ontology Syntax
   
 
     
@@ -804,7 +804,7 @@
   <span class="md-ellipsis">
     
   
-    RDFS Extension
+    Ontology Extension
   
 
     
@@ -822,7 +822,7 @@
   <span class="md-ellipsis">
     
   
-    RDFS Extension
+    Ontology Extension
   
 
     
@@ -870,15 +870,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#3-the-nmms_rdfs-material-base" class="md-nav__link">
+  <a href="#3-the-nmms_onto-material-base" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. The NMMS_RDFS Material Base
+        3. The NMMS_Onto Material Base
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="3. The NMMS_RDFS Material Base">
+    <nav class="md-nav" aria-label="3. The NMMS_Onto Material Base">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -919,6 +919,28 @@
     <span class="md-ellipsis">
       
         3.4 subPropertyOf(R, S)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#35-disjointwithc-d" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.5 disjointWith(C, D)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#36-disjointpropertiesr-s" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.6 disjointProperties(R, S)
       
     </span>
   </a>
@@ -976,10 +998,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#53-lazy-evaluation" class="md-nav__link">
+  <a href="#53-incompatibility-as-foundational" class="md-nav__link">
     <span class="md-ellipsis">
       
-        5.3 Lazy Evaluation
+        5.3 Incompatibility as Foundational
       
     </span>
   </a>
@@ -987,10 +1009,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#54-deduction-detachment-theorem-ddt" class="md-nav__link">
+  <a href="#54-lazy-evaluation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        5.4 Deduction-Detachment Theorem (DDT)
+        5.4 Lazy Evaluation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#55-deduction-detachment-theorem-ddt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.5 Deduction-Detachment Theorem (DDT)
       
     </span>
   </a>
@@ -1003,10 +1036,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#6-relationship-to-classical-rdfs-and-description-logics" class="md-nav__link">
+  <a href="#6-schemas-as-macros-no-new-reasoning-capabilities" class="md-nav__link">
     <span class="md-ellipsis">
       
-        6. Relationship to Classical RDFS and Description Logics
+        6. Schemas as Macros: No New Reasoning Capabilities
       
     </span>
   </a>
@@ -1014,10 +1047,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#7-what-nmms_rdfs-does-not-include" class="md-nav__link">
+  <a href="#7-what-nmms_onto-does-not-include" class="md-nav__link">
     <span class="md-ellipsis">
       
-        7. What NMMS_RDFS Does NOT Include
+        7. What NMMS_Onto Does NOT Include
       
     </span>
   </a>
@@ -1139,15 +1172,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#3-the-nmms_rdfs-material-base" class="md-nav__link">
+  <a href="#3-the-nmms_onto-material-base" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. The NMMS_RDFS Material Base
+        3. The NMMS_Onto Material Base
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="3. The NMMS_RDFS Material Base">
+    <nav class="md-nav" aria-label="3. The NMMS_Onto Material Base">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1188,6 +1221,28 @@
     <span class="md-ellipsis">
       
         3.4 subPropertyOf(R, S)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#35-disjointwithc-d" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.5 disjointWith(C, D)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#36-disjointpropertiesr-s" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.6 disjointProperties(R, S)
       
     </span>
   </a>
@@ -1245,10 +1300,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#53-lazy-evaluation" class="md-nav__link">
+  <a href="#53-incompatibility-as-foundational" class="md-nav__link">
     <span class="md-ellipsis">
       
-        5.3 Lazy Evaluation
+        5.3 Incompatibility as Foundational
       
     </span>
   </a>
@@ -1256,10 +1311,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#54-deduction-detachment-theorem-ddt" class="md-nav__link">
+  <a href="#54-lazy-evaluation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        5.4 Deduction-Detachment Theorem (DDT)
+        5.4 Lazy Evaluation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#55-deduction-detachment-theorem-ddt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.5 Deduction-Detachment Theorem (DDT)
       
     </span>
   </a>
@@ -1272,10 +1338,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#6-relationship-to-classical-rdfs-and-description-logics" class="md-nav__link">
+  <a href="#6-schemas-as-macros-no-new-reasoning-capabilities" class="md-nav__link">
     <span class="md-ellipsis">
       
-        6. Relationship to Classical RDFS and Description Logics
+        6. Schemas as Macros: No New Reasoning Capabilities
       
     </span>
   </a>
@@ -1283,10 +1349,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#7-what-nmms_rdfs-does-not-include" class="md-nav__link">
+  <a href="#7-what-nmms_onto-does-not-include" class="md-nav__link">
     <span class="md-ellipsis">
       
-        7. What NMMS_RDFS Does NOT Include
+        7. What NMMS_Onto Does NOT Include
       
     </span>
   </a>
@@ -1360,13 +1426,14 @@
 
 
 
-<h1 id="the-nmms_rdfs-extension-defeasible-rdfs-axiom-schemas">The NMMS_RDFS Extension: Defeasible RDFS Axiom Schemas<a class="headerlink" href="#the-nmms_rdfs-extension-defeasible-rdfs-axiom-schemas" title="Permanent link">&para;</a></h1>
+<h1 id="the-nmms_onto-extension-schema-level-macros-for-material-inferential-commitments">The NMMS_Onto Extension: Schema-Level Macros for Material Inferential Commitments<a class="headerlink" href="#the-nmms_onto-extension-schema-level-macros-for-material-inferential-commitments" title="Permanent link">&para;</a></h1>
 <h2 id="1-introduction">1. Introduction<a class="headerlink" href="#1-introduction" title="Permanent link">&para;</a></h2>
 <p>NMMS (Non-Monotonic Multi-Succedent) provides a proof-theoretic framework for codifying <strong>open reason relations</strong> -- consequence relations where Monotonicity ([Weakening]) and Transitivity ([Mixed-Cut]) can fail. Hlobil &amp; Brandom (2025), Chapter 3 ("Introducing Logical Vocabulary"), develops the propositional fragment: a sequent calculus whose eight Ketonen-style rules extend an arbitrary material base B = <L_B, |~_B> to a full propositional consequence relation |~. The calculus enjoys Supraclassicality, Conservative Extension, Invertibility, and a Projection theorem reducing derivability to base-level axiom checking.</p>
-<p>NMMS_RDFS extends the propositional fragment by <strong>enriching the material base</strong> with defeasible axiom schemas drawn from a subset of the W3C RDF Schema vocabulary. The extension adds no new proof rules: the same eight propositional rules apply unchanged. Instead, four RDFS axiom schema types -- <code>subClassOf</code>, <code>range</code>, <code>domain</code>, <code>subPropertyOf</code> -- are registered as schematic patterns that the material base evaluates lazily when checking whether a sequent is an axiom. Because the extension operates entirely at the level of the base, all of Hlobil's proofs for the propositional calculus are preserved without modification.</p>
-<p>The resulting system, NMMS_RDFS, occupies a distinctive niche: it supports defeasible ontological reasoning (class hierarchies, role constraints, property hierarchies) within a framework where adding premises can defeat inferences and chaining good inferences can yield bad ones -- precisely the features that distinguish NMMS from classical and monotonic nonclassical logics.</p>
+<p>NMMS_Onto is an <strong>ontology engineering extension</strong> that enriches the material base with schema-level macros for expressing material inferential commitments and incompatibilities. The extension adds no new proof rules: the same eight propositional rules apply unchanged. Instead, six ontology schema types -- <code>subClassOf</code>, <code>range</code>, <code>domain</code>, <code>subPropertyOf</code>, <code>disjointWith</code>, <code>disjointProperties</code> -- are registered as schematic patterns that the material base evaluates lazily when checking whether a sequent is an axiom. Because the extension operates entirely at the level of the base, all of Hlobil's proofs for the propositional calculus are preserved without modification.</p>
+<p>The vocabulary is borrowed from W3C RDFS and OWL for familiarity, but the semantics are those of NMMS: exact-match defeasibility, no weakening, no transitivity. These are not limitations to be worked around -- they are the defining features of the NMMS framework that make it suitable for modeling open reason relations.</p>
+<p>The resulting system, NMMS_Onto, occupies a distinctive niche: it supports defeasible ontological reasoning (class hierarchies, role constraints, property hierarchies, concept and property incompatibilities) within a framework where adding premises can defeat inferences and chaining good inferences can yield bad ones -- precisely the features that distinguish NMMS from classical and monotonic nonclassical logics.</p>
 <h2 id="2-design-decision-axiom-extensions-not-proof-rules">2. Design Decision: Axiom Extensions, Not Proof Rules<a class="headerlink" href="#2-design-decision-axiom-extensions-not-proof-rules" title="Permanent link">&para;</a></h2>
-<p>The central architectural decision in NMMS_RDFS is to extend the material base rather than the proof rules. To appreciate why this matters, it helps to recall the structure of NMMS proof trees.</p>
+<p>The central architectural decision in NMMS_Onto is to extend the material base rather than the proof rules. To appreciate why this matters, it helps to recall the structure of NMMS proof trees.</p>
 <p>An NMMS proof tree has two kinds of nodes:</p>
 <ul>
 <li>
@@ -1377,7 +1444,7 @@
 </li>
 </ul>
 <p>Hlobil's Chapter 3 proofs -- Supraclassicality (Fact 2), Conservative Extension (Fact 3 / Prop. 26), Invertibility (Prop. 27), and the Projection Theorem (Theorem 7) -- are established for <strong>any</strong> material base satisfying the Containment axiom (Definition 1). The proofs make no assumptions about the internal structure of base-level axioms beyond Containment. This means that any extension of |~_B that preserves Containment automatically inherits all of these results.</p>
-<p>NMMS_RDFS exploits this observation. The four RDFS axiom schemas add new pairs to the base consequence relation |~_B. Each schema generates axioms of the form {s} |~ {t} where s and t are atomic sentences with disjoint singleton antecedent and consequent sets. Since Gamma = {s} and Delta = {t} with s != t, these pairs have Gamma intersection Delta = empty, so they do not conflict with Containment (which only requires that overlapping pairs be included). The schemas therefore extend |~_B while preserving Containment, and all of Hlobil's metatheoretic results carry over without any additional proof work.</p>
+<p>NMMS_Onto exploits this observation. The six ontology schemas add new pairs to the base consequence relation |~_B. Each schema generates axioms of the form {s} |~ {t} (for inferential commitment schemas) or {s, t} |~ {} (for incompatibility schemas) where s and t are atomic sentences. Since the inferential commitment schemas produce pairs with disjoint singleton antecedent and consequent sets, and the incompatibility schemas produce pairs with empty consequent, none of these conflict with Containment (which only requires that overlapping pairs be included). The schemas therefore extend |~_B while preserving Containment, and all of Hlobil's metatheoretic results carry over without any additional proof work.</p>
 <p>By contrast, introducing new <strong>proof rules</strong> -- for instance, unrestricted quantifier rules [forall-L], [forall-R], [exists-L], [exists-R] -- would modify the internal structure of proof trees. This would require:</p>
 <ol>
 <li>Re-establishing Invertibility for the new rules.</li>
@@ -1385,54 +1452,67 @@
 <li>Verifying that Supraclassicality and Conservative Extension still hold with the expanded rule set.</li>
 <li>Ensuring that the third-top-sequent pattern (which compensates for the absence of structural contraction) interacts correctly with the new rules.</li>
 </ol>
-<p>None of this work is necessary for NMMS_RDFS, because the proof rules are left unchanged. The RDFS schemas are visible only to the axiom checker, not to the proof search engine.</p>
-<p><strong>Implementation consequence</strong>: In <code>pyNMMS</code>, the <code>NMMSReasoner</code> class from the propositional core works without modification with <code>RDFSMaterialBase</code>. No subclassing of the reasoner is required. The only change is that <code>RDFSMaterialBase.is_axiom()</code> adds a third axiom check (Ax3: RDFS schema match) after the standard Ax1 (Containment) and Ax2 (explicit base consequence).</p>
-<h2 id="3-the-nmms_rdfs-material-base">3. The NMMS_RDFS Material Base<a class="headerlink" href="#3-the-nmms_rdfs-material-base" title="Permanent link">&para;</a></h2>
-<p>An NMMS_RDFS material base B_RDFS = <L_B, |~_B, S> extends the standard NMMS material base with a set S of defeasible RDFS axiom schemas. The atomic language L_B is partitioned into two syntactic categories:</p>
+<p>None of this work is necessary for NMMS_Onto, because the proof rules are left unchanged. The ontology schemas are visible only to the axiom checker, not to the proof search engine.</p>
+<p><strong>Implementation consequence</strong>: In <code>pyNMMS</code>, the <code>NMMSReasoner</code> class from the propositional core works without modification with <code>OntoMaterialBase</code>. No subclassing of the reasoner is required. The only change is that <code>OntoMaterialBase.is_axiom()</code> adds a third axiom check (Ax3: ontology schema match) after the standard Ax1 (Containment) and Ax2 (explicit base consequence).</p>
+<h2 id="3-the-nmms_onto-material-base">3. The NMMS_Onto Material Base<a class="headerlink" href="#3-the-nmms_onto-material-base" title="Permanent link">&para;</a></h2>
+<p>An NMMS_Onto material base B_Onto = <L_B, |~_B, S> extends the standard NMMS material base with a set S of ontology schemas that serve as macros for generating material inferential commitments and incompatibilities. The atomic language L_B is partitioned into two syntactic categories:</p>
 <p><strong>ABox assertions</strong> (ground facts about individuals):</p>
 <ul>
 <li><strong>Concept assertions</strong>: <code>C(a)</code> -- individual <code>a</code> belongs to concept <code>C</code>. Examples: <code>Man(socrates)</code>, <code>Happy(alice)</code>, <code>HeartAttack(patient)</code>.</li>
 <li><strong>Role assertions</strong>: <code>R(a,b)</code> -- individual <code>a</code> stands in role <code>R</code> to individual <code>b</code>. Examples: <code>hasChild(alice,bob)</code>, <code>hasSymptom(patient,chestPain)</code>.</li>
 </ul>
-<p><strong>TBox schemas</strong> (defeasible terminological axioms):</p>
-<p>The TBox consists of four RDFS axiom schema types. Each schema is evaluated lazily at query time -- not eagerly grounded over all known individuals. All schemas use <strong>exact match</strong> (singleton antecedent, singleton consequent, no weakening), which is what preserves nonmonotonicity.</p>
+<p><strong>TBox schemas</strong> (schema-level macros for material inferential commitments and incompatibilities):</p>
+<p>The TBox consists of six ontology schema types. Each schema is evaluated lazily at query time -- not eagerly grounded over all known individuals. All schemas use <strong>exact match</strong> (no weakening), which is what preserves nonmonotonicity.</p>
 <h3 id="31-subclassofc-d">3.1 subClassOf(C, D)<a class="headerlink" href="#31-subclassofc-d" title="Permanent link">&para;</a></h3>
 <p><strong>Schema</strong>: For any individual x,</p>
 <div class="highlight"><pre><span></span><code>{C(x)} |~_B {D(x)}
 </code></pre></div>
-<p><strong>Intended reading</strong>: Concept C is (defeasibly) a subclass of concept D. Any individual that is a C is, defeasibly, also a D.</p>
+<p><strong>Intended reading</strong>: Being a C is a defeasible material inferential commitment to being a D.</p>
 <p><strong>Example</strong>: <code>subClassOf(Man, Mortal)</code> generates the axiom <code>{Man(socrates)} |~ {Mortal(socrates)}</code> for any individual <code>socrates</code>, without needing to enumerate all individuals in advance.</p>
 <h3 id="32-ranger-c">3.2 range(R, C)<a class="headerlink" href="#32-ranger-c" title="Permanent link">&para;</a></h3>
 <p><strong>Schema</strong>: For any individuals x, y,</p>
 <div class="highlight"><pre><span></span><code>{R(x,y)} |~_B {C(y)}
 </code></pre></div>
-<p><strong>Intended reading</strong>: The range of role R is (defeasibly) concept C. The second argument of any R-assertion is, defeasibly, a C.</p>
+<p><strong>Intended reading</strong>: Standing in role R to something carries a defeasible material inferential commitment that the second argument is a C.</p>
 <p><strong>Example</strong>: <code>range(hasChild, Person)</code> generates <code>{hasChild(alice,bob)} |~ {Person(bob)}</code> -- if alice has a child bob, then bob is (defeasibly) a Person.</p>
 <h3 id="33-domainr-c">3.3 domain(R, C)<a class="headerlink" href="#33-domainr-c" title="Permanent link">&para;</a></h3>
 <p><strong>Schema</strong>: For any individuals x, y,</p>
 <div class="highlight"><pre><span></span><code>{R(x,y)} |~_B {C(x)}
 </code></pre></div>
-<p><strong>Intended reading</strong>: The domain of role R is (defeasibly) concept C. The first argument of any R-assertion is, defeasibly, a C.</p>
+<p><strong>Intended reading</strong>: Standing in role R to something carries a defeasible material inferential commitment that the first argument is a C.</p>
 <p><strong>Example</strong>: <code>domain(hasChild, Parent)</code> generates <code>{hasChild(alice,bob)} |~ {Parent(alice)}</code> -- if alice has a child, then alice is (defeasibly) a Parent.</p>
 <h3 id="34-subpropertyofr-s">3.4 subPropertyOf(R, S)<a class="headerlink" href="#34-subpropertyofr-s" title="Permanent link">&para;</a></h3>
 <p><strong>Schema</strong>: For any individuals x, y,</p>
 <div class="highlight"><pre><span></span><code>{R(x,y)} |~_B {S(x,y)}
 </code></pre></div>
-<p><strong>Intended reading</strong>: Role R is (defeasibly) a subproperty of role S. Any R-assertion between two individuals defeasibly entails the corresponding S-assertion.</p>
+<p><strong>Intended reading</strong>: An R-assertion carries a defeasible material inferential commitment to the corresponding S-assertion.</p>
 <p><strong>Example</strong>: <code>subPropertyOf(hasChild, hasDescendant)</code> generates <code>{hasChild(alice,bob)} |~ {hasDescendant(alice,bob)}</code> -- if alice has child bob, then alice (defeasibly) has descendant bob.</p>
+<h3 id="35-disjointwithc-d">3.5 disjointWith(C, D)<a class="headerlink" href="#35-disjointwithc-d" title="Permanent link">&para;</a></h3>
+<p><strong>Schema</strong>: For any individual x,</p>
+<div class="highlight"><pre><span></span><code>{C(x), D(x)} |~_B {}
+</code></pre></div>
+<p><strong>Intended reading</strong>: Being a C and being a D are materially incompatible. This is an incompatibility commitment -- the empty consequent means the pair of premises is incoherent.</p>
+<p>Incompatibility is foundational in Brandom's framework: it is prior to negation, not derived from it. The <code>disjointWith</code> schema directly encodes material incompatibility between concepts without routing through negation.</p>
+<p><strong>Example</strong>: <code>disjointWith(Alive, Dead)</code> generates <code>{Alive(socrates), Dead(socrates)} |~ {}</code> -- being alive and being dead are incompatible for any individual.</p>
+<h3 id="36-disjointpropertiesr-s">3.6 disjointProperties(R, S)<a class="headerlink" href="#36-disjointpropertiesr-s" title="Permanent link">&para;</a></h3>
+<p><strong>Schema</strong>: For any individuals x, y,</p>
+<div class="highlight"><pre><span></span><code>{R(x,y), S(x,y)} |~_B {}
+</code></pre></div>
+<p><strong>Intended reading</strong>: Standing in role R and role S to the same pair of individuals is materially incompatible.</p>
+<p><strong>Example</strong>: <code>disjointProperties(employs, isEmployedBy)</code> generates <code>{employs(alice,bob), isEmployedBy(alice,bob)} |~ {}</code> -- alice cannot both employ bob and be employed by bob.</p>
 <h2 id="4-containment-preservation">4. Containment Preservation<a class="headerlink" href="#4-containment-preservation" title="Permanent link">&para;</a></h2>
-<p><strong>Claim</strong>: If B = <L_B, |~_B> satisfies Containment, then the extended base B_RDFS = <L_B, |~_B union S_ground> also satisfies Containment, where S_ground denotes the set of all ground instances of the registered RDFS schemas.</p>
+<p><strong>Claim</strong>: If B = <L_B, |~_B> satisfies Containment, then the extended base B_Onto = <L_B, |~_B union S_ground> also satisfies Containment, where S_ground denotes the set of all ground instances of the registered ontology schemas.</p>
 <p><strong>Proof sketch</strong>: Containment requires that Gamma |~_B Delta whenever Gamma intersection Delta is nonempty. We must show two things:</p>
 <ol>
 <li>
-<p><strong>The original Containment pairs are preserved</strong>: B_RDFS extends |~_B, so all original pairs remain.</p>
+<p><strong>The original Containment pairs are preserved</strong>: B_Onto extends |~_B, so all original pairs remain.</p>
 </li>
 <li>
-<p><strong>The new schema pairs do not violate Containment</strong>: Each RDFS schema adds pairs of the form ({s}, {t}) where s and t are distinct atomic sentences (e.g., s = <code>Man(socrates)</code> and t = <code>Mortal(socrates)</code> for a subClassOf schema). Since s != t, we have {s} intersection {t} = empty, so these pairs are in the region where Containment is silent -- Containment only mandates inclusion of pairs with nonempty intersection, and imposes no constraint on pairs with empty intersection. Adding pairs with empty intersection cannot violate the requirement that pairs with nonempty intersection are included.</p>
+<p><strong>The new schema pairs do not violate Containment</strong>: Each inferential commitment schema adds pairs of the form ({s}, {t}) where s and t are distinct atomic sentences (e.g., s = <code>Man(socrates)</code> and t = <code>Mortal(socrates)</code> for a subClassOf schema). Since s != t, we have {s} intersection {t} = empty, so these pairs are in the region where Containment is silent. Each incompatibility schema adds pairs of the form ({s, t}, {}) where s and t are distinct atomic sentences. Since the consequent is empty, {s, t} intersection {} = empty, so again Containment is silent. Adding pairs where Containment is silent cannot violate the requirement that pairs with nonempty intersection are included.</p>
 </li>
 </ol>
-<p>More precisely, Containment states: for all Gamma, Delta in P(L_B), if Gamma intersection Delta != empty then Gamma |~_B Delta. The RDFS schemas only add pairs where the intersection <strong>is</strong> empty. So the condition "if Gamma intersection Delta != empty then Gamma |~_B Delta" is unaffected: the "if" side is unchanged (no new Gamma, Delta with nonempty intersection are introduced that were not already covered), and the "then" side is only strengthened (more pairs are in |~_B, not fewer).</p>
-<p><strong>Corollary</strong>: Since B_RDFS satisfies Containment, all of the following results from Hlobil &amp; Brandom (2025), Ch. 3, hold for NMMS_RDFS without modification:</p>
+<p>More precisely, Containment states: for all Gamma, Delta in P(L_B), if Gamma intersection Delta != empty then Gamma |~_B Delta. The ontology schemas only add pairs where the intersection <strong>is</strong> empty. So the condition "if Gamma intersection Delta != empty then Gamma |~_B Delta" is unaffected: the "if" side is unchanged (no new Gamma, Delta with nonempty intersection are introduced that were not already covered), and the "then" side is only strengthened (more pairs are in |~_B, not fewer).</p>
+<p><strong>Corollary</strong>: Since B_Onto satisfies Containment, all of the following results from Hlobil &amp; Brandom (2025), Ch. 3, hold for NMMS_Onto without modification:</p>
 <ul>
 <li><strong>Fact 2 (Supraclassicality)</strong>: CL is a subset of |~. All classically valid sequents are derivable.</li>
 <li><strong>Fact 3 / Proposition 26 (Conservative Extension)</strong>: If Gamma union Delta is a subset of L_B, then Gamma |~ Delta iff Gamma |~_B Delta. Logical vocabulary does not alter base-level reason relations.</li>
@@ -1441,7 +1521,7 @@
 </ul>
 <h2 id="5-key-properties">5. Key Properties<a class="headerlink" href="#5-key-properties" title="Permanent link">&para;</a></h2>
 <h3 id="51-defeasibility">5.1 Defeasibility<a class="headerlink" href="#51-defeasibility" title="Permanent link">&para;</a></h3>
-<p>All RDFS schemas are <strong>defeasible</strong>: adding premises to the antecedent side of a derivable sequent can defeat the inference. This is because the <code>is_axiom</code> check uses exact match -- a schema <code>{C(x)} |~ {D(x)}</code> matches only when the antecedent is exactly <code>{C(x)}</code> and the consequent is exactly <code>{D(x)}</code>, with no additional sentences on either side.</p>
+<p>All ontology schemas are <strong>defeasible</strong>: adding premises to the antecedent side of a derivable sequent can defeat the inference. This is because the <code>is_axiom</code> check uses exact match -- a schema <code>{C(x)} |~ {D(x)}</code> matches only when the antecedent is exactly <code>{C(x)}</code> and the consequent is exactly <code>{D(x)}</code>, with no additional sentences on either side.</p>
 <p><strong>Example</strong>: With <code>subClassOf(Man, Mortal)</code>:</p>
 <ul>
 <li><code>{Man(socrates)} |~ {Mortal(socrates)}</code> -- derivable (schema match).</li>
@@ -1457,95 +1537,60 @@
 <li><code>{Man(socrates)} |~ {Physical(socrates)}</code> -- <strong>not derivable</strong>. There is no axiom matching <code>({Man(socrates)}, {Physical(socrates)})</code>, and backward proof search cannot chain the two schemas because the calculus lacks [Mixed-Cut].</li>
 </ul>
 <p>Similarly, <code>subPropertyOf(hasChild, hasDescendant)</code> and <code>subPropertyOf(hasDescendant, hasRelative)</code> do not jointly entail <code>{hasChild(alice,bob)} |~ {hasRelative(alice,bob)}</code>.</p>
-<p>This distinguishes NMMS_RDFS from classical RDFS, where <code>rdfs:subClassOf</code> is transitive. In NMMS_RDFS, if one wants the transitive closure, one must explicitly register each link: <code>subClassOf(Man, Mortal)</code>, <code>subClassOf(Man, Physical)</code>, and <code>subClassOf(Mortal, Physical)</code> as separate schemas. This is by design -- some subclass chains should compose, and others should not, depending on the domain.</p>
-<h3 id="53-lazy-evaluation">5.3 Lazy Evaluation<a class="headerlink" href="#53-lazy-evaluation" title="Permanent link">&para;</a></h3>
-<p>RDFS schemas are stored as abstract patterns and evaluated lazily during <code>is_axiom</code> checks. This means:</p>
+<p>This distinguishes NMMS_Onto from systems where <code>subClassOf</code> is transitive. In NMMS_Onto, if one wants the transitive closure, one must explicitly register each link: <code>subClassOf(Man, Mortal)</code>, <code>subClassOf(Man, Physical)</code>, and <code>subClassOf(Mortal, Physical)</code> as separate schemas. This is by design -- some subclass chains should compose, and others should not, depending on the domain.</p>
+<h3 id="53-incompatibility-as-foundational">5.3 Incompatibility as Foundational<a class="headerlink" href="#53-incompatibility-as-foundational" title="Permanent link">&para;</a></h3>
+<p>The <code>disjointWith</code> and <code>disjointProperties</code> schemas encode <strong>material incompatibility</strong> directly, without routing through negation. In Brandom's inferentialist framework, incompatibility is prior to negation: two commitments are incompatible when holding both leads to incoherence (empty consequent). Negation is then understood in terms of incompatibility, not the other way around.</p>
+<p><strong>Example</strong>: With <code>disjointWith(Alive, Dead)</code>:</p>
+<ul>
+<li><code>{Alive(socrates), Dead(socrates)} |~ {}</code> -- the pair is incoherent (schema match).</li>
+<li>This incompatibility is <strong>defeasible</strong>: <code>{Alive(socrates), Dead(socrates), Zombie(socrates)} |~ {}</code> is <strong>not</strong> an axiom. The extra premise <code>Zombie(socrates)</code> defeats the incompatibility, because the antecedent no longer exactly matches the schema pattern.</li>
+</ul>
+<p>This models a natural reasoning pattern: being alive and being dead are ordinarily incompatible, but in certain contexts (zombies, theological resurrection) the incompatibility may not hold.</p>
+<h3 id="54-lazy-evaluation">5.4 Lazy Evaluation<a class="headerlink" href="#54-lazy-evaluation" title="Permanent link">&para;</a></h3>
+<p>Ontology schemas are stored as abstract patterns and evaluated lazily during <code>is_axiom</code> checks. This means:</p>
 <ul>
 <li><strong>Storage</strong>: O(k) schemas, where k is the number of registered schemas. Not O(n * k) ground entries, where n is the number of known individuals.</li>
 <li><strong>Adding individuals</strong>: O(1). When a new individual enters the language (e.g., <code>Man(plato)</code> is added), no schema re-expansion or re-grounding is needed. The schema <code>subClassOf(Man, Mortal)</code> will automatically match <code>{Man(plato)} |~ {Mortal(plato)}</code> at query time.</li>
-<li><strong>Query time</strong>: Each <code>is_axiom</code> call iterates over the registered schemas and attempts pattern matching against the concrete antecedent and consequent. For singleton pairs (the only ones RDFS schemas generate), this is O(k) per axiom check.</li>
+<li><strong>Query time</strong>: Each <code>is_axiom</code> call iterates over the registered schemas and attempts pattern matching against the concrete antecedent and consequent. For singleton pairs (the only ones inferential commitment schemas generate), this is O(k) per axiom check.</li>
 </ul>
 <p>This lazy evaluation strategy avoids the combinatorial explosion that would arise from eagerly grounding all schemas over all known individuals, especially in bases with many individuals and many schemas.</p>
-<h3 id="54-deduction-detachment-theorem-ddt">5.4 Deduction-Detachment Theorem (DDT)<a class="headerlink" href="#54-deduction-detachment-theorem-ddt" title="Permanent link">&para;</a></h3>
-<p>The DDT -- Gamma |~ A -&gt; B, Delta iff Gamma, A |~ B, Delta -- is a property of the proof rules ([R-&gt;] and [L-&gt;]), not of the base. Since NMMS_RDFS does not modify the proof rules, DDT holds automatically.</p>
+<h3 id="55-deduction-detachment-theorem-ddt">5.5 Deduction-Detachment Theorem (DDT)<a class="headerlink" href="#55-deduction-detachment-theorem-ddt" title="Permanent link">&para;</a></h3>
+<p>The DDT -- Gamma |~ A -&gt; B, Delta iff Gamma, A |~ B, Delta -- is a property of the proof rules ([R-&gt;] and [L-&gt;]), not of the base. Since NMMS_Onto does not modify the proof rules, DDT holds automatically.</p>
 <p><strong>Example</strong>: With <code>subClassOf(Man, Mortal)</code>:</p>
 <ul>
 <li><code>{Man(socrates)} |~ {Mortal(socrates)}</code> is derivable (schema match).</li>
 <li>Therefore, by DDT, <code>{} |~ {Man(socrates) -&gt; Mortal(socrates)}</code> is also derivable.</li>
 </ul>
-<p>The backward proof proceeds: [R-&gt;] decomposes <code>{} =&gt; {Man(socrates) -&gt; Mortal(socrates)}</code> into <code>{Man(socrates)} =&gt; {Mortal(socrates)}</code>, which is an axiom via the subClassOf schema. This means that NMMS_RDFS can express RDFS schema relationships as object-language implications -- the logical vocabulary "makes explicit" the defeasible material inferences encoded in the schemas.</p>
-<h2 id="6-relationship-to-classical-rdfs-and-description-logics">6. Relationship to Classical RDFS and Description Logics<a class="headerlink" href="#6-relationship-to-classical-rdfs-and-description-logics" title="Permanent link">&para;</a></h2>
-<p>NMMS_RDFS draws its vocabulary from a subset of the W3C RDF Schema 1.1 specification (2014), but the semantics differ fundamentally:</p>
-<table>
-<thead>
-<tr>
-<th>Feature</th>
-<th>Classical RDFS</th>
-<th>NMMS_RDFS</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Entailment regime</td>
-<td>Monotonic, model-theoretic</td>
-<td>Nonmonotonic, proof-theoretic</td>
-</tr>
-<tr>
-<td>Weakening</td>
-<td>Holds</td>
-<td>Fails (exact match)</td>
-</tr>
-<tr>
-<td>Transitivity of subClassOf</td>
-<td>Built-in (RDFS semantics)</td>
-<td>Fails (no [Mixed-Cut])</td>
-</tr>
-<tr>
-<td>Transitivity of subPropertyOf</td>
-<td>Built-in (RDFS semantics)</td>
-<td>Fails (no [Mixed-Cut])</td>
-</tr>
-<tr>
-<td>Open-world assumption</td>
-<td>Yes</td>
-<td>Not applicable (proof-theoretic)</td>
-</tr>
-<tr>
-<td>Schema grounding</td>
-<td>Eager (RDF graph closure)</td>
-<td>Lazy (pattern matching at query time)</td>
-</tr>
-</tbody>
-</table>
-<p>The four NMMS_RDFS schema types correspond to four RDFS vocabulary terms:</p>
+<p>The backward proof proceeds: [R-&gt;] decomposes <code>{} =&gt; {Man(socrates) -&gt; Mortal(socrates)}</code> into <code>{Man(socrates)} =&gt; {Mortal(socrates)}</code>, which is an axiom via the subClassOf schema. This means that NMMS_Onto can express ontology schema relationships as object-language implications -- the logical vocabulary "makes explicit" the defeasible material inferences encoded in the schemas.</p>
+<h2 id="6-schemas-as-macros-no-new-reasoning-capabilities">6. Schemas as Macros: No New Reasoning Capabilities<a class="headerlink" href="#6-schemas-as-macros-no-new-reasoning-capabilities" title="Permanent link">&para;</a></h2>
+<p>It is important to emphasize that NMMS_Onto schemas add <strong>no new reasoning capabilities</strong> to the NMMS framework. They are macros -- convenient shorthand for generating families of ordinary base axioms. Everything that can be expressed with a schema could equally be expressed by manually adding the corresponding ground axioms to the base.</p>
+<p>The value of schemas is purely ergonomic:</p>
 <ul>
-<li><code>subClassOf(C, D)</code> corresponds to <code>C rdfs:subClassOf D</code></li>
-<li><code>range(R, C)</code> corresponds to <code>R rdfs:range C</code></li>
-<li><code>domain(R, C)</code> corresponds to <code>R rdfs:domain C</code></li>
-<li><code>subPropertyOf(R, S)</code> corresponds to <code>R rdfs:subPropertyOf S</code></li>
+<li><strong>Conciseness</strong>: A single <code>subClassOf(Man, Mortal)</code> schema replaces potentially many ground axioms <code>{Man(socrates)} |~ {Mortal(socrates)}</code>, <code>{Man(plato)} |~ {Mortal(plato)}</code>, etc.</li>
+<li><strong>Open-endedness</strong>: Schemas apply to individuals not yet known at registration time. When a new individual appears in the language, the schema automatically generates the corresponding axiom without explicit registration.</li>
+<li><strong>Ontological vocabulary</strong>: The schema names (<code>subClassOf</code>, <code>range</code>, <code>domain</code>, <code>subPropertyOf</code>, <code>disjointWith</code>, <code>disjointProperties</code>) provide a familiar vocabulary for expressing common patterns of material inferential commitment and incompatibility.</li>
 </ul>
-<p>However, the correspondence is structural, not semantic. In classical RDFS, these terms participate in monotonic entailment with built-in transitivity, reflexivity, and interactions defined by the RDFS entailment rules (e.g., if <code>R rdfs:range C</code> and <code>C rdfs:subClassOf D</code>, then <code>R rdfs:range D</code>). In NMMS_RDFS, each schema is an independent defeasible axiom with no built-in interactions.</p>
-<p>The relationship to Description Logics (DLs) is also worth noting. The ABox/TBox distinction in NMMS_RDFS is borrowed from DL terminology, and the concept/role assertion syntax follows DL conventions. However, NMMS_RDFS does not implement any DL tableau calculus or reasoning procedure. The proof search is Hlobil's propositional backward search; the RDFS schemas participate only as base-level axioms checked at the leaves. For work on defeasible extensions of Description Logics proper, see Casini &amp; Straccia (2010) and Giordano et al. (2013).</p>
-<h2 id="7-what-nmms_rdfs-does-not-include">7. What NMMS_RDFS Does NOT Include<a class="headerlink" href="#7-what-nmms_rdfs-does-not-include" title="Permanent link">&para;</a></h2>
+<p>But the underlying reasoning mechanism is unchanged: the same eight Ketonen-style propositional rules, the same backward proof search, the same axiom checking. The schemas simply expand the set of pairs that count as axioms.</p>
+<h2 id="7-what-nmms_onto-does-not-include">7. What NMMS_Onto Does NOT Include<a class="headerlink" href="#7-what-nmms_onto-does-not-include" title="Permanent link">&para;</a></h2>
 <p>To be explicit about the boundaries of the extension:</p>
 <ul>
 <li>
-<p><strong>No unrestricted quantifiers</strong>: NMMS_RDFS does not add universal or existential quantifier rules (forall-L, forall-R, exists-L, exists-R). Hlobil identifies fundamental problems with unrestricted quantification in nonmonotonic settings: unrestricted forall-R overgeneralizes from specific instances, and unrestricted forall-L smuggles in defeating information via universal instantiation. NMMS_RDFS avoids these problems entirely by working at the schema level rather than adding quantifier proof rules.</p>
+<p><strong>No unrestricted quantifiers</strong>: NMMS_Onto does not add universal or existential quantifier rules (forall-L, forall-R, exists-L, exists-R). Hlobil identifies fundamental problems with unrestricted quantification in nonmonotonic settings: unrestricted forall-R overgeneralizes from specific instances, and unrestricted forall-L smuggles in defeating information via universal instantiation. NMMS_Onto avoids these problems entirely by working at the schema level rather than adding quantifier proof rules.</p>
 </li>
 <li>
-<p><strong>No ALL/SOME proof rules</strong>: Unlike ALC-style restricted quantifier extensions, NMMS_RDFS does not include proof rules for restricted universal (<code>ALL R.C</code>) or restricted existential (<code>SOME R.C</code>) expressions. These would require new internal proof tree nodes, revalidation of Invertibility and Projection, and careful treatment of the third-top-sequent pattern. The RDFS schema approach achieves useful ontological reasoning without this complexity.</p>
+<p><strong>No ALL/SOME proof rules</strong>: Unlike ALC-style restricted quantifier extensions, NMMS_Onto does not include proof rules for restricted universal (<code>ALL R.C</code>) or restricted existential (<code>SOME R.C</code>) expressions. These would require new internal proof tree nodes, revalidation of Invertibility and Projection, and careful treatment of the third-top-sequent pattern. The ontology schema approach achieves useful ontological reasoning without this complexity.</p>
 </li>
 <li>
 <p><strong>No transitive closure</strong>: <code>subClassOf</code> and <code>subPropertyOf</code> are not transitively closed. Each link must be explicitly registered. This is a consequence of the absence of [Mixed-Cut] and is a deliberate design feature of the NMMS framework.</p>
 </li>
 <li>
-<p><strong>No concept intersection, union, or complement</strong>: NMMS_RDFS does not support complex concept expressions such as <code>C AND D</code>, <code>C OR D</code>, or <code>NOT C</code>. The propositional connectives (~, &amp;, |, -&gt;) are available in the proof rules and can combine atomic sentences, but there is no mechanism for constructing complex concepts from simpler ones within the RDFS schema language itself.</p>
+<p><strong>No concept intersection, union, or complement</strong>: NMMS_Onto does not support complex concept expressions such as <code>C AND D</code>, <code>C OR D</code>, or <code>NOT C</code>. The propositional connectives (~, &amp;, |, -&gt;) are available in the proof rules and can combine atomic sentences, but there is no mechanism for constructing complex concepts from simpler ones within the ontology schema language itself.</p>
 </li>
 <li>
 <p><strong>No cardinality restrictions or nominals</strong>: Features such as <code>MIN n R.C</code>, <code>MAX n R.C</code>, <code>EXACTLY n R.C</code>, or <code>{a}</code> (nominals) from expressive DLs (SHOIN, SROIQ) are not included.</p>
 </li>
 <li>
-<p><strong>No role characteristics</strong>: NMMS_RDFS does not support role transitivity, symmetry, reflexivity, inverseness, functionality, or role chains as built-in features. If <code>R</code> should be symmetric, both <code>{R(a,b)} |~ {R(b,a)}</code> and <code>{R(b,a)} |~ {R(a,b)}</code> must be registered as explicit ground consequences or handled through additional schemas.</p>
+<p><strong>No role characteristics</strong>: NMMS_Onto does not support role transitivity, symmetry, reflexivity, inverseness, functionality, or role chains as built-in features. If <code>R</code> should be symmetric, both <code>{R(a,b)} |~ {R(b,a)}</code> and <code>{R(b,a)} |~ {R(a,b)}</code> must be registered as explicit ground consequences or handled through additional schemas.</p>
 </li>
 </ul>
 <h2 id="8-assumptions-and-open-questions">8. Assumptions and Open Questions<a class="headerlink" href="#8-assumptions-and-open-questions" title="Permanent link">&para;</a></h2>
@@ -1555,28 +1600,28 @@
 <p><strong>Containment suffices</strong>: The Containment axiom (Definition 1 in Ch. 3) is the only structural requirement on the material base. We assume that Hlobil's proofs depend on no other properties of |~_B beyond Containment and the specific form of the proof rules. This assumption is supported by the text of Ch. 3, which states the results for "any material base satisfying Containment."</p>
 </li>
 <li>
-<p><strong>Exact match is the right notion of defeasibility</strong>: The schemas use singleton antecedent and singleton consequent with no weakening. This means that <em>any</em> additional premise defeats the inference. In practice, one might want finer-grained defeat: <code>{Man(socrates), Greek(socrates)} |~ {Mortal(socrates)}</code> might be desired even though the schema only directly generates the singleton-antecedent form. Users can accommodate this by adding explicit ground consequences for the desired multi-premise patterns.</p>
+<p><strong>Exact match is the right notion of defeasibility</strong>: The schemas use singleton antecedent and singleton consequent (for inferential commitment schemas) or pair antecedent and empty consequent (for incompatibility schemas) with no weakening. This means that <em>any</em> additional premise defeats the inference or incompatibility. In practice, one might want finer-grained defeat: <code>{Man(socrates), Greek(socrates)} |~ {Mortal(socrates)}</code> might be desired even though the schema only directly generates the singleton-antecedent form. Users can accommodate this by adding explicit ground consequences for the desired multi-premise patterns.</p>
 </li>
 <li>
-<p><strong>Propositional connectives are sufficient for logical structure</strong>: The claim is that the four RDFS schemas, combined with propositional connectives via the eight proof rules, provide adequate expressive power for a useful fragment of ontological reasoning. This is an empirical claim that depends on the intended applications.</p>
+<p><strong>Propositional connectives are sufficient for logical structure</strong>: The claim is that the six ontology schemas, combined with propositional connectives via the eight proof rules, provide adequate expressive power for a useful fragment of ontological reasoning. This is an empirical claim that depends on the intended applications.</p>
 </li>
 </ol>
 <h3 id="open-questions">Open Questions<a class="headerlink" href="#open-questions" title="Permanent link">&para;</a></h3>
 <ol>
 <li>
-<p><strong>Schema interaction principles</strong>: Should there be systematic rules for how schemas interact? For instance, should <code>subClassOf(C, D)</code> and <code>domain(R, C)</code> jointly entail anything about <code>R</code> and <code>D</code>? In classical RDFS, they do (via monotonic closure). In NMMS_RDFS, they do not, by design. But are there principled middle grounds -- forms of controlled interaction that preserve the nonmonotonic character while recovering some useful entailments?</p>
+<p><strong>Schema interaction principles</strong>: Should there be systematic rules for how schemas interact? For instance, should <code>subClassOf(C, D)</code> and <code>domain(R, C)</code> jointly entail anything about <code>R</code> and <code>D</code>? In classical ontology languages, they do (via monotonic closure). In NMMS_Onto, they do not, by design. But are there principled middle grounds -- forms of controlled interaction that preserve the nonmonotonic character while recovering some useful entailments?</p>
 </li>
 <li>
 <p><strong>Retraction semantics</strong>: The <code>CommitmentStore</code> supports retracting schemas by source label. What are the formal properties of retraction? Does retracting a schema correspond to a well-defined operation on the consequence relation? How does retraction interact with cached proof results?</p>
 </li>
 <li>
-<p><strong>Relationship to preferential and rational consequence relations</strong>: The defeasible RDFS literature (Casini &amp; Straccia 2010, Giordano et al. 2013) works with preferential and rational consequence relations from the KLM framework. How does the NMMS notion of defeasibility (failure of Weakening) relate to the KLM notion (failure of Monotonicity in preferential models)? Are there translations or embeddings between the two frameworks?</p>
+<p><strong>Relationship to preferential and rational consequence relations</strong>: The defeasible description logic literature (Casini &amp; Straccia 2010, Giordano et al. 2013) works with preferential and rational consequence relations from the KLM framework. How does the NMMS notion of defeasibility (failure of Weakening) relate to the KLM notion (failure of Monotonicity in preferential models)? Are there translations or embeddings between the two frameworks?</p>
 </li>
 <li>
-<p><strong>Completeness relative to intended models</strong>: NMMS_RDFS is sound by construction (all axioms are explicitly registered). But is there a natural model-theoretic semantics for RDFS schemas in the NMMS framework, and if so, is the system complete with respect to that semantics?</p>
+<p><strong>Completeness relative to intended models</strong>: NMMS_Onto is sound by construction (all axioms are explicitly registered). But is there a natural model-theoretic semantics for ontology schemas in the NMMS framework, and if so, is the system complete with respect to that semantics?</p>
 </li>
 <li>
-<p><strong>Scaling properties</strong>: The lazy evaluation strategy avoids combinatorial explosion in schema grounding, but the proof search itself has exponential worst-case complexity (due to the multi-premise Ketonen rules for [L-&gt;], [L|], [R&amp;]). How does the addition of RDFS schemas affect proof search performance in practice? Are there heuristics for ordering schema checks to improve average-case behavior?</p>
+<p><strong>Scaling properties</strong>: The lazy evaluation strategy avoids combinatorial explosion in schema grounding, but the proof search itself has exponential worst-case complexity (due to the multi-premise Ketonen rules for [L-&gt;], [L|], [R&amp;]). How does the addition of ontology schemas affect proof search performance in practice? Are there heuristics for ordering schema checks to improve average-case behavior?</p>
 </li>
 </ol>
 <h2 id="9-references">9. References<a class="headerlink" href="#9-references" title="Permanent link">&para;</a></h2>
@@ -1589,9 +1634,6 @@
 </li>
 <li>
 <p>Giordano, L., Gliozzi, V., Olivetti, N., &amp; Pozzato, G. L. (2013). A Non-Monotonic Description Logic for Reasoning About Typicality. <em>Artificial Intelligence</em>, 195, 165--202.</p>
-</li>
-<li>
-<p>W3C (2014). <em>RDF Schema 1.1</em>. W3C Recommendation, 25 February 2014. https://www.w3.org/TR/rdf-schema/</p>
 </li>
 </ul>
 

@@ -509,10 +509,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#the-nmms_rdfs-object-language" class="md-nav__link">
+  <a href="#the-nmms_onto-object-language" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The NMMS_RDFS Object Language
+        The NMMS_Onto Object Language
       
     </span>
   </a>
@@ -693,10 +693,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#rdfs-batch-format" class="md-nav__link">
+  <a href="#ontology-batch-format" class="md-nav__link">
     <span class="md-ellipsis">
       
-        RDFS batch format
+        Ontology batch format
       
     </span>
   </a>
@@ -763,14 +763,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../rdfs-tutorial/" class="md-nav__link">
+      <a href="../onto-tutorial/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    RDFS Extension
+    Ontology Extension
   
 
     
@@ -936,14 +936,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api/rdfs-base/" class="md-nav__link">
+      <a href="../../api/onto-base/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    RDFS Material Base
+    Ontology Material Base
   
 
     
@@ -964,14 +964,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api/rdfs-syntax/" class="md-nav__link">
+      <a href="../../api/onto-syntax/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    RDFS Syntax
+    Ontology Syntax
   
 
     
@@ -1081,14 +1081,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../theory/rdfs-extension/" class="md-nav__link">
+      <a href="../../theory/onto-extension/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    RDFS Extension
+    Ontology Extension
   
 
     
@@ -1169,10 +1169,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#the-nmms_rdfs-object-language" class="md-nav__link">
+  <a href="#the-nmms_onto-object-language" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The NMMS_RDFS Object Language
+        The NMMS_Onto Object Language
       
     </span>
   </a>
@@ -1353,10 +1353,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#rdfs-batch-format" class="md-nav__link">
+  <a href="#ontology-batch-format" class="md-nav__link">
     <span class="md-ellipsis">
       
-        RDFS batch format
+        Ontology batch format
       
     </span>
   </a>
@@ -1458,9 +1458,9 @@
 </tr>
 </tbody>
 </table>
-<h2 id="the-nmms_rdfs-object-language">The NMMS_RDFS Object Language<a class="headerlink" href="#the-nmms_rdfs-object-language" title="Permanent link">&para;</a></h2>
-<p>The <code>--rdfs</code> flag enables <strong>NMMS_RDFS</strong>, an extension of the propositional NMMS object language with RDFS-style concept and role assertions.</p>
-<p><strong>Atoms.</strong> In propositional NMMS, atoms are bare identifiers. In NMMS_RDFS, atoms are <strong>ground atomic formulas</strong>:</p>
+<h2 id="the-nmms_onto-object-language">The NMMS_Onto Object Language<a class="headerlink" href="#the-nmms_onto-object-language" title="Permanent link">&para;</a></h2>
+<p>The <code>--onto</code> flag enables <strong>NMMS_Onto</strong>, an ontology engineering extension of the propositional NMMS object language with concept and role assertions. The vocabulary is borrowed from W3C RDFS and OWL for familiarity; the semantics are those of NMMS (exact-match defeasibility, no weakening, no transitivity).</p>
+<p><strong>Atoms.</strong> In propositional NMMS, atoms are bare identifiers. In NMMS_Onto, atoms are <strong>ground atomic formulas</strong>:</p>
 <table>
 <thead>
 <tr>
@@ -1482,13 +1482,13 @@
 </tr>
 </tbody>
 </table>
-<p>Bare propositional letters are not valid in NMMS_RDFS.</p>
-<p><strong>Grammar.</strong> The NMMS_RDFS grammar replaces the propositional <code>atom</code> production:</p>
+<p>Bare propositional letters are not valid in NMMS_Onto.</p>
+<p><strong>Grammar.</strong> The NMMS_Onto grammar replaces the propositional <code>atom</code> production:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>atom       ::=  CONCEPT &#39;(&#39; INDIVIDUAL &#39;)&#39;                  (* concept assertion *)
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>             |  ROLE &#39;(&#39; INDIVIDUAL &#39;,&#39; INDIVIDUAL &#39;)&#39;      (* role assertion *)
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>sentence   ::=  ...                                          (* all propositional forms *)
 </code></pre></div>
-<p><strong>Defeasible RDFS Schemas.</strong> In RDFS mode, the <code>tell</code> command also supports schema registration:</p>
+<p><strong>Ontology Schemas.</strong> In ontology mode, the <code>tell</code> command also supports schema registration. Schemas are macros that generate families of ordinary base axioms:</p>
 <table>
 <thead>
 <tr>
@@ -1517,6 +1517,16 @@
 <td><code>subPropertyOf</code></td>
 <td><code>schema subPropertyOf R S</code></td>
 <td>{R(x,y)} |~ {S(x,y)} for any x,y</td>
+</tr>
+<tr>
+<td><code>disjointWith</code></td>
+<td><code>schema disjointWith C D</code></td>
+<td>{C(x), D(x)} |~ {} for any x</td>
+</tr>
+<tr>
+<td><code>disjointProperties</code></td>
+<td><code>schema disjointProperties R S</code></td>
+<td>{R(x,y), S(x,y)} |~ {} for any x,y</td>
 </tr>
 </tbody>
 </table>
@@ -1566,8 +1576,8 @@
 <td>Create the base file if missing</td>
 </tr>
 <tr>
-<td><code>--rdfs</code></td>
-<td>Use RDFS mode (concept/role assertions with defeasible schemas)</td>
+<td><code>--onto</code></td>
+<td>Use ontology mode (concept/role assertions with schema-level macros)</td>
 </tr>
 <tr>
 <td><code>--json</code></td>
@@ -1637,8 +1647,8 @@
 <td>Set the maximum proof depth (default: 25)</td>
 </tr>
 <tr>
-<td><code>--rdfs</code></td>
-<td>Use RDFS mode (concept/role assertions with defeasible schemas)</td>
+<td><code>--onto</code></td>
+<td>Use ontology mode (concept/role assertions with schema-level macros)</td>
 </tr>
 <tr>
 <td><code>--json</code></td>
@@ -1748,9 +1758,9 @@
 <a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>pyNMMS REPL. Type &#39;help&#39; for commands.
 <a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>
 <a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>pynmms&gt; tell atom p &quot;Tara is human&quot;
-<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>Added atom: p — Tara is human
-<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>pynmms&gt; tell atom q &quot;Tara&#39;s body temp is 37°C&quot;
-<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>Added atom: q — Tara&#39;s body temp is 37°C
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>Added atom: p -- Tara is human
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>pynmms&gt; tell atom q &quot;Tara&#39;s body temp is 37C&quot;
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>Added atom: q -- Tara&#39;s body temp is 37C
 <a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>pynmms&gt; tell p |~ q
 <a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a>Added: {&#39;p&#39;} |~ {&#39;q&#39;}
 <a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a>pynmms&gt; tell s, t |~
@@ -1761,8 +1771,8 @@
 <a id="__codelineno-10-16" name="__codelineno-10-16" href="#__codelineno-10-16"></a>NOT DERIVABLE
 <a id="__codelineno-10-17" name="__codelineno-10-17" href="#__codelineno-10-17"></a>pynmms&gt; show
 <a id="__codelineno-10-18" name="__codelineno-10-18" href="#__codelineno-10-18"></a>Language (4 atoms):
-<a id="__codelineno-10-19" name="__codelineno-10-19" href="#__codelineno-10-19"></a>  p — Tara is human
-<a id="__codelineno-10-20" name="__codelineno-10-20" href="#__codelineno-10-20"></a>  q — Tara&#39;s body temp is 37°C
+<a id="__codelineno-10-19" name="__codelineno-10-19" href="#__codelineno-10-19"></a>  p -- Tara is human
+<a id="__codelineno-10-20" name="__codelineno-10-20" href="#__codelineno-10-20"></a>  q -- Tara&#39;s body temp is 37C
 <a id="__codelineno-10-21" name="__codelineno-10-21" href="#__codelineno-10-21"></a>  s
 <a id="__codelineno-10-22" name="__codelineno-10-22" href="#__codelineno-10-22"></a>  t
 <a id="__codelineno-10-23" name="__codelineno-10-23" href="#__codelineno-10-23"></a>Consequences (2):
@@ -1777,14 +1787,14 @@
 <p>One statement per line. Blank lines and <code>#</code> comments are skipped:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a># mybase.base
 <a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>atom p &quot;Tara is human&quot;
-<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>atom q &quot;Tara&#39;s body temp is 37°C&quot;
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>atom q &quot;Tara&#39;s body temp is 37C&quot;
 <a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>p |~ q
 <a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>s, t |~
 </code></pre></div>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>pynmms<span class="w"> </span>tell<span class="w"> </span>-b<span class="w"> </span>base.json<span class="w"> </span>--create<span class="w"> </span>--batch<span class="w"> </span>mybase.base
 </code></pre></div>
-<h3 id="rdfs-batch-format">RDFS batch format<a class="headerlink" href="#rdfs-batch-format" title="Permanent link">&para;</a></h3>
-<p>With <code>--rdfs</code>, batch files also support <code>schema</code> lines (with optional quoted annotations):</p>
+<h3 id="ontology-batch-format">Ontology batch format<a class="headerlink" href="#ontology-batch-format" title="Permanent link">&para;</a></h3>
+<p>With <code>--onto</code>, batch files also support <code>schema</code> lines (with optional quoted annotations):</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>atom Man(socrates) &quot;Socrates is a man&quot;
 <a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>atom hasChild(alice,bob)
 <a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>Man(socrates) |~ Mortal(socrates)
@@ -1792,8 +1802,10 @@
 <a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>schema range hasChild Person &quot;Children are persons&quot;
 <a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>schema domain hasChild Parent &quot;Parents have children&quot;
 <a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>schema subPropertyOf hasChild hasDescendant &quot;Children are descendants&quot;
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>schema disjointWith Alive Dead &quot;Life and death are incompatible&quot;
+<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a>schema disjointProperties employs isEmployedBy &quot;Cannot both employ and be employed by&quot;
 </code></pre></div>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>pynmms<span class="w"> </span>tell<span class="w"> </span>-b<span class="w"> </span>rdfs_base.json<span class="w"> </span>--create<span class="w"> </span>--rdfs<span class="w"> </span>--batch<span class="w"> </span>rdfs_base.base
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>pynmms<span class="w"> </span>tell<span class="w"> </span>-b<span class="w"> </span>onto_base.json<span class="w"> </span>--create<span class="w"> </span>--onto<span class="w"> </span>--batch<span class="w"> </span>onto_base.base
 </code></pre></div>
 <h3 id="ask-batch-format">Ask batch format<a class="headerlink" href="#ask-batch-format" title="Permanent link">&para;</a></h3>
 <p>One sequent per line:</p>

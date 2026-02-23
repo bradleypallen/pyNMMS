@@ -2,9 +2,7 @@
 
 import json
 import tempfile
-from io import StringIO
 from pathlib import Path
-from unittest.mock import patch
 
 import pytest
 
@@ -118,7 +116,7 @@ class TestRQBatch:
                         "--json", "--batch", batch_path])
             assert rc == 0
             out = capsys.readouterr().out
-            lines = [l for l in out.strip().split("\n") if l]
+            lines = [line for line in out.strip().split("\n") if line]
             assert len(lines) == 2
             assert json.loads(lines[0])["action"] == "added_atom"
             assert json.loads(lines[1])["action"] == "added_consequence"

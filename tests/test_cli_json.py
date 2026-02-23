@@ -1,4 +1,4 @@
-"""Tests for CLI JSON output, quiet mode, stdin, batch, exit codes, empty sides, and annotations."""
+"""Tests for CLI JSON, quiet, stdin, batch, exit codes, empty sides, annotations."""
 
 import json
 import tempfile
@@ -9,7 +9,6 @@ from unittest.mock import patch
 import pytest
 
 from pynmms.cli.main import main
-
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -205,9 +204,9 @@ class TestBatchMode:
             batch_path = f.name
 
         try:
-            rc = main(["ask", "-b", base_file, "--json", "--batch", batch_path])
+            main(["ask", "-b", base_file, "--json", "--batch", batch_path])
             out = capsys.readouterr().out
-            lines = [l for l in out.strip().split("\n") if l]
+            lines = [line for line in out.strip().split("\n") if line]
             assert len(lines) == 2
             assert json.loads(lines[0])["status"] == "DERIVABLE"
             assert json.loads(lines[1])["status"] == "NOT_DERIVABLE"
@@ -391,7 +390,10 @@ class TestToyBaseT:
         lines = out.split("\n")
 
         # Find the ask results
-        ask_results = [l.strip() for l in lines if l.strip() in ("DERIVABLE", "NOT DERIVABLE")]
+        derivable_set = ("DERIVABLE", "NOT DERIVABLE")
+        ask_results = [
+            line.strip() for line in lines if line.strip() in derivable_set
+        ]
         assert ask_results == [
             "DERIVABLE",      # p => q
             "NOT DERIVABLE",  # p, r => q

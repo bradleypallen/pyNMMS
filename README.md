@@ -69,8 +69,12 @@ pynmms ask -b base.json "A => B"        # DERIVABLE
 pynmms ask -b base.json "A => C"        # NOT DERIVABLE
 pynmms ask -b base.json "A, C => B"     # NOT DERIVABLE
 
-# Interactive REPL
+# Interactive REPL (no quotes needed around commands)
 pynmms repl -b base.json
+# pynmms> ask A => B
+# DERIVABLE
+# pynmms> ask A => C
+# NOT DERIVABLE
 ```
 
 ## Ontology Extension

@@ -26,6 +26,9 @@ pynmms tell -b base.json --create --batch base.txt  # batch input
 pynmms ask -b base.json --batch queries.txt          # batch queries
 echo "A => B" | pynmms ask -b base.json -    # stdin input
 pynmms repl
+# REPL commands are unquoted (no shell quoting):
+#   pynmms> ask A => B
+#   pynmms> tell A |~ B
 
 # CLI with ontology extension
 pynmms tell -b onto_base.json --create --onto "atom Man(socrates)"

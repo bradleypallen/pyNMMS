@@ -244,7 +244,48 @@ To be explicit about the boundaries of the extension:
 - **No role characteristics**: NMMS_Onto does not support role transitivity, symmetry, reflexivity, inverseness, functionality, or role chains as built-in features. If `R` should be symmetric, both `{R(a,b)} |~ {R(b,a)}` and `{R(b,a)} |~ {R(a,b)}` must be registered as explicit ground consequences or handled through additional schemas.
 
 
-## 8. Assumptions and Open Questions
+## 8. NMMS_Onto and the Semantic Web Tradition
+
+Knowledge engineers trained in the Semantic Web tradition -- OWL, RDFS, description logics -- work within a thoroughly representationalist framework. OWL's semantics are model-theoretic: classes denote sets of individuals, properties denote binary relations, and an ontology is a specification of what exists in a domain. The inferentialist framing of NMMS_Onto, where schemas codify material inferential commitments that practitioners undertake, is philosophically foreign to that tradition.
+
+This section addresses Semantic Web practitioners directly: where NMMS_Onto's vocabulary is familiar, where its behavior diverges from OWL, and why the divergences are principled rather than arbitrary.
+
+### 8.1 The Familiar Vocabulary
+
+NMMS_Onto borrows its schema names from RDFS and OWL deliberately. A knowledge engineer can read the schemas representationally:
+
+- `subClassOf(Man, Mortal)` -- "the extension of Man is a subset of the extension of Mortal"
+- `range(hasChild, Person)` -- "the range of hasChild is Person"
+- `domain(hasChild, Parent)` -- "the domain of hasChild is Parent"
+- `subPropertyOf(hasChild, hasDescendant)` -- "hasChild is a subproperty of hasDescendant"
+- `disjointWith(Alive, Dead)` -- "the extensions of Alive and Dead are disjoint"
+- `disjointProperties(employs, isEmployedBy)` -- "employs and isEmployedBy are disjoint properties"
+- `jointCommitment([ChestPain, ElevatedTroponin], MI)` -- "the intersection of the extensions of ChestPain and ElevatedTroponin is a subset of the extension of MI"
+
+These readings are legitimate. They correspond to what Hlobil & Brandom (2025, Ch. 5) identify as a three-way correspondence between sequent calculi, implicational role inclusions, and truth-maker theory. A `subClassOf(Man, Mortal)` schema can be read inferentially (the premisory role of `Man(x)` includes the premisory role of `Mortal(x)`), representationally (every truth-maker for `Man(x)` is a truth-maker for `Mortal(x)`), or model-theoretically (the extension of Man is a subset of the extension of Mortal). These are not competing interpretations but three metavocabulary renderings of the same reason-relational structure.
+
+### 8.2 Where Behavior Diverges
+
+The representationalist reading is correct as far as it goes, but it sets up expectations that NMMS_Onto does not satisfy. Three divergences matter most:
+
+**Non-transitivity.** In OWL, `SubClassOf(A, B)` and `SubClassOf(B, C)` entail `SubClassOf(A, C)`. In NMMS_Onto, `subClassOf(A, B)` and `subClassOf(B, C)` do not jointly entail `{A(x)} |~ {C(x)}`. The calculus lacks [Mixed-Cut], so individually valid inferences do not compose. If the chain should hold, it must be registered explicitly as `subClassOf(A, C)`. This is by design: some subclass chains should compose (Man -> Mortal -> Physical) and others should not, depending on the domain. The representationalist reading, which treats subClassOf as a subset relation, makes non-transitivity look like a bug. The inferentialist reading, which treats each schema as an independent defeasible commitment, makes it intelligible: undertaking a commitment to A-entails-B and a commitment to B-entails-C does not automatically constitute a commitment to A-entails-C.
+
+**Defeasibility.** In OWL, if `Man SubClassOf Mortal`, then adding any further assertions about Socrates cannot defeat the inference from `Man(socrates)` to `Mortal(socrates)`. In NMMS_Onto, `{Man(socrates), Immortal(socrates)} |~ {Mortal(socrates)}` is not derivable -- the additional premise defeats the inference because the antecedent no longer exactly matches the schema pattern. The representationalist reading, which treats class membership as extensional and monotonic, provides no resources for understanding why adding information could defeat an inference. The inferentialist reading makes it immediate: the commitment encoded by the schema is undertaken for the specific case where `Man(x)` is the sole ground for inferring `Mortal(x)`. Additional grounds change the situation.
+
+**No exhaustiveness or partition structure.** In OWL 2, `DisjointUnion(Color, Red, Green, Blue)` entails both that the three color classes are pairwise disjoint and that every Color is one of the three -- enabling process-of-elimination reasoning. NMMS_Onto can express the pairwise disjointness (via `disjointWith`) and the species-to-genus direction (via `subClassOf`), but not the genus-to-disjunction-of-species direction. This means NMMS_Onto does not support eliminative reasoning of the form "it's a Color and not Red and not Green, therefore Blue." The representationalist reading makes this look like a missing feature. The inferentialist reading reveals it as a principled omission: the exhaustiveness claim ("these species are all there are") is a strong commitment about the closure of a conceptual space, and in open discursive practice -- where new species can always be introduced -- it is a commitment that may not be warranted.
+
+### 8.3 The Correspondence as Bridge
+
+The Hlobil-Brandom correspondence (Ch. 5 of *Reasons for Logic, Logic for Reasons*) establishes that implication-space semantics, sequent calculi, and truth-maker theory are three characterizations of the same underlying structure of reason relations. This correspondence extends beyond logical vocabulary to nonlogical conceptual connections, including the species-genus, property-cluster, and equivalence relations analyzed by Tanter (2021).
+
+The practical significance for knowledge engineers is this: the representationalist reading of NMMS_Onto schemas is one legitimate side of the correspondence. A knowledge engineer can use familiar ontological intuitions -- class hierarchies, domain/range constraints, disjointness -- to build and understand NMMS_Onto bases. The schemas will behave in broadly familiar ways for the assertive direction of knowledge engineering: given what is known, what follows?
+
+But the representationalist reading is incomplete. When behavior diverges from OWL -- when a subclass chain fails to compose, when an inference is defeated by new information, when elimination reasoning is unavailable -- the inferentialist reading is what makes the divergences intelligible. The inferentialist vocabulary ("defeasible commitment," "exact-match entitlement," "open reason relation") is not an alternative to the representationalist vocabulary but a complement that explains the design decisions.
+
+The recommended approach for Semantic Web practitioners is: use the representationalist reading for modeling (it correctly guides schema selection and ontology structure), and the inferentialist reading for explanation (it correctly accounts for the system's behavior under non-standard conditions). The two readings are not in tension -- they are two sides of the same correspondence.
+
+
+## 9. Assumptions and Open Questions
 
 ### Assumptions
 
@@ -267,7 +308,7 @@ To be explicit about the boundaries of the extension:
 5. **Scaling properties**: The lazy evaluation strategy avoids combinatorial explosion in schema grounding, but the proof search itself has exponential worst-case complexity (due to the multi-premise Ketonen rules for [L->], [L|], [R&]). How does the addition of ontology schemas affect proof search performance in practice? Are there heuristics for ordering schema checks to improve average-case behavior?
 
 
-## 9. References
+## 10. References
 
 - Brandom, R. B. (1994). *Making It Explicit: Reasoning, Representing, and Discursive Commitment*. Harvard University Press.
 
@@ -276,3 +317,5 @@ To be explicit about the boundaries of the extension:
 - Casini, G. & Straccia, U. (2010). Rational Closure for Defeasible Description Logics. In *Proceedings of the 12th European Conference on Logics in Artificial Intelligence (JELIA)*, pp. 77--90. Springer.
 
 - Giordano, L., Gliozzi, V., Olivetti, N., & Pozzato, G. L. (2013). A Non-Monotonic Description Logic for Reasoning About Typicality. *Artificial Intelligence*, 195, 165--202.
+
+- Tanter, K. (2023). Subatomic Inferences: An Inferentialist Semantics for Atomics, Predicates, and Names. *The Review of Symbolic Logic*, 16(3), 672--699.

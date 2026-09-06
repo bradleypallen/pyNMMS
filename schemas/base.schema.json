@@ -74,7 +74,7 @@
         },
         "unless": {
           "type": "object",
-          "description": "Defeaters (only for kind 'guarded'). For ontology schemas the antecedent-side defeaters are concept names.",
+          "description": "Defeaters (only for kind 'guarded'). 'antecedent'/'consequent' are singleton defeaters; 'pairs' are conjunctive ones. For ontology schemas the antecedent-side defeaters are concept names.",
           "properties": {
             "antecedent": {
               "type": "array",
@@ -86,6 +86,28 @@
               "type": "array",
               "items": {
                 "type": "string"
+              }
+            },
+            "pairs": {
+              "type": "array",
+              "description": "Conjunctive defeaters: the entry is defeated when every listed antecedent atom is present and every listed consequent atom is present.",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "antecedent": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "consequent": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "additionalProperties": false
               }
             }
           },

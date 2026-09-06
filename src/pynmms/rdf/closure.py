@@ -21,7 +21,7 @@ import logging
 from collections.abc import Callable, Iterable, Iterator
 from typing import TYPE_CHECKING
 
-from pynmms.rdf.rules import Pattern, Regime, Rule, Var
+from pynmms.rdf.rules import AnyRule, Pattern, ProceduralRule, Regime, Var
 
 if TYPE_CHECKING:
     from rdflib.term import Node
@@ -109,18 +109,25 @@ class ClosureEngine:
         self.regime = regime
         # (rule, premise index) pairs keyed by the premise's constant predicate,
         # with wildcard-predicate premises under None.
-        self._by_pred: dict[Node | None, list[tuple[Rule, int]]] = {}
+        self._by_pred: dict[Node | None, list[tuple[AnyRule, int]]] = {}
         for rule in regime.rules:
+            if isinstance(rule, ProceduralRule):
+                for trig in rule.triggers:
+                    self._by_pred.setdefault(trig, []).append((rule, -1))
+                continue
             for i, prem in enumerate(rule.premises):
                 key = None if isinstance(prem[1], Var) else prem[1]
                 self._by_pred.setdefault(key, []).append((rule, i))
 
-    def _candidates(self, t: Triple) -> Iterable[tuple[Rule, int]]:
+    def _candidates(self, t: Triple) -> Iterable[tuple[AnyRule, int]]:
         yield from self._by_pred.get(t[1], ())
         yield from self._by_pred.get(None, ())
 
-    def _fire(self, rule: Rule, i: int, t: Triple, lookup: Lookup) -> Iterator[Triple | None]:
+    def _fire(self, rule: AnyRule, i: int, t: Triple, lookup: Lookup) -> Iterator[Triple | None]:
         """All conclusions of *rule* with premise *i* matched to *t*."""
+        if isinstance(rule, ProceduralRule):
+            yield from rule.fire(t, lookup)
+            return
         b0 = _unify(rule.premises[i], t, {})
         if b0 is None:
             return

@@ -55,10 +55,11 @@ whose instances are the regime's rules; the constructor enforces range
 restriction, and an optional `guard` carries a side condition. `conclusion is
 None` is ⊥. `Regime(name, rules, axioms)` bundles schemas with the finite
 axiomatic triples. `parse_rule` reads `?x a ex:Alive, ?x a ex:Dead -> false`.
-Three regimes ship: `SIMPLE` (no rules), `RDFS` (rdf1, rdfs1, rdfs2 to rdfs13
-and the finite axiomatic triples of RDF 1.1 Semantics §9.2), and `OWL2RL` (the
-fixed-arity rules of OWL 2 RL/RDF Tables 4 to 9; the list-valued families and
-datatype rules are omitted and named in `OWL2RL_OMITTED`).
+Three regimes ship: `SIMPLE` (no rules), `RDFS` (rdf1, rdfs1, rdfD1, rdfs2 to
+rdfs13 and the finite axiomatic triples of RDF 1.1 Semantics §9.2), and
+`OWL2RL` (the rules of OWL 2 RL/RDF Tables 4 to 9, with the families over
+`rdf:List` arguments implemented as `ProceduralRule`s; the datatype rules and
+the axiomatic-only rules are omitted and named in `OWL2RL_OMITTED`).
 
 ## 3. Implication-space semantics
 
@@ -74,11 +75,15 @@ implicational role of `H` is `ℛ(H) = {x ⊆ 𝕊 | RSR(H) = RSR(x)}`.
 *Implementation.* A material base entry's
 [`Robustness`](../api/robustness.md) policy fixes a tractable fragment of its
 RSR: `EXACT` is the empty range (only `⟨∅, ∅⟩`), `MONOTONE` is all of `𝕊`,
-and `guarded(left, right)` is `𝕊` minus every pair that meets a defeater. The
-defeater sets are RSR complements restricted to singleton additions. This is
-the answer to the change notes' issue 9: with `EXACT` only, "every TELL is
-destructive"; with `guarded`, `Bird |~ Flies` survives `Tall` and is defeated
-by `Penguin`.
+and `guarded(left, right, exclusions)` is `𝕊` minus every pair that meets a
+singleton defeater in `left` or `right` and minus every pair containing an
+exclusion `⟨x, y⟩`. Singleton defeaters and finite conjunctive exclusions
+together describe the RSR complement up to finite additions, and the guard
+costs a bounded number of membership tests regardless of `|Γ|`. This is the
+answer to the change notes' issue 9: with `EXACT` only, "every TELL is
+destructive"; with `guarded`, `Bird |~ Flies` survives `Tall`, is defeated by
+`Penguin`, and can be made to survive `Penguin` alone but not `Penguin`
+together with `Injured`.
 
 **Definition 17 (canonical frame).** `𝕀_C = {⟨Γ, Δ⟩ | Γ ∩ Δ ≠ ∅}`: reasoning
 "off", a graph implies exactly the triples it contains.
@@ -207,12 +212,14 @@ applies to the whole.
 
 - **Rule families over lists.** The OWL 2 RL rules whose premises range over
   an `rdf:List` of arbitrary length (`intersectionOf`, `unionOf`, `oneOf`,
-  `AllDisjointClasses`, property chains, `hasKey`, `AllDifferent`) are rule
-  *families* indexed by list length and are not one schema each. They are
-  omitted, as are the datatype rules, which need the datatype value spaces.
-  Corollary 38 holds for the implemented fragment, and the oracle test covers
-  only that fragment.
-- **rdfD1.** Datatype-specific literal typing is omitted; rdfs1 is included.
+  `AllDisjointClasses`, property chains, `hasKey`, `AllDifferent`,
+  `AllDisjointProperties`) are rule *families* indexed by list length. They
+  are implemented as procedural rules (`OWL2RL_LIST_RULES`) that walk the list
+  through the same lookup the pattern rules use, so they take part in both
+  the store closure and the per-node extras step. The datatype rules, which
+  need the datatype value spaces, and the axiomatic-only rules `eq-ref`,
+  `cls-thing`, `cls-nothing1` remain omitted (`OWL2RL_OMITTED`). The oracle
+  test covers list constructs as well as the fixed-arity rules.
 - **The existential of first-order implication-space semantics.** A pattern
   atom is the witness search of Lemma 33, not the `∃` of Hlobil's first-order
   extension. It cannot be decomposed by the logical rules and cannot occur in

@@ -149,3 +149,59 @@ class TestRobustEntries:
         assert r.derives(F({"Bird", "Tall"}), F({"Flies | Swims"})).derivable
         assert r.derives(F({"Bird"}), F({"Penguin -> Flies"})).derivable is False
         assert r.derives(F({"Bird"}), F({"~Penguin -> Flies"})).derivable
+
+
+class TestExclusions:
+    def test_conjunctive_defeater(self):
+        base = MaterialBase()
+        base.add_consequence(F({"Bird"}), F({"Flies"}),
+                             robustness=guarded(exclusions=[(F({"Penguin", "Injured"}), F())]))
+        assert base.is_axiom(F({"Bird", "Penguin"}), F({"Flies"}))
+        assert base.is_axiom(F({"Bird", "Injured"}), F({"Flies"}))
+        assert not base.is_axiom(F({"Bird", "Penguin", "Injured"}), F({"Flies"}))
+
+    def test_pair_across_sides(self):
+        base = MaterialBase()
+        base.add_consequence(F({"a"}), F({"b"}),
+                             robustness=guarded(exclusions=[(F({"x"}), F({"y"}))]))
+        assert base.is_axiom(F({"a", "x"}), F({"b"}))
+        assert base.is_axiom(F({"a"}), F({"b", "y"}))
+        assert not base.is_axiom(F({"a", "x"}), F({"b", "y"}))
+
+    def test_singleton_pairs_fold_into_defeaters(self):
+        r = guarded(exclusions=[(F({"p"}), F()), (F(), F({"q"})), (F({"m", "n"}), F())])
+        assert r.left == {"p"} and r.right == {"q"} and len(r.exclusions) == 1
+        assert r == guarded(["p"], ["q"], [(F({"m", "n"}), F())])
+
+    def test_json_round_trip_and_str(self):
+        r = guarded(["a"], exclusions=[(F({"m", "n"}), F()), (F({"u"}), F({"v"}))])
+        assert Robustness.from_json(r.to_json()) == r
+        assert r.to_json()["unless"]["pairs"][0] == {"antecedent": ["m", "n"], "consequent": []}
+        assert str(r).startswith("unless a, m & n")
+
+    def test_clause_syntax(self):
+        text, rob = split_robustness_clause("Bird |~ Flies unless Penguin & Injured, Dead")
+        assert text == "Bird |~ Flies"
+        assert rob == guarded(["Dead"], exclusions=[(F({"Penguin", "Injured"}), F())])
+
+    def test_cli_clause_end_to_end(self):
+        from pynmms.cli.tell import _parse_tell_statement
+
+        kind, ant, con, _ann, rob = _parse_tell_statement("A |~ B unless X & Y")
+        assert rob.exclusions == {(F({"X", "Y"}), F())}
+
+
+class TestSchemaExclusions:
+    def test_conjunctive_concept_defeater_same_individual(self):
+        from pynmms.onto.base import OntoMaterialBase
+
+        base = OntoMaterialBase()
+        base.register_subclass(
+            "Bird", "Flies", robustness=guarded(exclusions=[(F({"Penguin", "Injured"}), F())])
+        )
+        assert base.is_axiom(F({"Bird(a)", "Penguin(a)"}), F({"Flies(a)"}))
+        assert not base.is_axiom(F({"Bird(a)", "Penguin(a)", "Injured(a)"}), F({"Flies(a)"}))
+        # both concepts must hold of the same individual
+        assert base.is_axiom(F({"Bird(a)", "Penguin(a)", "Injured(b)"}), F({"Flies(a)"}))
+        restored = OntoMaterialBase.from_dict(base.to_dict())
+        assert restored.onto_schemas == base.onto_schemas

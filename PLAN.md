@@ -340,7 +340,9 @@ apart from its cache.
    add a guarded material inference, watch it defeat.
 4. README: RDF quickstart, updated test counts, `[rdf]` extra.
 
-### Phase 5: later (v0.9+)
+### Phase 5: later (v0.9+) — IN PROGRESS (slice 1 done 2026-09-06)
+
+Slice 1: general RSR as conjunctive exclusion pairs (`guarded(exclusions=...)`, `unless X & Y` syntax, JSON `unless.pairs`, schema guards on the same individual; the guard is O(defeaters), so the general case indexes as cleanly as singletons); the list-valued OWL 2 RL rule families and rdfD1 as `ProceduralRule`s with an owlrl oracle over list constructs; `SPARQLBackend.add()` via SPARQL UPDATE, `prefixes=`, default-graph identifier, and a live test against an in-process rdflib-endpoint server; unbound short prefixes are now errors. Remaining: native RDFox/GraphDB adapters and closure push-down, batched/async store calls, bulk TELL against a store, reimplementing `OntoMaterialBase` over `RDFBase`, the first-order existential, `owl:sameAs` as substitution commitments.
 
 - Native backend adapters for RDFox and GraphDB, pushing the extras-closure
   step down into the store's own rule engine (RDFox Datalog, GraphDB
@@ -352,7 +354,8 @@ apart from its cache.
   bump per batch rather than per triple, and a closure-maintenance hook so
   the store's materialization is kept current by the store, not by pyNMMS.
 - General RSR beyond singleton defeaters: entries carrying arbitrary
-  `⟨x, y⟩` exclusion pairs; whether this indexes cleanly is open.
+  `⟨x, y⟩` exclusion pairs; whether this indexes cleanly is open. (Done in
+  slice 1: it does, the guard is O(|exclusions|).)
 - Reimplement `OntoMaterialBase` on top of `RDFBase` and retire the parallel
   schema matcher.
 - The paper's existential extension for blank nodes in the succedent.

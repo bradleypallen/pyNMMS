@@ -65,6 +65,8 @@ def add_rdf_parser(subparsers: argparse._SubParsersAction) -> None:  # type: ign
                        "('?x ex:p ?y -> ?y ex:q ?x', '... -> false')")
         p.add_argument("--no-skolemize", action="store_true",
                        help="Keep blank nodes as blank nodes (default: Skolemize on load)")
+        p.add_argument("--prefix", action="append", default=[], metavar="PFX=IRI",
+                       help="Bind a prefix for queries (repeatable), e.g. ex=http://ex.org/")
 
     ask = sub.add_parser("ask", help="Query derivability against a graph")
     common(ask)
@@ -79,6 +81,8 @@ def add_rdf_parser(subparsers: argparse._SubParsersAction) -> None:  # type: ign
     tell = sub.add_parser("tell", help="Add triples to a graph file")
     tell.add_argument("-g", "--graph", required=True,
                       help="RDF file to update (created if absent)")
+    tell.add_argument("--prefix", action="append", default=[], metavar="PFX=IRI",
+                      help="Bind a prefix (repeatable), e.g. ex=http://ex.org/")
     tell.add_argument("--json", action="store_true", help="JSON output")
     tell.add_argument("-q", "--quiet", action="store_true", help="Exit code only")
     tell.add_argument("--batch", help="File of triple lists, one per line ('-' for stdin)")
@@ -110,18 +114,36 @@ def _load_rules(path: str, resolver: object) -> list:  # type: ignore[type-arg]
             if ln.strip() and not ln.strip().startswith("#")]
 
 
+def _prefixes(args: argparse.Namespace) -> dict[str, str]:
+    out: dict[str, str] = {}
+    for item in getattr(args, "prefix", None) or []:
+        if "=" not in item:
+            raise ValueError(f"--prefix expects PFX=IRI, got {item!r}")
+        pfx, iri = item.split("=", 1)
+        out[pfx.strip()] = iri.strip()
+    return out
+
+
+def _bind_prefixes(backend: GraphBackend, prefixes: dict[str, str]) -> None:
+    for pfx, iri in prefixes.items():
+        backend.resolver.bind(pfx, iri)
+
+
 def _build_backend(args: argparse.Namespace) -> tuple[GraphBackend, Regime]:
     from pynmms.rdf.backends import MemoryBackend, SPARQLBackend
     from pynmms.rdf.rules import REGIMES, custom
 
     regime = REGIMES[args.regime]
+    prefixes = _prefixes(args)
     backend: GraphBackend
     if getattr(args, "store", None):
-        backend = SPARQLBackend(args.store, regime=regime)
+        backend = SPARQLBackend(args.store, regime=regime, prefixes=prefixes)
     else:
         mem = MemoryBackend(skolemize=not args.no_skolemize)
         for path in args.graph:
             mem.load(path)
+        for pfx, iri in prefixes.items():
+            mem.graph.namespace_manager.bind(pfx, iri, replace=True)
         backend = mem
     if args.rules:
         rules = _load_rules(args.rules, backend.resolver)
@@ -129,6 +151,7 @@ def _build_backend(args: argparse.Namespace) -> tuple[GraphBackend, Regime]:
     if isinstance(backend, MemoryBackend) and (regime.rules or regime.axioms):
         # Materialise the closure once, after all graphs and rules are known.
         backend = MemoryBackend(backend.graph, regime=regime, skolemize=False)
+    _bind_prefixes(backend, prefixes)
     return backend, regime
 
 
@@ -243,6 +266,8 @@ def _run_tell(args: argparse.Namespace) -> int:
     try:
         if path.exists():
             backend.load(path, format=fmt)
+        for pfx, iri in _prefixes(args).items():
+            backend.graph.namespace_manager.bind(pfx, iri, replace=True)
     except (OSError, ValueError) as e:
         emit_error(str(e), json_mode=json_mode, quiet=quiet)
         return EXIT_ERROR

@@ -90,7 +90,7 @@ These biconditionals are what make logical vocabulary "make explicit" reason rel
 
 2. **`base.py`** — `MaterialBase` class implementing the material base B = <L_B, |~_B>. Stores atomic language, consequence relation, optional atom annotations, and a per-consequence robustness policy. EXACT entries are matched from a `(|Γ|,|Δ|)` size index; MONOTONE/GUARDED entries from a consequent-atom index with subset matching and a defeater guard. Atom names are canonicalised (whitespace inside `R(a, b)` removed). JSON serialization via `to_file()`/`from_file()`; every consequence is written with an explicit `robustness` field.
 
-   **`robustness.py`** — `Robustness(kind, left, right)` with `EXACT`, `MONOTONE`, `guarded(left, right)`; `allows()` implements the guard; `split_robustness_clause()` parses the trailing `unless X, Y` / `monotone` clause used by tell statements and schema lines.
+   **`robustness.py`** — `Robustness(kind, left, right, exclusions)` with `EXACT`, `MONOTONE`, `guarded(left, right, exclusions)`; `left`/`right` are singleton defeaters, `exclusions` are conjunctive pairs ⟨x, y⟩ (defeat when x ⊆ Γ and y ⊆ Δ; singleton pairs fold into `left`/`right`); `allows()` implements the guard in O(defeaters); `split_robustness_clause()` parses the trailing `unless X & Y, Z` / `monotone` clause used by tell statements and schema lines. JSON: `unless.pairs`.
 
 3. **`sequent.py`** — Proof-search data structures. `AtomSet` is a persistent set of atom names (shared base `frozenset` plus small added/removed diffs) with structural hash/equality, so derived proof nodes cost O(|diff|) rather than O(|Γ|). `Sequent` is a proof node with each side partitioned into an `AtomSet` and a `frozenset[Sentence]` of complex sentences; strings are parsed once at the API boundary (with a small cache keyed on the input frozenset). `TraceEntry` is a structured trace record formatted only on `str()`.
 
@@ -127,13 +127,13 @@ Implements Allen, "Implication-Space Semantics for RDF" (TGDK). Requires rdflib;
 
 - **`rdf/atoms.py`** — `TripleAtom(s, p, o)`: a `str` subclass whose value is the canonical quoted-atom name `<s p o>` (full IRIs, escaped literals, no `<`/`>` inside) carrying the three rdflib terms. `Resolver` expands `prefix:local` and `a`; unprefixed names must be absolute IRIs. Because it is a `str`, a triple flows through the string-typed core unchanged. `PatternAtom` is a succedent graph pattern `<{ t1 . t2 }>` whose blank nodes are existential (Lemma 33 witness search); `skolemize_triple` replaces blank nodes by Skolem IRIs for antecedent position.
 - **`rdf/view.py`** — `GraphView(backend, added, removed)`: Γ as a reference to the stored graph plus small diffs; implements the `AtomSetLike` protocol of `sequent.py`. Hash/equality use backend identity, generation, and the diffs only. Proof rules never remove atoms, so `removed` stays empty in practice.
-- **`rdf/rules.py`** — `Var`, `Rule` (range-restricted Horn schema, conclusion `None` = ⊥, optional `guard` side condition), `Regime(name, rules, axioms)`, `parse_rule("?x a ex:A, ?x a ex:B -> false")`, shipped `SIMPLE`, `RDFS` (rdf1, rdfs1, rdfs2–13, finite axiomatic triples), and `OWL2RL` (RDFS plus the fixed-arity OWL 2 RL/RDF rules of Tables 4–9; list-valued rule families and datatype rules omitted, listed in `OWL2RL_OMITTED`), `custom(..., extends=)`.
+- **`rdf/rules.py`** — `Var`, `Rule` (range-restricted Horn schema, conclusion `None` = ⊥, optional `guard` side condition), `Regime(name, rules, axioms)`, `parse_rule("?x a ex:A, ?x a ex:B -> false")`, shipped `SIMPLE`, `RDFS` (rdf1, rdfs1, rdfD1, rdfs2–13, finite axiomatic triples), and `OWL2RL` (RDFS plus the fixed-arity OWL 2 RL/RDF rules of Tables 4–9 plus the list-valued families as `ProceduralRule`s in `OWL2RL_LIST_RULES`: cls-int1/2, cls-uni, cls-oo, cax-adc, prp-spo2, prp-key, prp-adp, eq-diff2/3, scm-int, scm-uni; datatype and axiomatic-only rules omitted, listed in `OWL2RL_OMITTED`), `custom(..., extends=)`. A `ProceduralRule(name, triggers, fire)` is fired by the closure engine on triples whose predicate is in `triggers` (`None` = any) and walks lists via `rdf_list(head, lookup)`.
 - **`rdf/closure.py`** — `ClosureEngine.close()` (full closure) and `.extend(extras, store_lookup, store_contains)` (semi-naive: fires only rules with a premise matching a new triple, joins the rest against the store). Cost ∝ extras, not |G|. `match_patterns(patterns, lookup)` is the BGP witness search used for pattern atoms.
 - **`rdf/base.py`** — `RDFBase(MaterialBase)`: intensional lexicon, explicit entries with robustness over `TripleAtom`s, `sequent(antecedent, consequent, include_graph=True)` builds `G, Γ ⇒ Δ` with a `GraphView`; atoms are canonicalised with polarity tracking so blank nodes are Skolemized exactly in antecedent position (left of `->` and under `~` flip polarity) and pattern atoms are rejected there. `RegimeBase`: `is_axiom` = Containment or explicit entry or (Γ R-inconsistent or Δ ∩ cl_R(Γ) ≠ ∅), with cl_R(G) from the backend and the extras closed in-process (cached per extras set); pattern atoms in Δ are matched against closure ∪ extras. `is_inconsistent(extras)` is Proposition 34.
-- **`rdf/backends/`** — `GraphBackend` protocol (`contains`, `triples`, `closure_contains`, `closure_triples`, `is_inconsistent`, `generation`, `resolver`); `MemoryBackend` (rdflib Graph, Skolemizes blank nodes on load, materialises the regime closure into a second graph, `add()` extends it incrementally); `SPARQLBackend` (rdflib SPARQLStore; closure = whatever the endpoint materialises; optional probe; logs round trips and latency; untested against a live endpoint); `OxigraphBackend` (MemoryBackend over an `oxrdflib` store; needs the package).
+- **`rdf/backends/`** — `GraphBackend` protocol (`contains`, `triples`, `closure_contains`, `closure_triples`, `is_inconsistent`, `generation`, `resolver`); `MemoryBackend` (rdflib Graph, Skolemizes blank nodes on load, materialises the regime closure into a second graph, `add()` extends it incrementally); `SPARQLBackend(url, regime, probe, update_endpoint, prefixes)` (rdflib SPARQLStore over the default graph; closure = whatever the endpoint materialises; optional probe; `add()` via SPARQL UPDATE; logs round trips and latency; tested live in `tests/test_rdf_sparql.py` against an in-process rdflib-endpoint server, skipped if `rdflib-endpoint`/`uvicorn` are absent); `OxigraphBackend` (MemoryBackend over an `oxrdflib` store; needs the package).
 - **`rdf/convert.py`** — `onto_to_graph(base)` (ABox + schema triples, with notes on policies RDF cannot express), `onto_to_rules(base)` (jointCommitment rules), `consequences_to_triples(base)`, `atom_to_triple`.
-- **`cli/rdf.py`** — `pynmms rdf ask` (`-g` repeatable or `--store`, `--regime simple|rdfs|owl2rl`, `--rules`, `--trace`, `--json`, `-q`, `--batch`, `--max-depth`), `pynmms rdf tell -g file "<s p o>, ..."` (rewrites the file in its format), `pynmms rdf repl -g file` (ask/tell/load/save/show/trace).
-- Not yet: list-valued OWL 2 RL rules, datatype rules, a live-endpoint test for `SPARQLBackend`, store-side closure push-down (Phase 5).
+- **`cli/rdf.py`** — `pynmms rdf ask` (`-g` repeatable or `--store`, `--regime simple|rdfs|owl2rl`, `--rules`, `--prefix PFX=IRI` repeatable, `--trace`, `--json`, `-q`, `--batch`, `--max-depth`), `pynmms rdf tell -g file [--prefix ...] "<s p o>, ..."` (rewrites the file in its format), `pynmms rdf repl -g file` (ask/tell/load/save/show/trace). Unbound short prefixes (`ex:x` with no `ex` binding) are errors, not IRIs; only known URI schemes (`http`, `urn`, ...) or tokens containing `/` pass as absolute IRIs.
+- Not yet: datatype rules, store-side closure push-down and native RDFox/GraphDB adapters, batched store calls (Phase 5).
 
 ### Key design properties preserved by the calculus:
 - **MOF**: Nonmonotonicity — adding premises can defeat inferences (no [Weakening])
@@ -144,9 +144,9 @@ Implements Allen, "Implication-Space Semantics for RDF" (TGDK). Requires rdflib;
 
 ## Test Suite
 
-647 tests across 22 test files:
+662 tests across 23 test files:
 
-**Propositional core (381 tests, 14 files):**
+**Propositional core (388 tests, 14 files):**
 - `test_syntax.py` — parser unit tests, strict atom grammar, quoted atoms, split helpers
 - `test_sequent.py` — AtomSet persistence/normalisation, Sequent partitioning, TraceEntry formatting
 - `test_robustness.py` — Robustness policies, clause parsing, robust entries in MaterialBase
@@ -171,8 +171,9 @@ Implements Allen, "Implication-Space Semantics for RDF" (TGDK). Requires rdflib;
 - `test_onto_legacy_equivalence.py` — propositional backward compat, medical concept/role, ontology schema equivalence
 - `test_onto_logging.py` — ontology schema registration logging, proof traces
 
-**RDF extension (41 tests, 1 file):**
-- `test_rdf.py` — TripleAtom/PatternAtom, GraphView, ClosureEngine, RegimeBase (RDFS and OWL 2 RL), Skolemization, owlrl oracles (Theorem 35), converters, `pynmms rdf ask/tell/repl` CLI; skipped entirely if rdflib is absent
+**RDF extension (49 tests, 2 files):**
+- `test_rdf.py` — TripleAtom/PatternAtom, GraphView, ClosureEngine, RegimeBase (RDFS and OWL 2 RL incl. list rules), Skolemization, owlrl oracles (Theorem 35), converters, `pynmms rdf ask/tell/repl` CLI; skipped entirely if rdflib is absent
+- `test_rdf_sparql.py` — SPARQLBackend against an in-process rdflib-endpoint server (membership, probe, extras closure, `add()` via UPDATE); skipped if `rdflib-endpoint`/`uvicorn` are absent
 
 ## Benchmarks
 

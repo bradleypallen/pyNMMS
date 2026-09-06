@@ -176,11 +176,11 @@ The reasoner uses root-first backward proof search with memoization and backtrac
 
 ### Test suite
 
-647 tests across 22 test files:
+662 tests across 23 test files:
 
-- **Propositional core (381 tests)**: Syntax parsing (including the strict atom grammar and quoted atoms), AtomSet/Sequent proof-node structures, robustness policies (exact/monotone/guarded) on base entries, MaterialBase construction/serialization, individual rule correctness, axiom derivability, structural properties (nonmonotonicity, nontransitivity, supraclassicality, DD/II/AA/SS), soundness audit, CLI integration, logging/tracing, Ch. 3 worked examples, Hypothesis property-based tests, cross-validation against ROLE.jl ground truth
+- **Propositional core (388 tests)**: Syntax parsing (including the strict atom grammar and quoted atoms), AtomSet/Sequent proof-node structures, robustness policies (exact/monotone/guarded) on base entries, MaterialBase construction/serialization, individual rule correctness, axiom derivability, structural properties (nonmonotonicity, nontransitivity, supraclassicality, DD/II/AA/SS), soundness audit, CLI integration, logging/tracing, Ch. 3 worked examples, Hypothesis property-based tests, cross-validation against ROLE.jl ground truth
 - **Ontology extension (225 tests)**: Ontology sentence parsing, OntoMaterialBase construction/validation, seven ontology schema types (subClassOf, range, domain, subPropertyOf, disjointWith, disjointProperties, jointCommitment), nonmonotonicity and non-transitivity of schemas, schema robustness policies and indexing, lazy evaluation, NMMSReasoner integration, CommitmentStore, CLI `--onto` integration, JSON output/exit codes, batch mode, annotations, legacy equivalence, logging
-- **RDF extension (41 tests)**: TripleAtom canonical names and escaping, GraphView diffs and invalidation, closure engine (RDFS, OWL 2 RL, false-concluding rules), RegimeBase (closure entailment, extras closure, negation as incoherence, explosion), pattern atoms for blank-node consequents, Skolemization, agreement with owlrl on random RDFS and OWL 2 RL graphs (Theorem 35 oracle), converters from the ontology extension, `pynmms rdf ask/tell/repl` CLI
+- **RDF extension (49 tests)**: TripleAtom canonical names and escaping, GraphView diffs and invalidation, closure engine (RDFS, OWL 2 RL, false-concluding rules), RegimeBase (closure entailment, extras closure, negation as incoherence, explosion), pattern atoms for blank-node consequents, Skolemization, agreement with owlrl on random RDFS and OWL 2 RL graphs including list constructs (Theorem 35 oracle), converters from the ontology extension, `pynmms rdf ask/tell/repl` CLI, and a live test of the SPARQL backend against an in-process endpoint
 
 ### Benchmarks
 

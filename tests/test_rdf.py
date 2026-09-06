@@ -413,7 +413,8 @@ class TestOwl2RL:
                 assert ours == (t in oracle), (g.serialize(format="nt"), t)
 
     def test_omitted_rules_documented(self):
-        assert "cls-int1" in OWL2RL_OMITTED and len(OWL2RL.rules) > 60
+        assert "eq-ref" in OWL2RL_OMITTED and "cls-int1" not in OWL2RL_OMITTED
+        assert len(OWL2RL.rules) > 70
 
 
 class TestPatternAtom:
@@ -519,7 +520,10 @@ class TestRdfTellAndRepl:
             g = Graph()
             g.bind("ex", EX)
             g.serialize(destination=str(p), format="turtle")
+            # an empty Turtle file carries no prefix declarations: bind explicitly
             assert main(["rdf", "tell", "-g", str(p),
+                         "<ex:tweety a ex:Bird>, <ex:tweety ex:name \"Tweety\"@en>"]) == 1
+            assert main(["rdf", "tell", "-g", str(p), "--prefix", "ex=http://ex.org/",
                          "<ex:tweety a ex:Bird>, <ex:tweety ex:name \"Tweety\"@en>"]) == 0
             assert main(["rdf", "tell", "-g", str(p), "--json",
                          "<ex:Bird rdfs:subClassOf ex:Animal>"]) == 0
@@ -550,3 +554,116 @@ class TestRdfTellAndRepl:
             assert out.count("DERIVABLE") >= 3 and "[R→]" in out
             assert "Added 1 triple(s)" in out and "Saved" in out
             assert (EX.kim, RDF.type, EX.Fish) in Graph().parse(str(p))
+
+
+class TestOwl2RLListRules:
+    def _base(self, g: Graph) -> RegimeBase:
+        return RegimeBase(MemoryBackend(g, regime=OWL2RL))
+
+    def _ask(self, base: RegimeBase, t) -> bool:
+        return NMMSReasoner(base).derives_sequent(base.sequent([], [TripleAtom(*t)])).derivable
+
+    def test_intersection_union_oneof(self):
+        from rdflib.collection import Collection
+
+        g = Graph()
+        g.bind("ex", EX)
+        Collection(g, BNode("l1"), [EX.A, EX.B])
+        g.add((EX.AB, OWL.intersectionOf, BNode("l1")))
+        Collection(g, BNode("l2"), [EX.C, EX.D])
+        g.add((EX.CD, OWL.unionOf, BNode("l2")))
+        Collection(g, BNode("l3"), [EX.e1, EX.e2])
+        g.add((EX.Enum, OWL.oneOf, BNode("l3")))
+        g.add((EX.x, RDF.type, EX.A))
+        g.add((EX.x, RDF.type, EX.B))
+        g.add((EX.y, RDF.type, EX.AB))
+        g.add((EX.z, RDF.type, EX.C))
+        base = self._base(g)
+        assert self._ask(base, (EX.x, RDF.type, EX.AB))          # cls-int1
+        assert self._ask(base, (EX.y, RDF.type, EX.A))           # cls-int2
+        assert self._ask(base, (EX.z, RDF.type, EX.CD))          # cls-uni
+        assert self._ask(base, (EX.e1, RDF.type, EX.Enum))       # cls-oo
+        assert self._ask(base, (EX.AB, RDFS.subClassOf, EX.A))   # scm-int
+        assert self._ask(base, (EX.C, RDFS.subClassOf, EX.CD))   # scm-uni
+        # extras: typing x's twin only with A is not enough
+        r = NMMSReasoner(base)
+        assert not r.derives_sequent(base.sequent(
+            ["<ex:w a ex:A>"], [TripleAtom(EX.w, RDF.type, EX.AB)])).derivable
+        assert r.derives_sequent(base.sequent(
+            ["<ex:w a ex:A>", "<ex:w a ex:B>"], [TripleAtom(EX.w, RDF.type, EX.AB)])).derivable
+
+    def test_property_chain_and_key(self):
+        from rdflib.collection import Collection
+
+        g = Graph()
+        g.bind("ex", EX)
+        Collection(g, BNode("c"), [EX.parentOf, EX.parentOf])
+        g.add((EX.grandparentOf, OWL.propertyChainAxiom, BNode("c")))
+        g.add((EX.a, EX.parentOf, EX.b))
+        g.add((EX.b, EX.parentOf, EX.c))
+        Collection(g, BNode("k"), [EX.ssn])
+        g.add((EX.Person, OWL.hasKey, BNode("k")))
+        g.add((EX.p1, RDF.type, EX.Person))
+        g.add((EX.p2, RDF.type, EX.Person))
+        g.add((EX.p1, EX.ssn, Literal("123")))
+        g.add((EX.p2, EX.ssn, Literal("123")))
+        base = self._base(g)
+        assert self._ask(base, (EX.a, EX.grandparentOf, EX.c))   # prp-spo2
+        assert self._ask(base, (EX.p1, OWL.sameAs, EX.p2))       # prp-key
+        r = NMMSReasoner(base)
+        seq = base.sequent(["<ex:c ex:parentOf ex:d>"], [TripleAtom(EX.b, EX.grandparentOf, EX.d)])
+        assert r.derives_sequent(seq).derivable                   # chain extended by an extra
+
+    def test_all_disjoint_and_all_different(self):
+        from rdflib.collection import Collection
+
+        g = Graph()
+        g.bind("ex", EX)
+        Collection(g, BNode("d"), [EX.Cat, EX.Dog])
+        g.add((BNode("adc"), RDF.type, OWL.AllDisjointClasses))
+        g.add((BNode("adc"), OWL.members, BNode("d")))
+        Collection(g, BNode("m"), [EX.i, EX.j])
+        g.add((BNode("ad"), RDF.type, OWL.AllDifferent))
+        g.add((BNode("ad"), OWL.members, BNode("m")))
+        base = self._base(MemoryBackend(g, skolemize=False).graph)
+        assert not base.is_inconsistent()
+        assert base.is_inconsistent([TripleAtom(EX.x, RDF.type, EX.Cat),
+                                     TripleAtom(EX.x, RDF.type, EX.Dog)])
+        assert base.is_inconsistent([TripleAtom(EX.i, OWL.sameAs, EX.j)])
+
+    def test_rdfD1(self):
+        g = Graph()
+        g.add((EX.a, EX.age, Literal(3)))
+        base = RegimeBase(MemoryBackend(g, regime=RDFS_REGIME))
+        from rdflib.namespace import XSD
+
+        assert self._ask(base, (Literal(3), RDF.type, XSD.integer))
+
+    def test_owlrl_oracle_with_lists(self):
+        import random
+
+        import owlrl
+        from rdflib.collection import Collection
+
+        rnd = random.Random(5)
+        classes = [EX[f"C{i}"] for i in range(4)]
+        inds = [EX[f"i{i}"] for i in range(3)]
+        for trial in range(10):
+            g = Graph()
+            head = BNode(f"l{trial}")
+            members = rnd.sample(classes, 2)
+            Collection(g, head, members)
+            g.add((EX.Combo, rnd.choice([OWL.intersectionOf, OWL.unionOf]), head))
+            for _ in range(rnd.randint(2, 5)):
+                g.add((rnd.choice(inds), RDF.type, rnd.choice(classes + [EX.Combo])))
+            oracle = Graph()
+            for t in g:
+                oracle.add(t)
+            owlrl.DeductiveClosure(owlrl.OWLRL_Semantics, axiomatic_triples=False).expand(oracle)
+            base = RegimeBase(MemoryBackend(g, regime=OWL2RL, skolemize=False))
+            r = NMMSReasoner(base)
+            for i in inds:
+                for c in classes + [EX.Combo]:
+                    t = (i, RDF.type, c)
+                    ours = r.derives_sequent(base.sequent([], [TripleAtom(*t)])).derivable
+                    assert ours == (t in oracle), (g.serialize(format="nt"), t)

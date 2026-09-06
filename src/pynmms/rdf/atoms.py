@@ -40,6 +40,10 @@ _ESCAPES = {"\\": "\\\\", '"': '\\"', "\n": "\\n", "\r": "\\r", "\t": "\\t",
             "<": "\\u003C", ">": "\\u003E"}
 _UNESCAPE_RE = re.compile(r'\\(u[0-9A-Fa-f]{4}|U[0-9A-Fa-f]{8}|[\\"nrt])')
 _SCHEME_RE = re.compile(r"^[A-Za-z][A-Za-z0-9+.-]*:")
+_KNOWN_SCHEMES = frozenset(
+    {"http", "https", "urn", "file", "mailto", "tag", "did", "ftp", "data", "tel", "geo",
+     "ldap", "news", "sms", "ws", "wss", "ipfs", "doi", "isbn"}
+)
 
 
 def _escape(s: str) -> str:
@@ -80,7 +84,13 @@ class Resolver:
             if self.nsm.store.namespace(prefix) is not None:
                 return URIRef(self.nsm.expand_curie(token))
         if _SCHEME_RE.match(token):
-            return URIRef(token)
+            scheme = token.split(":", 1)[0].lower()
+            if scheme in _KNOWN_SCHEMES or "/" in token:
+                return URIRef(token)
+            raise ValueError(
+                f"{token!r} looks like a prefixed name but the prefix {scheme!r} is not "
+                f"bound (bind it, or write the full IRI)"
+            )
         raise ValueError(
             f"{token!r} is neither an absolute IRI nor a prefixed name with a bound prefix"
         )

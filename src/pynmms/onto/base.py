@@ -391,6 +391,15 @@ class OntoMaterialBase(MaterialBase):
                         "%s schema %s/%s defeated by %s(%s)", e.type, e.arg1, e.arg2, defeater, i
                     )
                     return False
+        for x, _y in rob.exclusions:
+            # a conjunctive defeater fires when all its concepts hold of one individual
+            for i in individuals:
+                if all(make_concept_assertion(d, i) in gamma for d in x):
+                    logger.debug(
+                        "%s schema %s/%s defeated by %s on %s", e.type, e.arg1, e.arg2,
+                        " & ".join(sorted(x)), i,
+                    )
+                    return False
         return True
 
     def _check_inference_schemas(self, gamma: AtomsView, d: str) -> bool:

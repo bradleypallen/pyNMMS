@@ -60,12 +60,13 @@ Commas inside applied atoms and quoted atoms do not split a sequent, so `hasChil
 
 ## Robustness of Base Entries
 
-Every base consequence and every ontology schema carries a **robustness policy** that says how far it survives additions to its antecedent and consequent (its range of subjunctive robustness, Hlobil & Brandom 2025, Ch. 5, restricted to singleton additions):
+Every base consequence and every ontology schema carries a **robustness policy** that says how far it survives additions to its antecedent and consequent (its range of subjunctive robustness, Hlobil & Brandom 2025, Ch. 5, described up to finite additions):
 
 | Policy | `tell` syntax | Matches |
 |--------|---------------|---------|
 | exact (default) | `A, B \|~ C` | only `A, B ⇒ C` itself; any further premise or conclusion defeats it |
 | guarded | `A, B \|~ C unless X, Y` | any `Γ ⊇ {A, B}`, `Δ ⊇ {C}` unless `X` or `Y` is in Γ |
+| guarded, conjunctive | `A, B \|~ C unless X & Y, Z` | as above, but `X` and `Y` defeat only together (`Z` still alone) |
 | monotone | `A, B \|~ C monotone` | any `Γ ⊇ {A, B}`, `Δ ⊇ {C}` |
 
 ```

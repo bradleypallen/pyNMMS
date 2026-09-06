@@ -13,11 +13,12 @@ from __future__ import annotations
 
 import logging
 import time
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
 from typing import TYPE_CHECKING
 
 from rdflib import Graph
-from rdflib.plugins.stores.sparqlstore import SPARQLStore
+from rdflib.graph import DATASET_DEFAULT_GRAPH_ID
+from rdflib.plugins.stores.sparqlstore import SPARQLStore, SPARQLUpdateStore
 from rdflib.term import Node
 
 from pynmms.rdf.atoms import Resolver
@@ -37,9 +38,11 @@ class SPARQLBackend:
     Parameters:
         endpoint: Query endpoint URL.
         regime: The regime the endpoint materialises (declared, not enforced).
-        probe: Optional ``(premises, conclusion)`` triples: the conclusion
-            must be entailed by the endpoint for the declared regime; raises
-            ``ValueError`` otherwise.
+        probe: Optional triples that the endpoint must entail under the
+            declared regime; raises ``ValueError`` otherwise.
+        update_endpoint: SPARQL UPDATE endpoint for :meth:`add`.
+        prefixes: ``{prefix: namespace}`` for parsing and display; endpoints
+            do not expose their prefix declarations to clients.
     """
 
     def __init__(
@@ -48,12 +51,24 @@ class SPARQLBackend:
         *,
         regime: Regime | None = None,
         probe: tuple[Triple, ...] | None = None,
+        update_endpoint: str | None = None,
+        prefixes: dict[str, str] | None = None,
     ) -> None:
         self.endpoint = endpoint
+        self.update_endpoint = update_endpoint
         self._regime = regime
-        self._store = SPARQLStore(endpoint)
-        self._graph = Graph(store=self._store)
+        self._store: SPARQLStore
+        if update_endpoint is not None:
+            self._store = SPARQLUpdateStore(endpoint, update_endpoint)
+        else:
+            self._store = SPARQLStore(endpoint)
+        # The default graph: a blank-node identifier would be rejected by
+        # SPARQL UPDATE, and the endpoint's prefixes are not visible to the
+        # client, so they are declared here.
+        self._graph = Graph(store=self._store, identifier=DATASET_DEFAULT_GRAPH_ID)
         self._resolver = Resolver(self._graph)
+        for prefix, ns in (prefixes or {}).items():
+            self._resolver.bind(prefix, ns)
         self._generation = 1
         self._calls = 0
         self._latency = 0.0
@@ -120,6 +135,25 @@ class SPARQLBackend:
 
     def is_inconsistent(self) -> bool:
         return False
+
+    def add(self, triples: Iterable[Triple]) -> int:
+        """Insert triples through the update endpoint (one ``INSERT DATA`` per batch).
+
+        The store is expected to maintain its own materialisation; the
+        generation is bumped once per batch so views and caches invalidate.
+        """
+        if self.update_endpoint is None:
+            raise ValueError("SPARQLBackend.add needs an update_endpoint")
+        batch = list(triples)
+        if not batch:
+            return 0
+        with self._timed(f"insert {len(batch)}"):
+            for t in batch:
+                self._graph.add(t)
+        self._generation += 1
+        logger.info("Inserted %d triples into %s; generation %d",
+                    len(batch), self.update_endpoint, self._generation)
+        return len(batch)
 
     def __repr__(self) -> str:
         return f"SPARQLBackend({self.endpoint!r}, regime={self._regime})"

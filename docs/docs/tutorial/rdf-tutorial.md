@@ -53,7 +53,11 @@ pynmms rdf ask -g birds.ttl --regime rdfs "<ex:x a ex:Bird> -> <ex:x a ex:Animal
 A query is `antecedent => consequent`; the graph is always part of the
 antecedent. Without `=>` the whole query is the consequent. `--json`, `-q`,
 `--trace`, `--batch`, and `--max-depth` work as for `pynmms ask`. Use
-`--regime owl2rl` for the OWL 2 RL/RDF rules (see below).
+`--regime owl2rl` for the OWL 2 RL/RDF rules (see below). Prefixes come from
+the loaded files; declare any others with `--prefix ex=http://ex.org/`
+(repeatable). A prefixed name whose prefix is not bound is an error rather
+than a silently wrong IRI, which matters for a file that declares no prefixes
+(an empty Turtle file, for instance) or for a SPARQL endpoint.
 
 ### Adding triples and an interactive session
 
@@ -148,6 +152,14 @@ bird, flies, penguin = (TripleAtom.from_name(f"<ex:tweety a ex:{c}>", base.resol
 base.add_consequence(frozenset({bird}), frozenset({flies}), robustness=guarded([penguin]))
 ```
 
+Defeaters can be conjunctive: `guarded(exclusions=[(frozenset({penguin, injured}), frozenset())])`
+is defeated only when both atoms are present. On the command line that is
+`unless <...> & <...>`.
+
+Endpoints do not expose their prefix declarations, so give `SPARQLBackend`
+the prefixes your queries use (`prefixes={"ex": "http://ex.org/"}`). A name
+such as `ex:tweety` with no bound prefix is an error, not the IRI `ex:tweety`.
+
 ## How the closure is split
 
 The regime base checks `Γ |~ Δ` as "Γ is inconsistent or Δ meets `cl_R(Γ)`".
@@ -162,7 +174,7 @@ to the extras, never to `|G|`.
 | Backend | Use | Closure |
 |---------|-----|---------|
 | `MemoryBackend(graph, regime=...)` | files, tests, development | computed in-process at load |
-| `SPARQLBackend(url, regime=...)` | a running store | whatever the store materialises; pass `probe=` to verify |
+| `SPARQLBackend(url, regime=..., prefixes={...}, update_endpoint=...)` | a running store | whatever the store materialises; pass `probe=` to verify; `add()` inserts through the update endpoint |
 | `OxigraphBackend(path, regime=...)` | fast local store (needs `oxrdflib`) | computed in-process at load |
 
 Blank nodes in the loaded graph are Skolemized (sound in the antecedent,
@@ -171,8 +183,8 @@ Lemma 30 of the paper); blank nodes in a consequent go in a pattern atom.
 ## Shipped regimes
 
 - `SIMPLE`: no rules, so `Γ |~ Δ` is Containment (simple entailment, Corollary 36).
-- `RDFS`: rdf1, rdfs1 (literal typing) and rdfs2 to rdfs13 with the finite RDFS
-  axiomatic triples (Corollary 37). rdfD1 (datatype-specific typing) is omitted.
+- `RDFS`: rdf1, rdfs1, rdfD1 (literal typing) and rdfs2 to rdfs13 with the
+  finite RDFS axiomatic triples (Corollary 37).
 - `OWL2RL`: RDFS plus the fixed-arity OWL 2 RL/RDF rules of Tables 4 to 9
   (Corollary 38): equality (`owl:sameAs`, `differentFrom`), property
   characteristics (functional, inverse-functional, irreflexive, symmetric,
@@ -181,10 +193,12 @@ Lemma 30 of the paper); blank nodes in a consequent go in a pattern atom.
   max-cardinality 0 and 1), class axioms (subClassOf, equivalentClass,
   disjointWith, complementOf, `owl:Nothing`), and the schema rules. The
   false-concluding rules among these are exactly the published
-  incompatibilities Proposition 34 recovers. Not implemented: the rule
-  families over `rdf:List` arguments (`intersectionOf`, `unionOf`, `oneOf`,
-  `AllDisjointClasses`, property chains, `hasKey`, `AllDifferent`) and the
-  datatype rules; `OWL2RL_OMITTED` lists them.
+  incompatibilities Proposition 34 recovers. The rule families over
+  `rdf:List` arguments (`intersectionOf`, `unionOf`, `oneOf`,
+  `AllDisjointClasses`, `AllDisjointProperties`, property chains, `hasKey`,
+  `AllDifferent`) are implemented procedurally. Not implemented: the datatype
+  rules and the axiomatic-only rules `eq-ref`, `cls-thing`, `cls-nothing1`;
+  `OWL2RL_OMITTED` lists them.
 
 `custom(name, rules, extends=RDFS)` adds your rules on top.
 

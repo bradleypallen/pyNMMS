@@ -21,7 +21,7 @@ Custom regimes are built from :func:`parse_rule` lines such as::
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Iterable, Iterator
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -86,12 +86,42 @@ class Rule:
         return f"{prem} -> {concl}"
 
 
+Lookup = Callable[[tuple["Node | None", "Node | None", "Node | None"]], Iterable["Triple"]]
+
+
+@dataclass(frozen=True)
+class ProceduralRule:
+    """A rule family implemented in Python rather than as one pattern.
+
+    ``triggers`` are the predicates of triples that can activate it (``None``
+    for any predicate); ``fire(t, lookup)`` yields the conclusions that follow
+    from a triggering triple *t* given a lookup over the current closure
+    (``None`` for ⊥). Used for the OWL 2 RL rules whose premises range over an
+    ``rdf:List`` of arbitrary length, and for rdfD1, whose conclusion is
+    computed from a literal's datatype.
+    """
+
+    name: str
+    triggers: tuple[Node | None, ...]
+    fire: Callable[[Triple, Lookup], Iterator[Triple | None]]
+
+    @property
+    def is_false_concluding(self) -> bool:
+        return False  # may derive ⊥ dynamically; not statically known
+
+    def __str__(self) -> str:
+        return f"{self.name} (procedural)"
+
+
+AnyRule = Rule | ProceduralRule
+
+
 @dataclass(frozen=True)
 class Regime:
     """A named rule set plus axiomatic triples."""
 
     name: str
-    rules: tuple[Rule, ...] = ()
+    rules: tuple[AnyRule, ...] = ()
     axioms: tuple[Triple, ...] = ()
 
     def __str__(self) -> str:
@@ -203,7 +233,7 @@ LITERAL_RULES: tuple[Rule, ...] = (
 )
 
 SIMPLE = Regime("simple")
-RDFS = Regime("rdfs", RDFS_RULES + LITERAL_RULES, RDFS_AXIOMS)
+RDFS = Regime("rdfs", RDFS_RULES + LITERAL_RULES, RDFS_AXIOMS)  # rdfD1 attached below
 
 # --- OWL 2 RL/RDF (W3C OWL 2 Profiles, Section 4.3, Tables 4-9) ---
 #
@@ -319,23 +349,274 @@ OWL2RL_RULES: tuple[Rule, ...] = (
                       (P1, RDFSNS.subPropertyOf, P2)), (C2, RDFSNS.subClassOf, C1)),
 )
 
-OWL2RL_OMITTED = (
-    "prp-spo2", "prp-key", "prp-adp", "cls-int1", "cls-int2", "cls-uni", "cls-oo",
-    "cax-adc", "eq-diff2", "eq-diff3", "scm-int", "scm-uni", "eq-ref", "cls-thing",
-    "cls-nothing1", "dt-type1", "dt-type2", "dt-eq", "dt-diff", "dt-not-type",
-)
-"""OWL 2 RL/RDF rules not implemented: list-valued rule families, the
-axiomatic-only rules (eq-ref, cls-thing, cls-nothing1 add a triple per term or
-one fixed triple) and the datatype rules."""
+# --- Rule families over rdf:List and computed conclusions (procedural) ---
 
-OWL2RL = Regime("owl2rl", RDFS_RULES + LITERAL_RULES + OWL2RL_RULES,
-                RDFS_AXIOMS + ((OWL.Thing, _TYPE, OWL.Class), (OWL.Nothing, _TYPE, OWL.Class)))
+
+def rdf_list(head: Node, lookup: Lookup) -> list[Node] | None:
+    """Members of the rdf:List starting at *head*, or None if malformed.
+
+    A cell may carry several ``rdf:first`` or ``rdf:rest`` values once
+    ``owl:sameAs`` substitution has run over it (eq-rep-o); the smallest is
+    taken so the walk stays deterministic, and every alternative first value
+    is included as a member.
+    """
+    items: list[Node] = []
+    seen: set[Node] = set()
+    node = head
+    while node != RDF.nil:
+        if node in seen:
+            return None
+        seen.add(node)
+        first = sorted((t[2] for t in lookup((node, RDF.first, None))), key=str)
+        rest = sorted((t[2] for t in lookup((node, RDF.rest, None))), key=str)
+        if not first or not rest:
+            return None
+        items.extend(first)
+        node = rest[0]
+    return items
+
+
+def _lists_with(pred: Node, lookup: Lookup) -> Iterator[tuple[Node, list[Node]]]:
+    for subj, _p, head in lookup((None, pred, None)):
+        items = rdf_list(head, lookup)
+        if items:
+            yield subj, items
+
+
+def _types_of(y: Node, lookup: Lookup) -> set[Node]:
+    return {t[2] for t in lookup((y, _TYPE, None))}
+
+
+def _fire_cls_int1(t: Triple, lookup: Lookup) -> Iterator[Triple | None]:
+    """cls-int1: c intersectionOf (c1..cn), y type c1..cn -> y type c."""
+    if t[1] == OWL.intersectionOf:
+        c, items = t[0], rdf_list(t[2], lookup)
+        if items:
+            for _y, _p, _c1 in list(lookup((None, _TYPE, items[0]))):
+                y = _y
+                if all(_ in _types_of(y, lookup) for _ in items):
+                    yield (y, _TYPE, c)
+    elif t[1] == _TYPE:
+        y, ci = t[0], t[2]
+        for c, items in _lists_with(OWL.intersectionOf, lookup):
+            if ci in items and all(_ in _types_of(y, lookup) for _ in items):
+                yield (y, _TYPE, c)
+
+
+def _fire_cls_int2(t: Triple, lookup: Lookup) -> Iterator[Triple | None]:
+    """cls-int2: c intersectionOf (c1..cn), y type c -> y type ci."""
+    if t[1] == OWL.intersectionOf:
+        c, items = t[0], rdf_list(t[2], lookup)
+        if items:
+            for y, _p, _c in list(lookup((None, _TYPE, c))):
+                for ci in items:
+                    yield (y, _TYPE, ci)
+    elif t[1] == _TYPE:
+        y, c = t[0], t[2]
+        for head in [tr[2] for tr in lookup((c, OWL.intersectionOf, None))]:
+            for ci in rdf_list(head, lookup) or ():
+                yield (y, _TYPE, ci)
+
+
+def _fire_cls_uni(t: Triple, lookup: Lookup) -> Iterator[Triple | None]:
+    """cls-uni: c unionOf (c1..cn), y type ci -> y type c."""
+    if t[1] == OWL.unionOf:
+        c, items = t[0], rdf_list(t[2], lookup)
+        for ci in items or ():
+            for y, _p, _c in list(lookup((None, _TYPE, ci))):
+                yield (y, _TYPE, c)
+    elif t[1] == _TYPE:
+        y, ci = t[0], t[2]
+        for c, items in _lists_with(OWL.unionOf, lookup):
+            if ci in items:
+                yield (y, _TYPE, c)
+
+
+def _fire_cls_oo(t: Triple, lookup: Lookup) -> Iterator[Triple | None]:
+    """cls-oo: c oneOf (y1..yn) -> yi type c."""
+    if t[1] == OWL.oneOf:
+        for y in rdf_list(t[2], lookup) or ():
+            yield (y, _TYPE, t[0])
+
+
+def _fire_cax_adc(t: Triple, lookup: Lookup) -> Iterator[Triple | None]:
+    """cax-adc: x type AllDisjointClasses, x members (c1..cn), y type ci, y type cj -> false."""
+    if t[1] == OWL.members:
+        if (t[0], _TYPE, OWL.AllDisjointClasses) in set(lookup((t[0], _TYPE, None))):
+            items = rdf_list(t[2], lookup) or []
+            for i, ci in enumerate(items):
+                for y, _p, _c in list(lookup((None, _TYPE, ci))):
+                    if any(cj in _types_of(y, lookup) for cj in items[i + 1:]):
+                        yield None
+                        return
+    elif t[1] == _TYPE:
+        y, ci = t[0], t[2]
+        for x, items in _lists_with(OWL.members, lookup):
+            if (x, _TYPE, OWL.AllDisjointClasses) not in set(lookup((x, _TYPE, None))):
+                continue
+            if ci in items:
+                others = _types_of(y, lookup)
+                if any(cj in others and cj != ci for cj in items):
+                    yield None
+                    return
+
+
+def _fire_prp_spo2(t: Triple, lookup: Lookup) -> Iterator[Triple | None]:
+    """prp-spo2: p propertyChainAxiom (p1..pn), u0 p1 u1 ... pn un -> u0 p un."""
+
+    def chains() -> Iterator[tuple[Node, list[Node]]]:
+        yield from _lists_with(OWL.propertyChainAxiom, lookup)
+
+    def walk(start: Node, props: list[Node]) -> Iterator[Node]:
+        if not props:
+            yield start
+            return
+        for _s, _p, nxt in list(lookup((start, props[0], None))):
+            yield from walk(nxt, props[1:])
+
+    if t[1] == OWL.propertyChainAxiom:
+        p, props = t[0], rdf_list(t[2], lookup)
+        if props:
+            for u0, _p1, _u1 in list(lookup((None, props[0], None))):
+                for un in walk(u0, props):
+                    yield (u0, p, un)
+    else:
+        for p, props in chains():
+            if t[1] not in props:
+                continue
+            # Every way t can sit at position i of the chain.
+            for i, pi in enumerate(props):
+                if pi != t[1]:
+                    continue
+                # walk backwards from t[0] over props[:i]
+                starts: list[Node] = [t[0]]
+                for pj in reversed(props[:i]):
+                    starts = [s for u in starts for s, _p, _o in lookup((None, pj, u))]
+                for u0 in starts:
+                    for un in walk(t[2], props[i + 1:]):
+                        yield (u0, p, un)
+
+
+def _fire_prp_key(t: Triple, lookup: Lookup) -> Iterator[Triple | None]:
+    """prp-key: c hasKey (p1..pn), x type c, y type c, x pi zi, y pi zi -> x sameAs y."""
+    keys = list(_lists_with(OWL.hasKey, lookup))
+    if not keys:
+        return
+    for c, props in keys:
+        members = [tr[0] for tr in lookup((None, _TYPE, c))]
+        if t[1] == OWL.hasKey and t[0] != c:
+            continue
+        if t[1] not in (OWL.hasKey, _TYPE) and t[1] not in props:
+            continue
+        for x in members:
+            vals = [{tr[2] for tr in lookup((x, p, None))} for p in props]
+            if any(not v for v in vals):
+                continue
+            for y in members:
+                if y == x:
+                    continue
+                if all(any((y, p, z) in set(lookup((y, p, None))) for z in vs)
+                       for p, vs in zip(props, vals)):
+                    yield (x, OWL.sameAs, y)
+
+
+def _fire_prp_adp(t: Triple, lookup: Lookup) -> Iterator[Triple | None]:
+    """prp-adp: x type AllDisjointProperties, x members (p1..pn), u pi v, u pj v -> false."""
+    for x, props in _lists_with(OWL.members, lookup):
+        if (x, _TYPE, OWL.AllDisjointProperties) not in set(lookup((x, _TYPE, None))):
+            continue
+        if t[1] == OWL.members and t[0] != x:
+            continue
+        if t[1] not in (OWL.members, _TYPE) and t[1] not in props:
+            continue
+        for i, pi in enumerate(props):
+            for u, _p, v in list(lookup((None, pi, None))):
+                for pj in props[i + 1:]:
+                    if (u, pj, v) in set(lookup((u, pj, v))):
+                        yield None
+                        return
+
+
+def _fire_eq_diff23(t: Triple, lookup: Lookup) -> Iterator[Triple | None]:
+    """eq-diff2/3: x type AllDifferent with members (z1..zn), zi sameAs zj -> false."""
+    for pred in (OWL.members, OWL.distinctMembers):
+        for x, items in _lists_with(pred, lookup):
+            if (x, _TYPE, OWL.AllDifferent) not in set(lookup((x, _TYPE, None))):
+                continue
+            for i, zi in enumerate(items):
+                for zj in items[i + 1:]:
+                    if (zi, OWL.sameAs, zj) in set(lookup((zi, OWL.sameAs, zj))):
+                        yield None
+                        return
+
+
+def _fire_scm_int(t: Triple, lookup: Lookup) -> Iterator[Triple | None]:
+    """scm-int: c intersectionOf (c1..cn) -> c subClassOf ci."""
+    if t[1] == OWL.intersectionOf:
+        for ci in rdf_list(t[2], lookup) or ():
+            yield (t[0], RDFSNS.subClassOf, ci)
+
+
+def _fire_scm_uni(t: Triple, lookup: Lookup) -> Iterator[Triple | None]:
+    """scm-uni: c unionOf (c1..cn) -> ci subClassOf c."""
+    if t[1] == OWL.unionOf:
+        for ci in rdf_list(t[2], lookup) or ():
+            yield (ci, RDFSNS.subClassOf, t[0])
+
+
+def _fire_rdfD1(t: Triple, lookup: Lookup) -> Iterator[Triple | None]:
+    """rdfD1: x p l with l a typed literal of datatype d -> l type d."""
+    lit = t[2]
+    if isinstance(lit, Literal) and lit.datatype is not None:
+        yield (lit, _TYPE, lit.datatype)
+
+
+_LIST_TRIGGERS = (RDF.first, RDF.rest)
+
+OWL2RL_LIST_RULES: tuple[ProceduralRule, ...] = (
+    ProceduralRule("cls-int1", (OWL.intersectionOf, _TYPE, *_LIST_TRIGGERS), _fire_cls_int1),
+    ProceduralRule("cls-int2", (OWL.intersectionOf, _TYPE, *_LIST_TRIGGERS), _fire_cls_int2),
+    ProceduralRule("cls-uni", (OWL.unionOf, _TYPE, *_LIST_TRIGGERS), _fire_cls_uni),
+    ProceduralRule("cls-oo", (OWL.oneOf, *_LIST_TRIGGERS), _fire_cls_oo),
+    ProceduralRule("cax-adc", (OWL.members, _TYPE, *_LIST_TRIGGERS), _fire_cax_adc),
+    ProceduralRule("prp-spo2", (None,), _fire_prp_spo2),
+    ProceduralRule("prp-key", (None,), _fire_prp_key),
+    ProceduralRule("prp-adp", (None,), _fire_prp_adp),
+    ProceduralRule("eq-diff2/3", (OWL.members, OWL.distinctMembers, OWL.sameAs, _TYPE,
+                                  *_LIST_TRIGGERS), _fire_eq_diff23),
+    ProceduralRule("scm-int", (OWL.intersectionOf, *_LIST_TRIGGERS), _fire_scm_int),
+    ProceduralRule("scm-uni", (OWL.unionOf, *_LIST_TRIGGERS), _fire_scm_uni),
+)
+
+RDFD1 = ProceduralRule("rdfD1", (None,), _fire_rdfD1)
+
+OWL2RL_OMITTED = (
+    "eq-ref", "cls-thing", "cls-nothing1", "dt-type1", "dt-type2", "dt-eq", "dt-diff",
+    "dt-not-type",
+)
+"""OWL 2 RL/RDF rules not implemented: the axiomatic-only rules (eq-ref,
+cls-thing, cls-nothing1 add a triple per term or one fixed triple) and the
+datatype rules, which need the datatype value spaces. The list-valued rule
+families are implemented procedurally (``OWL2RL_LIST_RULES``)."""
+
+RDFS = Regime("rdfs", RDFS_RULES + LITERAL_RULES + (RDFD1,), RDFS_AXIOMS)
+
+OWL2RL = Regime(
+    "owl2rl",
+    RDFS_RULES + LITERAL_RULES + (RDFD1,) + OWL2RL_RULES + OWL2RL_LIST_RULES,
+    RDFS_AXIOMS + ((OWL.Thing, _TYPE, OWL.Class), (OWL.Nothing, _TYPE, OWL.Class)),
+)
 
 REGIMES: dict[str, Regime] = {"simple": SIMPLE, "rdfs": RDFS, "owl2rl": OWL2RL}
 
 
-def custom(name: str, rules: tuple[Rule, ...] | list[Rule], axioms: tuple[Triple, ...] = (),
-           *, extends: Regime | None = None) -> Regime:
+def custom(
+    name: str,
+    rules: tuple[AnyRule, ...] | list[AnyRule],
+    axioms: tuple[Triple, ...] = (),
+    *,
+    extends: Regime | None = None,
+) -> Regime:
     """A user regime, optionally extending a shipped one."""
     base_rules = extends.rules if extends else ()
     base_axioms = extends.axioms if extends else ()
@@ -344,6 +625,7 @@ def custom(name: str, rules: tuple[Rule, ...] | list[Rule], axioms: tuple[Triple
 
 __all__ = [
     "Var", "Rule", "Regime", "Pattern", "Term", "parse_rule", "custom",
-    "RDFS_RULES", "RDFS_AXIOMS", "LITERAL_RULES", "OWL2RL_RULES", "OWL2RL_OMITTED",
-    "SIMPLE", "RDFS", "OWL2RL", "REGIMES", "URIRef",
+    "ProceduralRule", "AnyRule", "Lookup", "rdf_list",
+    "RDFS_RULES", "RDFS_AXIOMS", "LITERAL_RULES", "OWL2RL_RULES", "OWL2RL_LIST_RULES",
+    "RDFD1", "OWL2RL_OMITTED", "SIMPLE", "RDFS", "OWL2RL", "REGIMES", "URIRef",
 ]

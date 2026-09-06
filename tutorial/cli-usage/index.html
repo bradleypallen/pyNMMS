@@ -1818,7 +1818,7 @@
 </code></pre></div>
 <p>Commas inside applied atoms and quoted atoms do not split a sequent, so <code>hasChild(alice,bob), &lt;x, y&gt; =&gt; Person(bob)</code> has a two-element antecedent. Whitespace inside an applied atom is not significant: <code>hasChild(alice, bob)</code> and <code>hasChild(alice,bob)</code> name the same atom.</p>
 <h2 id="robustness-of-base-entries">Robustness of Base Entries<a class="headerlink" href="#robustness-of-base-entries" title="Permanent link">&para;</a></h2>
-<p>Every base consequence and every ontology schema carries a <strong>robustness policy</strong> that says how far it survives additions to its antecedent and consequent (its range of subjunctive robustness, Hlobil &amp; Brandom 2025, Ch. 5, restricted to singleton additions):</p>
+<p>Every base consequence and every ontology schema carries a <strong>robustness policy</strong> that says how far it survives additions to its antecedent and consequent (its range of subjunctive robustness, Hlobil &amp; Brandom 2025, Ch. 5, described up to finite additions):</p>
 <table>
 <thead>
 <tr>
@@ -1837,6 +1837,11 @@
 <td>guarded</td>
 <td><code>A, B \|~ C unless X, Y</code></td>
 <td>any <code>Γ ⊇ {A, B}</code>, <code>Δ ⊇ {C}</code> unless <code>X</code> or <code>Y</code> is in Γ</td>
+</tr>
+<tr>
+<td>guarded, conjunctive</td>
+<td><code>A, B \|~ C unless X &amp; Y, Z</code></td>
+<td>as above, but <code>X</code> and <code>Y</code> defeat only together (<code>Z</code> still alone)</td>
 </tr>
 <tr>
 <td>monotone</td>

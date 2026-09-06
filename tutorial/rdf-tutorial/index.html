@@ -1516,7 +1516,11 @@ name with full IRIs, so two names are equal exactly when the triples are.</p>
 <p>A query is <code>antecedent =&gt; consequent</code>; the graph is always part of the
 antecedent. Without <code>=&gt;</code> the whole query is the consequent. <code>--json</code>, <code>-q</code>,
 <code>--trace</code>, <code>--batch</code>, and <code>--max-depth</code> work as for <code>pynmms ask</code>. Use
-<code>--regime owl2rl</code> for the OWL 2 RL/RDF rules (see below).</p>
+<code>--regime owl2rl</code> for the OWL 2 RL/RDF rules (see below). Prefixes come from
+the loaded files; declare any others with <code>--prefix ex=http://ex.org/</code>
+(repeatable). A prefixed name whose prefix is not bound is an error rather
+than a silently wrong IRI, which matters for a file that declares no prefixes
+(an empty Turtle file, for instance) or for a SPARQL endpoint.</p>
 <h3 id="adding-triples-and-an-interactive-session">Adding triples and an interactive session<a class="headerlink" href="#adding-triples-and-an-interactive-session" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>pynmms<span class="w"> </span>rdf<span class="w"> </span>tell<span class="w"> </span>-g<span class="w"> </span>birds.ttl<span class="w"> </span><span class="s2">&quot;&lt;ex:kim a ex:Bird&gt;, &lt;ex:kim ex:name \&quot;Kim\&quot;@en&gt;&quot;</span>
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>pynmms<span class="w"> </span>rdf<span class="w"> </span>repl<span class="w"> </span>-g<span class="w"> </span>birds.ttl<span class="w"> </span>--regime<span class="w"> </span>rdfs
@@ -1587,6 +1591,12 @@ propositional core, with triple atoms as the sentences:</p>
 <a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>                        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;Bird&quot;</span><span class="p">,</span> <span class="s2">&quot;Flies&quot;</span><span class="p">,</span> <span class="s2">&quot;Penguin&quot;</span><span class="p">))</span>
 <a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="n">base</span><span class="o">.</span><span class="n">add_consequence</span><span class="p">(</span><span class="nb">frozenset</span><span class="p">({</span><span class="n">bird</span><span class="p">}),</span> <span class="nb">frozenset</span><span class="p">({</span><span class="n">flies</span><span class="p">}),</span> <span class="n">robustness</span><span class="o">=</span><span class="n">guarded</span><span class="p">([</span><span class="n">penguin</span><span class="p">]))</span>
 </code></pre></div>
+<p>Defeaters can be conjunctive: <code>guarded(exclusions=[(frozenset({penguin, injured}), frozenset())])</code>
+is defeated only when both atoms are present. On the command line that is
+<code>unless &lt;...&gt; &amp; &lt;...&gt;</code>.</p>
+<p>Endpoints do not expose their prefix declarations, so give <code>SPARQLBackend</code>
+the prefixes your queries use (<code>prefixes={"ex": "http://ex.org/"}</code>). A name
+such as <code>ex:tweety</code> with no bound prefix is an error, not the IRI <code>ex:tweety</code>.</p>
 <h2 id="how-the-closure-is-split">How the closure is split<a class="headerlink" href="#how-the-closure-is-split" title="Permanent link">&para;</a></h2>
 <p>The regime base checks <code>Γ |~ Δ</code> as "Γ is inconsistent or Δ meets <code>cl_R(Γ)</code>".
 The backend holds <code>cl_R(G)</code> for the stored graph; the per-node extras (the
@@ -1610,9 +1620,9 @@ to the extras, never to <code>|G|</code>.</p>
 <td>computed in-process at load</td>
 </tr>
 <tr>
-<td><code>SPARQLBackend(url, regime=...)</code></td>
+<td><code>SPARQLBackend(url, regime=..., prefixes={...}, update_endpoint=...)</code></td>
 <td>a running store</td>
-<td>whatever the store materialises; pass <code>probe=</code> to verify</td>
+<td>whatever the store materialises; pass <code>probe=</code> to verify; <code>add()</code> inserts through the update endpoint</td>
 </tr>
 <tr>
 <td><code>OxigraphBackend(path, regime=...)</code></td>
@@ -1626,8 +1636,8 @@ Lemma 30 of the paper); blank nodes in a consequent go in a pattern atom.</p>
 <h2 id="shipped-regimes">Shipped regimes<a class="headerlink" href="#shipped-regimes" title="Permanent link">&para;</a></h2>
 <ul>
 <li><code>SIMPLE</code>: no rules, so <code>Γ |~ Δ</code> is Containment (simple entailment, Corollary 36).</li>
-<li><code>RDFS</code>: rdf1, rdfs1 (literal typing) and rdfs2 to rdfs13 with the finite RDFS
-  axiomatic triples (Corollary 37). rdfD1 (datatype-specific typing) is omitted.</li>
+<li><code>RDFS</code>: rdf1, rdfs1, rdfD1 (literal typing) and rdfs2 to rdfs13 with the
+  finite RDFS axiomatic triples (Corollary 37).</li>
 <li><code>OWL2RL</code>: RDFS plus the fixed-arity OWL 2 RL/RDF rules of Tables 4 to 9
   (Corollary 38): equality (<code>owl:sameAs</code>, <code>differentFrom</code>), property
   characteristics (functional, inverse-functional, irreflexive, symmetric,
@@ -1636,10 +1646,12 @@ Lemma 30 of the paper); blank nodes in a consequent go in a pattern atom.</p>
   max-cardinality 0 and 1), class axioms (subClassOf, equivalentClass,
   disjointWith, complementOf, <code>owl:Nothing</code>), and the schema rules. The
   false-concluding rules among these are exactly the published
-  incompatibilities Proposition 34 recovers. Not implemented: the rule
-  families over <code>rdf:List</code> arguments (<code>intersectionOf</code>, <code>unionOf</code>, <code>oneOf</code>,
-  <code>AllDisjointClasses</code>, property chains, <code>hasKey</code>, <code>AllDifferent</code>) and the
-  datatype rules; <code>OWL2RL_OMITTED</code> lists them.</li>
+  incompatibilities Proposition 34 recovers. The rule families over
+  <code>rdf:List</code> arguments (<code>intersectionOf</code>, <code>unionOf</code>, <code>oneOf</code>,
+  <code>AllDisjointClasses</code>, <code>AllDisjointProperties</code>, property chains, <code>hasKey</code>,
+  <code>AllDifferent</code>) are implemented procedurally. Not implemented: the datatype
+  rules and the axiomatic-only rules <code>eq-ref</code>, <code>cls-thing</code>, <code>cls-nothing1</code>;
+  <code>OWL2RL_OMITTED</code> lists them.</li>
 </ul>
 <p><code>custom(name, rules, extends=RDFS)</code> adds your rules on top.</p>
 <h2 id="from-the-ontology-extension">From the ontology extension<a class="headerlink" href="#from-the-ontology-extension" title="Permanent link">&para;</a></h2>

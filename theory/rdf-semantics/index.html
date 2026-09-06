@@ -1489,10 +1489,11 @@ whose instances are the regime's rules; the constructor enforces range
 restriction, and an optional <code>guard</code> carries a side condition. <code>conclusion is
 None</code> is ⊥. <code>Regime(name, rules, axioms)</code> bundles schemas with the finite
 axiomatic triples. <code>parse_rule</code> reads <code>?x a ex:Alive, ?x a ex:Dead -&gt; false</code>.
-Three regimes ship: <code>SIMPLE</code> (no rules), <code>RDFS</code> (rdf1, rdfs1, rdfs2 to rdfs13
-and the finite axiomatic triples of RDF 1.1 Semantics §9.2), and <code>OWL2RL</code> (the
-fixed-arity rules of OWL 2 RL/RDF Tables 4 to 9; the list-valued families and
-datatype rules are omitted and named in <code>OWL2RL_OMITTED</code>).</p>
+Three regimes ship: <code>SIMPLE</code> (no rules), <code>RDFS</code> (rdf1, rdfs1, rdfD1, rdfs2 to
+rdfs13 and the finite axiomatic triples of RDF 1.1 Semantics §9.2), and
+<code>OWL2RL</code> (the rules of OWL 2 RL/RDF Tables 4 to 9, with the families over
+<code>rdf:List</code> arguments implemented as <code>ProceduralRule</code>s; the datatype rules and
+the axiomatic-only rules are omitted and named in <code>OWL2RL_OMITTED</code>).</p>
 <h2 id="3-implication-space-semantics">3. Implication-space semantics<a class="headerlink" href="#3-implication-space-semantics" title="Permanent link">&para;</a></h2>
 <p><strong>Definition 12 (bearers, implication space, frame).</strong> With <code>𝔹</code> the set of
 bearers, an implication space is <code>𝕊 = 𝒫(𝔹) × 𝒫(𝔹)</code>; a frame <code>⟨𝔹, 𝕀⟩</code> fixes
@@ -1504,11 +1505,15 @@ implicational role of <code>H</code> is <code>ℛ(H) = {x ⊆ 𝕊 | RSR(H) = RS
 <p><em>Implementation.</em> A material base entry's
 <a href="../../api/robustness/"><code>Robustness</code></a> policy fixes a tractable fragment of its
 RSR: <code>EXACT</code> is the empty range (only <code>⟨∅, ∅⟩</code>), <code>MONOTONE</code> is all of <code>𝕊</code>,
-and <code>guarded(left, right)</code> is <code>𝕊</code> minus every pair that meets a defeater. The
-defeater sets are RSR complements restricted to singleton additions. This is
-the answer to the change notes' issue 9: with <code>EXACT</code> only, "every TELL is
-destructive"; with <code>guarded</code>, <code>Bird |~ Flies</code> survives <code>Tall</code> and is defeated
-by <code>Penguin</code>.</p>
+and <code>guarded(left, right, exclusions)</code> is <code>𝕊</code> minus every pair that meets a
+singleton defeater in <code>left</code> or <code>right</code> and minus every pair containing an
+exclusion <code>⟨x, y⟩</code>. Singleton defeaters and finite conjunctive exclusions
+together describe the RSR complement up to finite additions, and the guard
+costs a bounded number of membership tests regardless of <code>|Γ|</code>. This is the
+answer to the change notes' issue 9: with <code>EXACT</code> only, "every TELL is
+destructive"; with <code>guarded</code>, <code>Bird |~ Flies</code> survives <code>Tall</code>, is defeated by
+<code>Penguin</code>, and can be made to survive <code>Penguin</code> alone but not <code>Penguin</code>
+together with <code>Injured</code>.</p>
 <p><strong>Definition 17 (canonical frame).</strong> <code>𝕀_C = {⟨Γ, Δ⟩ | Γ ∩ Δ ≠ ∅}</code>: reasoning
 "off", a graph implies exactly the triples it contains.</p>
 <p><em>Implementation.</em> Containment is the first check in every <code>is_axiom</code>, and
@@ -1611,12 +1616,14 @@ applies to the whole.</p>
 <ul>
 <li><strong>Rule families over lists.</strong> The OWL 2 RL rules whose premises range over
   an <code>rdf:List</code> of arbitrary length (<code>intersectionOf</code>, <code>unionOf</code>, <code>oneOf</code>,
-  <code>AllDisjointClasses</code>, property chains, <code>hasKey</code>, <code>AllDifferent</code>) are rule
-  <em>families</em> indexed by list length and are not one schema each. They are
-  omitted, as are the datatype rules, which need the datatype value spaces.
-  Corollary 38 holds for the implemented fragment, and the oracle test covers
-  only that fragment.</li>
-<li><strong>rdfD1.</strong> Datatype-specific literal typing is omitted; rdfs1 is included.</li>
+  <code>AllDisjointClasses</code>, property chains, <code>hasKey</code>, <code>AllDifferent</code>,
+  <code>AllDisjointProperties</code>) are rule <em>families</em> indexed by list length. They
+  are implemented as procedural rules (<code>OWL2RL_LIST_RULES</code>) that walk the list
+  through the same lookup the pattern rules use, so they take part in both
+  the store closure and the per-node extras step. The datatype rules, which
+  need the datatype value spaces, and the axiomatic-only rules <code>eq-ref</code>,
+  <code>cls-thing</code>, <code>cls-nothing1</code> remain omitted (<code>OWL2RL_OMITTED</code>). The oracle
+  test covers list constructs as well as the fixed-arity rules.</li>
 <li><strong>The existential of first-order implication-space semantics.</strong> A pattern
   atom is the witness search of Lemma 33, not the <code>∃</code> of Hlobil's first-order
   extension. It cannot be decomposed by the logical rules and cannot occur in

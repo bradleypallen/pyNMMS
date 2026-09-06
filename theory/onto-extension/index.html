@@ -1088,15 +1088,65 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#8-assumptions-and-open-questions" class="md-nav__link">
+  <a href="#8-nmms_onto-and-the-semantic-web-tradition" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8. Assumptions and Open Questions
+        8. NMMS_Onto and the Semantic Web Tradition
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="8. Assumptions and Open Questions">
+    <nav class="md-nav" aria-label="8. NMMS_Onto and the Semantic Web Tradition">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#81-the-familiar-vocabulary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.1 The Familiar Vocabulary
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#82-where-behavior-diverges" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.2 Where Behavior Diverges
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#83-the-correspondence-as-bridge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.3 The Correspondence as Bridge
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-assumptions-and-open-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Assumptions and Open Questions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. Assumptions and Open Questions">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1127,10 +1177,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#9-references" class="md-nav__link">
+  <a href="#10-references" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9. References
+        10. References
       
     </span>
   </a>
@@ -1446,15 +1496,65 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#8-assumptions-and-open-questions" class="md-nav__link">
+  <a href="#8-nmms_onto-and-the-semantic-web-tradition" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8. Assumptions and Open Questions
+        8. NMMS_Onto and the Semantic Web Tradition
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="8. Assumptions and Open Questions">
+    <nav class="md-nav" aria-label="8. NMMS_Onto and the Semantic Web Tradition">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#81-the-familiar-vocabulary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.1 The Familiar Vocabulary
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#82-where-behavior-diverges" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.2 Where Behavior Diverges
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#83-the-correspondence-as-bridge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.3 The Correspondence as Bridge
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-assumptions-and-open-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Assumptions and Open Questions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. Assumptions and Open Questions">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1485,10 +1585,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#9-references" class="md-nav__link">
+  <a href="#10-references" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9. References
+        10. References
       
     </span>
   </a>
@@ -1690,7 +1790,32 @@
 <p><strong>No role characteristics</strong>: NMMS_Onto does not support role transitivity, symmetry, reflexivity, inverseness, functionality, or role chains as built-in features. If <code>R</code> should be symmetric, both <code>{R(a,b)} |~ {R(b,a)}</code> and <code>{R(b,a)} |~ {R(a,b)}</code> must be registered as explicit ground consequences or handled through additional schemas.</p>
 </li>
 </ul>
-<h2 id="8-assumptions-and-open-questions">8. Assumptions and Open Questions<a class="headerlink" href="#8-assumptions-and-open-questions" title="Permanent link">&para;</a></h2>
+<h2 id="8-nmms_onto-and-the-semantic-web-tradition">8. NMMS_Onto and the Semantic Web Tradition<a class="headerlink" href="#8-nmms_onto-and-the-semantic-web-tradition" title="Permanent link">&para;</a></h2>
+<p>Knowledge engineers trained in the Semantic Web tradition -- OWL, RDFS, description logics -- work within a thoroughly representationalist framework. OWL's semantics are model-theoretic: classes denote sets of individuals, properties denote binary relations, and an ontology is a specification of what exists in a domain. The inferentialist framing of NMMS_Onto, where schemas codify material inferential commitments that practitioners undertake, is philosophically foreign to that tradition.</p>
+<p>This section addresses Semantic Web practitioners directly: where NMMS_Onto's vocabulary is familiar, where its behavior diverges from OWL, and why the divergences are principled rather than arbitrary.</p>
+<h3 id="81-the-familiar-vocabulary">8.1 The Familiar Vocabulary<a class="headerlink" href="#81-the-familiar-vocabulary" title="Permanent link">&para;</a></h3>
+<p>NMMS_Onto borrows its schema names from RDFS and OWL deliberately. A knowledge engineer can read the schemas representationally:</p>
+<ul>
+<li><code>subClassOf(Man, Mortal)</code> -- "the extension of Man is a subset of the extension of Mortal"</li>
+<li><code>range(hasChild, Person)</code> -- "the range of hasChild is Person"</li>
+<li><code>domain(hasChild, Parent)</code> -- "the domain of hasChild is Parent"</li>
+<li><code>subPropertyOf(hasChild, hasDescendant)</code> -- "hasChild is a subproperty of hasDescendant"</li>
+<li><code>disjointWith(Alive, Dead)</code> -- "the extensions of Alive and Dead are disjoint"</li>
+<li><code>disjointProperties(employs, isEmployedBy)</code> -- "employs and isEmployedBy are disjoint properties"</li>
+<li><code>jointCommitment([ChestPain, ElevatedTroponin], MI)</code> -- "the intersection of the extensions of ChestPain and ElevatedTroponin is a subset of the extension of MI"</li>
+</ul>
+<p>These readings are legitimate. They correspond to what Hlobil &amp; Brandom (2025, Ch. 5) identify as a three-way correspondence between sequent calculi, implicational role inclusions, and truth-maker theory. A <code>subClassOf(Man, Mortal)</code> schema can be read inferentially (the premisory role of <code>Man(x)</code> includes the premisory role of <code>Mortal(x)</code>), representationally (every truth-maker for <code>Man(x)</code> is a truth-maker for <code>Mortal(x)</code>), or model-theoretically (the extension of Man is a subset of the extension of Mortal). These are not competing interpretations but three metavocabulary renderings of the same reason-relational structure.</p>
+<h3 id="82-where-behavior-diverges">8.2 Where Behavior Diverges<a class="headerlink" href="#82-where-behavior-diverges" title="Permanent link">&para;</a></h3>
+<p>The representationalist reading is correct as far as it goes, but it sets up expectations that NMMS_Onto does not satisfy. Three divergences matter most:</p>
+<p><strong>Non-transitivity.</strong> In OWL, <code>SubClassOf(A, B)</code> and <code>SubClassOf(B, C)</code> entail <code>SubClassOf(A, C)</code>. In NMMS_Onto, <code>subClassOf(A, B)</code> and <code>subClassOf(B, C)</code> do not jointly entail <code>{A(x)} |~ {C(x)}</code>. The calculus lacks [Mixed-Cut], so individually valid inferences do not compose. If the chain should hold, it must be registered explicitly as <code>subClassOf(A, C)</code>. This is by design: some subclass chains should compose (Man -&gt; Mortal -&gt; Physical) and others should not, depending on the domain. The representationalist reading, which treats subClassOf as a subset relation, makes non-transitivity look like a bug. The inferentialist reading, which treats each schema as an independent defeasible commitment, makes it intelligible: undertaking a commitment to A-entails-B and a commitment to B-entails-C does not automatically constitute a commitment to A-entails-C.</p>
+<p><strong>Defeasibility.</strong> In OWL, if <code>Man SubClassOf Mortal</code>, then adding any further assertions about Socrates cannot defeat the inference from <code>Man(socrates)</code> to <code>Mortal(socrates)</code>. In NMMS_Onto, <code>{Man(socrates), Immortal(socrates)} |~ {Mortal(socrates)}</code> is not derivable -- the additional premise defeats the inference because the antecedent no longer exactly matches the schema pattern. The representationalist reading, which treats class membership as extensional and monotonic, provides no resources for understanding why adding information could defeat an inference. The inferentialist reading makes it immediate: the commitment encoded by the schema is undertaken for the specific case where <code>Man(x)</code> is the sole ground for inferring <code>Mortal(x)</code>. Additional grounds change the situation.</p>
+<p><strong>No exhaustiveness or partition structure.</strong> In OWL 2, <code>DisjointUnion(Color, Red, Green, Blue)</code> entails both that the three color classes are pairwise disjoint and that every Color is one of the three -- enabling process-of-elimination reasoning. NMMS_Onto can express the pairwise disjointness (via <code>disjointWith</code>) and the species-to-genus direction (via <code>subClassOf</code>), but not the genus-to-disjunction-of-species direction. This means NMMS_Onto does not support eliminative reasoning of the form "it's a Color and not Red and not Green, therefore Blue." The representationalist reading makes this look like a missing feature. The inferentialist reading reveals it as a principled omission: the exhaustiveness claim ("these species are all there are") is a strong commitment about the closure of a conceptual space, and in open discursive practice -- where new species can always be introduced -- it is a commitment that may not be warranted.</p>
+<h3 id="83-the-correspondence-as-bridge">8.3 The Correspondence as Bridge<a class="headerlink" href="#83-the-correspondence-as-bridge" title="Permanent link">&para;</a></h3>
+<p>The Hlobil-Brandom correspondence (Ch. 5 of <em>Reasons for Logic, Logic for Reasons</em>) establishes that implication-space semantics, sequent calculi, and truth-maker theory are three characterizations of the same underlying structure of reason relations. This correspondence extends beyond logical vocabulary to nonlogical conceptual connections, including the species-genus, property-cluster, and equivalence relations analyzed by Tanter (2021).</p>
+<p>The practical significance for knowledge engineers is this: the representationalist reading of NMMS_Onto schemas is one legitimate side of the correspondence. A knowledge engineer can use familiar ontological intuitions -- class hierarchies, domain/range constraints, disjointness -- to build and understand NMMS_Onto bases. The schemas will behave in broadly familiar ways for the assertive direction of knowledge engineering: given what is known, what follows?</p>
+<p>But the representationalist reading is incomplete. When behavior diverges from OWL -- when a subclass chain fails to compose, when an inference is defeated by new information, when elimination reasoning is unavailable -- the inferentialist reading is what makes the divergences intelligible. The inferentialist vocabulary ("defeasible commitment," "exact-match entitlement," "open reason relation") is not an alternative to the representationalist vocabulary but a complement that explains the design decisions.</p>
+<p>The recommended approach for Semantic Web practitioners is: use the representationalist reading for modeling (it correctly guides schema selection and ontology structure), and the inferentialist reading for explanation (it correctly accounts for the system's behavior under non-standard conditions). The two readings are not in tension -- they are two sides of the same correspondence.</p>
+<h2 id="9-assumptions-and-open-questions">9. Assumptions and Open Questions<a class="headerlink" href="#9-assumptions-and-open-questions" title="Permanent link">&para;</a></h2>
 <h3 id="assumptions">Assumptions<a class="headerlink" href="#assumptions" title="Permanent link">&para;</a></h3>
 <ol>
 <li>
@@ -1700,7 +1825,7 @@
 <p><strong>Exact match is the right notion of defeasibility</strong>: The schemas use singleton antecedent and singleton consequent (for inferential commitment schemas) or pair antecedent and empty consequent (for incompatibility schemas) with no weakening. This means that <em>any</em> additional premise defeats the inference or incompatibility. In practice, one might want finer-grained defeat: <code>{Man(socrates), Greek(socrates)} |~ {Mortal(socrates)}</code> might be desired even though the schema only directly generates the singleton-antecedent form. Users can accommodate this by adding explicit ground consequences for the desired multi-premise patterns.</p>
 </li>
 <li>
-<p><strong>Propositional connectives are sufficient for logical structure</strong>: The claim is that the six ontology schemas, combined with propositional connectives via the eight proof rules, provide adequate expressive power for a useful fragment of ontological reasoning. This is an empirical claim that depends on the intended applications.</p>
+<p><strong>Propositional connectives are sufficient for logical structure</strong>: The claim is that the seven ontology schemas, combined with propositional connectives via the eight proof rules, provide adequate expressive power for a useful fragment of ontological reasoning. This is an empirical claim that depends on the intended applications.</p>
 </li>
 </ol>
 <h3 id="open-questions">Open Questions<a class="headerlink" href="#open-questions" title="Permanent link">&para;</a></h3>
@@ -1721,7 +1846,7 @@
 <p><strong>Scaling properties</strong>: The lazy evaluation strategy avoids combinatorial explosion in schema grounding, but the proof search itself has exponential worst-case complexity (due to the multi-premise Ketonen rules for [L-&gt;], [L|], [R&amp;]). How does the addition of ontology schemas affect proof search performance in practice? Are there heuristics for ordering schema checks to improve average-case behavior?</p>
 </li>
 </ol>
-<h2 id="9-references">9. References<a class="headerlink" href="#9-references" title="Permanent link">&para;</a></h2>
+<h2 id="10-references">10. References<a class="headerlink" href="#10-references" title="Permanent link">&para;</a></h2>
 <ul>
 <li>
 <p>Brandom, R. B. (1994). <em>Making It Explicit: Reasoning, Representing, and Discursive Commitment</em>. Harvard University Press.</p>
@@ -1734,6 +1859,9 @@
 </li>
 <li>
 <p>Giordano, L., Gliozzi, V., Olivetti, N., &amp; Pozzato, G. L. (2013). A Non-Monotonic Description Logic for Reasoning About Typicality. <em>Artificial Intelligence</em>, 195, 165--202.</p>
+</li>
+<li>
+<p>Tanter, K. (2023). Subatomic Inferences: An Inferentialist Semantics for Atomics, Predicates, and Names. <em>The Review of Symbolic Logic</em>, 16(3), 672--699.</p>
 </li>
 </ul>
 

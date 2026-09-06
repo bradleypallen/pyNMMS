@@ -293,7 +293,7 @@ The recommended approach for Semantic Web practitioners is: use the representati
 
 2. **Exact match is the right notion of defeasibility**: The schemas use singleton antecedent and singleton consequent (for inferential commitment schemas) or pair antecedent and empty consequent (for incompatibility schemas) with no weakening. This means that *any* additional premise defeats the inference or incompatibility. In practice, one might want finer-grained defeat: `{Man(socrates), Greek(socrates)} |~ {Mortal(socrates)}` might be desired even though the schema only directly generates the singleton-antecedent form. Users can accommodate this by adding explicit ground consequences for the desired multi-premise patterns.
 
-3. **Propositional connectives are sufficient for logical structure**: The claim is that the six ontology schemas, combined with propositional connectives via the eight proof rules, provide adequate expressive power for a useful fragment of ontological reasoning. This is an empirical claim that depends on the intended applications.
+3. **Propositional connectives are sufficient for logical structure**: The claim is that the seven ontology schemas, combined with propositional connectives via the eight proof rules, provide adequate expressive power for a useful fragment of ontological reasoning. This is an empirical claim that depends on the intended applications.
 
 ### Open Questions
 

@@ -5,10 +5,13 @@ Tests the structural properties of the NMMS sequent calculus
 material bases and sequents.
 """
 
-from hypothesis import assume, given, note, settings
-from hypothesis import strategies as st
+import pytest
 
-from pynmms import MaterialBase, NMMSReasoner, parse_sentence
+hypothesis = pytest.importorskip("hypothesis")
+from hypothesis import assume, given, note, settings  # noqa: E402
+from hypothesis import strategies as st  # noqa: E402
+
+from pynmms import MaterialBase, NMMSReasoner, parse_sentence  # noqa: E402
 
 # ============================================================
 # Strategies for generating random NMMS structures

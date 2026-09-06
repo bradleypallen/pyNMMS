@@ -119,3 +119,17 @@ class TestSerialization:
         # Should be JSON-serializable
         json_str = json.dumps(d)
         assert json_str  # non-empty
+
+
+class TestMalformedAtoms:
+    def test_add_atom_rejects_word_connective(self, empty_base):
+        with pytest.raises(ValueError, match="add_atom: Malformed sentence"):
+            empty_base.add_atom("(p conj q)")
+
+    def test_constructor_rejects_atom_with_spaces(self):
+        with pytest.raises(ValueError, match="Malformed sentence"):
+            MaterialBase(language={"Tara is human"})
+
+    def test_quoted_atom_accepted(self, empty_base):
+        empty_base.add_atom("<Tara is human>")
+        assert "<Tara is human>" in empty_base.language

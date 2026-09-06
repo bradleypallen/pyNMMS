@@ -8,6 +8,7 @@ from pathlib import Path
 
 from pynmms.base import MaterialBase
 from pynmms.reasoner import NMMSReasoner
+from pynmms.syntax import find_top_level, split_top_level
 
 logger = logging.getLogger(__name__)
 
@@ -74,9 +75,11 @@ def _parse_repl_tell(
     if "|~" not in statement:
         raise ValueError(f"Expected 'atom X' or 'A, B |~ C, D', got: {statement!r}")
 
-    parts = statement.split("|~", 1)
-    antecedent = frozenset(s.strip() for s in parts[0].strip().split(",") if s.strip())
-    consequent = frozenset(s.strip() for s in parts[1].strip().split(",") if s.strip())
+    turnstiles = find_top_level(statement, "|~")
+    if not turnstiles:
+        raise ValueError(f"Expected 'atom X' or 'A, B |~ C, D', got: {statement!r}")
+    antecedent = frozenset(split_top_level(statement[: turnstiles[0]], ","))
+    consequent = frozenset(split_top_level(statement[turnstiles[0] + 2 :], ","))
 
     return ("consequence", antecedent, consequent, None)
 
@@ -88,9 +91,11 @@ def _parse_repl_ask(sequent_str: str) -> tuple[frozenset[str], frozenset[str]]:
     if "=>" not in sequent_str:
         raise ValueError(f"Expected 'A, B => C, D', got: {sequent_str!r}")
 
-    parts = sequent_str.split("=>", 1)
-    antecedent = frozenset(s.strip() for s in parts[0].strip().split(",") if s.strip())
-    consequent = frozenset(s.strip() for s in parts[1].strip().split(",") if s.strip())
+    arrows = find_top_level(sequent_str, "=>")
+    if not arrows:
+        raise ValueError(f"Expected 'A, B => C, D', got: {sequent_str!r}")
+    antecedent = frozenset(split_top_level(sequent_str[: arrows[0]], ","))
+    consequent = frozenset(split_top_level(sequent_str[arrows[0] + 2 :], ","))
 
     return antecedent, consequent
 

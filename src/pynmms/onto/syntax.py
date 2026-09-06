@@ -19,7 +19,16 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-from pynmms.syntax import CONJ, DISJ, IMPL, NEG, Sentence, parse_sentence
+from pynmms.syntax import (
+    CONJ,
+    DISJ,
+    IMPL,
+    NEG,
+    Sentence,
+    find_top_level,
+    is_fully_wrapped,
+    parse_sentence,
+)
 
 # Ontology-specific sentence type constants
 ATOM_CONCEPT = "concept"
@@ -71,54 +80,31 @@ def parse_onto_sentence(s: str) -> Sentence | OntoSentence:
         raise ValueError("Cannot parse empty sentence")
 
     # Strip outer parens if they wrap the entire expression
-    if s.startswith("(") and s.endswith(")"):
-        depth = 0
-        all_wrapped = True
-        for i, c in enumerate(s):
-            if c == "(":
-                depth += 1
-            elif c == ")":
-                depth -= 1
-            if depth == 0 and i < len(s) - 1:
-                all_wrapped = False
-                break
-        if all_wrapped:
-            return parse_onto_sentence(s[1:-1])
+    if is_fully_wrapped(s):
+        return parse_onto_sentence(s[1:-1])
 
     # --- Binary connectives at depth 0, lowest precedence first ---
+    # Sub-sentences are parsed by the propositional parser; its atom grammar
+    # admits the C(a) and R(a,b) forms, so onto atoms survive as ATOM nodes.
 
-    # Implication (right-associative, lowest precedence)
-    depth = 0
-    for i in range(len(s)):
-        c = s[i]
-        if c == "(":
-            depth += 1
-        elif c == ")":
-            depth -= 1
-        elif depth == 0 and s[i : i + 2] == "->":
-            left_str = s[:i].strip()
-            right_str = s[i + 2 :].strip()
-            if not left_str or not right_str:
-                raise ValueError(f"Malformed implication in: {s!r}")
-            return Sentence(
-                type=IMPL,
-                left=parse_sentence(left_str),
-                right=parse_sentence(right_str),
-            )
+    impl_positions = find_top_level(s, "->")
+    if impl_positions:
+        i = impl_positions[0]
+        left_str = s[:i].strip()
+        right_str = s[i + 2 :].strip()
+        if not left_str or not right_str:
+            raise ValueError(f"Malformed implication in: {s!r}")
+        return Sentence(
+            type=IMPL,
+            left=parse_sentence(left_str),
+            right=parse_sentence(right_str),
+        )
 
-    # Disjunction (left-associative) -- find last '|' at depth 0
-    depth = 0
-    last_disj = -1
-    for i, c in enumerate(s):
-        if c == "(":
-            depth += 1
-        elif c == ")":
-            depth -= 1
-        elif depth == 0 and c == "|":
-            last_disj = i
-    if last_disj >= 0:
-        left_str = s[:last_disj].strip()
-        right_str = s[last_disj + 1 :].strip()
+    disj_positions = find_top_level(s, "|")
+    if disj_positions:
+        i = disj_positions[-1]
+        left_str = s[:i].strip()
+        right_str = s[i + 1 :].strip()
         if not left_str or not right_str:
             raise ValueError(f"Malformed disjunction in: {s!r}")
         return Sentence(
@@ -127,19 +113,11 @@ def parse_onto_sentence(s: str) -> Sentence | OntoSentence:
             right=parse_sentence(right_str),
         )
 
-    # Conjunction (left-associative) -- find last '&' at depth 0
-    depth = 0
-    last_conj = -1
-    for i, c in enumerate(s):
-        if c == "(":
-            depth += 1
-        elif c == ")":
-            depth -= 1
-        elif depth == 0 and c == "&":
-            last_conj = i
-    if last_conj >= 0:
-        left_str = s[:last_conj].strip()
-        right_str = s[last_conj + 1 :].strip()
+    conj_positions = find_top_level(s, "&")
+    if conj_positions:
+        i = conj_positions[-1]
+        left_str = s[:i].strip()
+        right_str = s[i + 1 :].strip()
         if not left_str or not right_str:
             raise ValueError(f"Malformed conjunction in: {s!r}")
         return Sentence(

@@ -221,3 +221,41 @@ class TestOntoReplCommand:
         assert result == 0
         out = capsys.readouterr().out
         assert "Joint MI rule" in out
+
+
+class TestRoleAssertionsInSequents:
+    """Commas inside R(a,b) must not split the sequent (depth-aware splitting)."""
+
+    def test_ask_role_assertion_with_range_schema(self):
+        with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f:
+            path = f.name
+        Path(path).unlink()
+
+        assert main(["tell", "-b", path, "--create", "--onto",
+                     "atom hasChild(alice,bob)"]) == 0
+        with tempfile.NamedTemporaryFile(suffix=".txt", delete=False, mode="w") as bf:
+            bf.write("schema range hasChild Person\n")
+            batch_path = bf.name
+        assert main(["tell", "-b", path, "--onto", "--batch", batch_path]) == 0
+        Path(batch_path).unlink()
+        assert main(["ask", "-b", path, "--onto",
+                     "hasChild(alice,bob) => Person(bob)"]) == 0
+        assert main(["ask", "-b", path, "--onto",
+                     "hasChild(alice, bob) => Person(alice)"]) == 2
+
+        Path(path).unlink()
+
+    def test_tell_consequence_with_two_role_assertions(self):
+        with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f:
+            path = f.name
+        Path(path).unlink()
+
+        stmt = "hasChild(alice,bob), hasChild(bob,carol) |~ hasGrandchild(alice,carol)"
+        assert main(["tell", "-b", path, "--create", "--onto", stmt]) == 0
+        with open(path) as f:
+            data = json.load(f)
+        assert sorted(data["consequences"][0]["antecedent"]) == [
+            "hasChild(alice,bob)", "hasChild(bob,carol)"
+        ]
+
+        Path(path).unlink()

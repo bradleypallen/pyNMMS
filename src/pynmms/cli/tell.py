@@ -15,6 +15,7 @@ from pynmms.cli.output import (
     tell_atom_response,
     tell_consequence_response,
 )
+from pynmms.syntax import find_top_level, split_top_level
 
 logger = logging.getLogger(__name__)
 
@@ -63,12 +64,17 @@ def _parse_tell_statement(
             f'Expected "atom X" or "A, B |~ C, D".'
         )
 
-    parts = statement.split("|~", 1)
-    antecedent_str = parts[0].strip()
-    consequent_str = parts[1].strip()
+    turnstiles = find_top_level(statement, "|~")
+    if not turnstiles:
+        raise ValueError(
+            f"Invalid tell statement: {statement!r}. "
+            f'Expected "atom X" or "A, B |~ C, D".'
+        )
+    antecedent_str = statement[: turnstiles[0]]
+    consequent_str = statement[turnstiles[0] + 2 :]
 
-    antecedent = frozenset(s.strip() for s in antecedent_str.split(",") if s.strip())
-    consequent = frozenset(s.strip() for s in consequent_str.split(",") if s.strip())
+    antecedent = frozenset(split_top_level(antecedent_str, ","))
+    consequent = frozenset(split_top_level(consequent_str, ","))
 
     return ("consequence", antecedent, consequent, None)
 
@@ -91,7 +97,11 @@ def _process_tell_statement(
     if kind == "atom":
         assert antecedent is not None
         atom = next(iter(antecedent))
-        base.add_atom(atom)
+        try:
+            base.add_atom(atom)
+        except ValueError as e:
+            emit_error(str(e), json_mode=json_mode, quiet=quiet)
+            return EXIT_ERROR
         if annotation:
             base.annotate(atom, annotation)
         if json_mode:
@@ -105,7 +115,11 @@ def _process_tell_statement(
         assert antecedent is not None or consequent is not None
         ant = antecedent if antecedent else frozenset()
         con = consequent if consequent else frozenset()
-        base.add_consequence(ant, con)
+        try:
+            base.add_consequence(ant, con)
+        except ValueError as e:
+            emit_error(str(e), json_mode=json_mode, quiet=quiet)
+            return EXIT_ERROR
         if json_mode:
             emit_json(tell_consequence_response(ant, con, str(base_path)))
         elif not quiet:

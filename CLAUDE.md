@@ -14,6 +14,13 @@ pytest -v
 # Run tests with coverage
 pytest --cov=pynmms --cov-report=term-missing
 
+# Lint, typecheck, test (Makefile targets)
+make check
+
+# Benchmarks (write a JSON record to bench/results/; --quick for reduced sizes)
+make bench
+python -m bench --quick --only antecedent_scaling --no-write
+
 # CLI usage
 pynmms tell -b base.json --create "A |~ B"
 pynmms tell -b base.json 'atom p "Tara is human"'
@@ -74,7 +81,7 @@ These biconditionals are what make logical vocabulary "make explicit" reason rel
 
 ### Propositional Core (`src/pynmms/`)
 
-1. **`syntax.py`** — Recursive descent parser for propositional sentences: atoms, negation (~), conjunction (&), disjunction (|), implication (->). Returns frozen `Sentence` dataclass AST nodes. Operator precedence: `&` > `|` > `->`.
+1. **`syntax.py`** — Recursive descent parser for propositional sentences: atoms, negation (~), conjunction (&), disjunction (|), implication (->). Returns frozen `Sentence` dataclass AST nodes. Operator precedence: `&` > `|` > `->`. Atoms follow a strict grammar: an identifier, an identifier applied to comma-separated identifiers (`C(a)`, `R(a,b)`), or a *quoted atom* `<...>` whose content is verbatim (brackets included in the name). Anything else in atom position raises `ValueError`. Exports depth-aware lexical helpers `find_top_level`, `split_top_level`, `is_fully_wrapped` that skip parentheses and quoted atoms; the onto parser and the CLI sequent splitters use them.
 
 2. **`base.py`** — `MaterialBase` class implementing the material base B = <L_B, |~_B>. Stores atomic language, consequence relation, and optional atom annotations. Exact syntactic match (no weakening). JSON serialization via `to_file()`/`from_file()`.
 
@@ -114,10 +121,10 @@ The `pynmms.onto` subpackage extends propositional NMMS with ontology axiom sche
 
 ## Test Suite
 
-512 tests across 20 test files:
+538 tests across 20 test files:
 
-**Propositional core (307 tests, 13 files):**
-- `test_syntax.py` — parser unit tests
+**Propositional core (331 tests, 13 files):**
+- `test_syntax.py` — parser unit tests, strict atom grammar, quoted atoms, split helpers
 - `test_base.py` — MaterialBase construction, validation, axiom checks, serialization
 - `test_reasoner_axioms.py` — axiom-level derivability (Demo 1 equivalence)
 - `test_reasoner_rules.py` — individual rule correctness
@@ -130,7 +137,7 @@ The `pynmms.onto` subpackage extends propositional NMMS with ontology axiom sche
 - `test_cli_json.py` — JSON output, quiet mode, stdin, batch, exit codes, empty sides, annotations, Toy Base T integration
 - `test_logging.py` — proof trace and logging output
 
-**Ontology extension (205 tests, 7 files):**
+**Ontology extension (207 tests, 7 files):**
 - `test_onto_syntax.py` — ontology sentence parsing (concept/role assertions), atomicity checks
 - `test_onto_base.py` — OntoMaterialBase construction, validation, ontology schemas, CommitmentStore
 - `test_onto_schemas.py` — all 7 ontology schema types, nonmonotonicity, non-transitivity, lazy evaluation, NMMSReasoner integration
@@ -138,6 +145,10 @@ The `pynmms.onto` subpackage extends propositional NMMS with ontology axiom sche
 - `test_onto_cli_json.py` — ontology-specific tests for JSON output, exit codes, batch, annotations
 - `test_onto_legacy_equivalence.py` — propositional backward compat, medical concept/role, ontology schema equivalence
 - `test_onto_logging.py` — ontology schema registration logging, proof traces
+
+## Benchmarks
+
+`bench/` is a stdlib-only benchmark package (`python -m bench`, `make bench`). Sections: `antecedent_scaling` (query cost vs |Γ|), `schema_scaling` (axiom-check cost vs number of ontology schemas), `query_complexity` (proof cost vs connectives in the query). Every run writes a JSON record with timestamp, git SHA, and environment to `bench/results/`; those records are the regression baseline and are committed. Reasoner DEBUG logging is silenced during timing runs.
 
 ## Logging
 

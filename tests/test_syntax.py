@@ -9,8 +9,10 @@ from pynmms.syntax import (
     IMPL,
     NEG,
     all_atomic,
+    find_top_level,
     is_atomic,
     parse_sentence,
+    split_top_level,
 )
 
 
@@ -192,3 +194,84 @@ class TestAllAtomic:
 
     def test_empty(self):
         assert all_atomic(frozenset())
+
+
+class TestAtomGrammar:
+    """Strict atom grammar (issue 4): malformed atoms are rejected, not accepted."""
+
+    def test_applied_atoms_allowed(self):
+        assert parse_sentence("Man(socrates)").name == "Man(socrates)"
+        assert parse_sentence("hasChild(alice,bob)").name == "hasChild(alice,bob)"
+        assert parse_sentence("hasChild(alice, bob)").name == "hasChild(alice, bob)"
+
+    def test_word_connective_rejected_with_hint(self):
+        with pytest.raises(ValueError, match="not a valid atom.*Did you mean a connective"):
+            parse_sentence("(p conj q)")
+
+    def test_whitespace_in_atom_rejected(self):
+        with pytest.raises(ValueError, match="not a valid atom"):
+            parse_sentence("Tara is human")
+
+    def test_leading_digit_rejected(self):
+        with pytest.raises(ValueError, match="not a valid atom"):
+            parse_sentence("1abc")
+
+    def test_stray_angle_bracket_rejected(self):
+        with pytest.raises(ValueError, match="not a valid atom"):
+            parse_sentence("a<b")
+
+    def test_empty_application_rejected(self):
+        with pytest.raises(ValueError, match="not a valid atom"):
+            parse_sentence("P()")
+
+    def test_quoted_atom(self):
+        s = parse_sentence("<ex:tweety a ex:Bird>")
+        assert s.type == ATOM
+        assert s.name == "<ex:tweety a ex:Bird>"
+
+    def test_quoted_atom_hides_connectives(self):
+        s = parse_sentence("<a | c & ~d>")
+        assert s.type == ATOM
+        assert s.name == "<a | c & ~d>"
+
+    def test_quoted_atom_cannot_contain_arrow(self):
+        # '>' closes the quote, so '->' cannot appear inside a quoted atom.
+        with pytest.raises(ValueError, match="not a valid atom"):
+            parse_sentence("<a -> b>")
+
+    def test_quoted_atoms_in_complex_sentence(self):
+        s = parse_sentence("<x, y> -> ~<p | q>")
+        assert s.type == IMPL
+        assert s.left.name == "<x, y>"
+        assert s.right.type == NEG
+        assert s.right.sub.name == "<p | q>"
+
+    def test_quoted_atom_round_trip(self):
+        text = "(<ex:a rdf:type ex:B> & ~<ex:a rdf:type ex:C>)"
+        assert str(parse_sentence(text)) == text
+
+    def test_nested_angle_brackets_rejected(self):
+        with pytest.raises(ValueError, match="not a valid atom"):
+            parse_sentence("<a<b>>")
+
+    def test_is_atomic_raises_on_malformed(self):
+        with pytest.raises(ValueError):
+            is_atomic("(p conj q)")
+
+
+class TestSplitHelpers:
+    def test_find_top_level_skips_parens_and_quotes(self):
+        assert find_top_level("R(a,b), <x, y>, C(a)", ",") == [6, 14]
+
+    def test_split_top_level(self):
+        assert split_top_level("R(a,b), <x, y>, C(a)", ",") == ["R(a,b)", "<x, y>", "C(a)"]
+
+    def test_split_top_level_drops_empty_parts(self):
+        assert split_top_level(" , A , , B, ", ",") == ["A", "B"]
+
+    def test_split_top_level_empty_string(self):
+        assert split_top_level("", ",") == []
+
+    def test_find_top_level_multichar_token(self):
+        assert find_top_level("A => B", "=>") == [2]
+        assert find_top_level("<A => B> => C", "=>") == [9]

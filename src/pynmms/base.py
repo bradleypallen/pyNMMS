@@ -31,7 +31,11 @@ _STRUCTURED_ATOM_RE = re.compile(r"^\w+\(\w+(?:,\s*\w+)?\)$")
 
 def _validate_atomic(s: str, context: str) -> None:
     """Raise ValueError if *s* is not an atomic sentence."""
-    if not is_atomic(s):
+    try:
+        atomic = is_atomic(s)
+    except ValueError as e:
+        raise ValueError(f"{context}: {e}") from None
+    if not atomic:
         raise ValueError(
             f"{context}: found logically complex sentence '{s}'. "
             f"Only bare atoms are permitted in the material base."

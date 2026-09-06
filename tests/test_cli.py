@@ -204,3 +204,50 @@ class TestMainEntry:
         with pytest.raises(SystemExit) as exc_info:
             main(["--version"])
         assert exc_info.value.code == 0
+
+
+class TestQuotedAtoms:
+    """Quoted atoms <...> survive CLI sequent splitting and reach the base verbatim."""
+
+    def test_tell_and_ask_with_quoted_atoms(self):
+        with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f:
+            path = f.name
+        Path(path).unlink()
+
+        result = main(["tell", "-b", path, "--create",
+                       "<ex:tweety a ex:Bird>, <ex:tweety, ex:canFly> |~ <ex:tweety a ex:Flier>"])
+        assert result == 0
+        with open(path) as f:
+            data = json.load(f)
+        assert "<ex:tweety, ex:canFly>" in data["language"]
+        assert len(data["consequences"]) == 1
+        assert len(data["consequences"][0]["antecedent"]) == 2
+
+        result = main(["ask", "-b", path,
+                       "<ex:tweety a ex:Bird>, <ex:tweety, ex:canFly> => <ex:tweety a ex:Flier>"])
+        assert result == 0
+
+        Path(path).unlink()
+
+    def test_tell_rejects_word_connective(self, capsys):
+        with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f:
+            path = f.name
+        Path(path).unlink()
+
+        result = main(["tell", "-b", path, "--create", "(p conj q) |~ r"])
+        assert result == 1
+        assert "not a valid atom" in capsys.readouterr().err
+
+        if Path(path).exists():
+            Path(path).unlink()
+
+    def test_ask_rejects_malformed_query(self, capsys):
+        with tempfile.NamedTemporaryFile(suffix=".json", delete=False, mode="w") as f:
+            json.dump({"language": ["p", "q"], "consequences": []}, f)
+            path = f.name
+
+        result = main(["ask", "-b", path, "(p conj q) => q"])
+        assert result == 1
+        assert "not a valid atom" in capsys.readouterr().err
+
+        Path(path).unlink()

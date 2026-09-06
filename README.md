@@ -24,6 +24,8 @@ cd pyNMMS
 pip install -e ".[dev]"
 ```
 
+The `dev` extra installs pytest, pytest-cov, Hypothesis, ruff, and mypy. Without it the property-based test module is skipped. `make check` runs lint, type check, and tests.
+
 ## Quick Start
 
 ```python
@@ -152,10 +154,20 @@ The reasoner uses root-first backward proof search with memoization and backtrac
 
 ### Test suite
 
-512 tests across 20 test files:
+538 tests across 20 test files:
 
-- **Propositional core (307 tests)**: Syntax parsing, MaterialBase construction/serialization, individual rule correctness, axiom derivability, structural properties (nonmonotonicity, nontransitivity, supraclassicality, DD/II/AA/SS), soundness audit, CLI integration, logging/tracing, Ch. 3 worked examples, Hypothesis property-based tests, cross-validation against ROLE.jl ground truth
-- **Ontology extension (205 tests)**: Ontology sentence parsing, OntoMaterialBase construction/validation, seven ontology schema types (subClassOf, range, domain, subPropertyOf, disjointWith, disjointProperties, jointCommitment), nonmonotonicity and non-transitivity of schemas, lazy evaluation, NMMSReasoner integration, CommitmentStore, CLI `--onto` integration, JSON output/exit codes, batch mode, annotations, legacy equivalence, logging
+- **Propositional core (331 tests)**: Syntax parsing (including the strict atom grammar and quoted atoms), MaterialBase construction/serialization, individual rule correctness, axiom derivability, structural properties (nonmonotonicity, nontransitivity, supraclassicality, DD/II/AA/SS), soundness audit, CLI integration, logging/tracing, Ch. 3 worked examples, Hypothesis property-based tests, cross-validation against ROLE.jl ground truth
+- **Ontology extension (207 tests)**: Ontology sentence parsing, OntoMaterialBase construction/validation, seven ontology schema types (subClassOf, range, domain, subPropertyOf, disjointWith, disjointProperties, jointCommitment), nonmonotonicity and non-transitivity of schemas, lazy evaluation, NMMSReasoner integration, CommitmentStore, CLI `--onto` integration, JSON output/exit codes, batch mode, annotations, legacy equivalence, logging
+
+### Benchmarks
+
+`bench/` is a standard-library benchmark package. `make bench` (or `python -m bench`, `--quick` for reduced sizes) runs three sections and writes a JSON record with timestamp, git SHA, and environment to `bench/results/`:
+
+- `antecedent_scaling` — query cost versus antecedent size |Γ|
+- `schema_scaling` — axiom-check cost versus number of ontology schemas
+- `query_complexity` — proof cost versus number of connectives in the query
+
+The committed records are the regression baseline for reasoner and base changes.
 
 ## Theoretical Background
 

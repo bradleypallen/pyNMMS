@@ -11,6 +11,7 @@ from pynmms.base import MaterialBase
 from pynmms.cli.exitcodes import EXIT_ERROR, EXIT_NOT_DERIVABLE, EXIT_SUCCESS
 from pynmms.cli.output import ask_response, emit_error, emit_json
 from pynmms.reasoner import NMMSReasoner
+from pynmms.syntax import find_top_level, split_top_level
 
 logger = logging.getLogger(__name__)
 
@@ -27,12 +28,16 @@ def _parse_sequent(sequent_str: str) -> tuple[frozenset[str], frozenset[str]]:
             f"Invalid sequent: {sequent_str!r}. Expected 'A, B => C, D'."
         )
 
-    parts = sequent_str.split("=>", 1)
-    ant_str = parts[0].strip()
-    con_str = parts[1].strip()
+    arrows = find_top_level(sequent_str, "=>")
+    if not arrows:
+        raise ValueError(
+            f"Invalid sequent: {sequent_str!r}. Expected 'A, B => C, D'."
+        )
+    ant_str = sequent_str[: arrows[0]]
+    con_str = sequent_str[arrows[0] + 2 :]
 
-    antecedent = frozenset(s.strip() for s in ant_str.split(",") if s.strip())
-    consequent = frozenset(s.strip() for s in con_str.split(",") if s.strip())
+    antecedent = frozenset(split_top_level(ant_str, ","))
+    consequent = frozenset(split_top_level(con_str, ","))
 
     return antecedent, consequent
 
@@ -52,7 +57,11 @@ def _ask_one(
         emit_error(str(e), json_mode=json_mode, quiet=quiet)
         return EXIT_ERROR
 
-    result = reasoner.derives(antecedent, consequent)
+    try:
+        result = reasoner.derives(antecedent, consequent)
+    except ValueError as e:
+        emit_error(str(e), json_mode=json_mode, quiet=quiet)
+        return EXIT_ERROR
 
     if json_mode:
         resp = ask_response(

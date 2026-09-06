@@ -35,10 +35,28 @@ impl       ::=  disj ( '->' disj )*            (* right-associative *)
 disj       ::=  conj ( '|' conj )*             (* left-associative *)
 conj       ::=  unary ( '&' unary )*           (* left-associative *)
 unary      ::=  '~' unary | atom | '(' sentence ')'
-atom       ::=  IDENTIFIER
+atom       ::=  IDENTIFIER ( '(' IDENTIFIER ( ',' IDENTIFIER )* ')' )?
+             |  '<' QUOTED '>'
 ```
 
-Where `IDENTIFIER` is any non-empty string of letters, digits, and underscores beginning with a letter or underscore. Precedence (tightest to loosest): `~`, `&`, `|`, `->`.
+Where `IDENTIFIER` is any non-empty string of letters, digits, and underscores beginning with a letter or underscore, and `QUOTED` is any run of characters other than `<` and `>`. Precedence (tightest to loosest): `~`, `&`, `|`, `->`.
+
+An atom is therefore one of three things:
+
+| Form | Example | Notes |
+|------|---------|-------|
+| identifier | `p`, `Tara_is_human` | the propositional case |
+| applied identifier | `Man(socrates)`, `hasChild(alice,bob)` | the NMMS_Onto forms; also accepted in propositional mode by the parser, though `MaterialBase` rejects them outside `--onto` |
+| quoted atom | `<ex:tweety a ex:Bird>` | content taken verbatim, brackets included in the atom's name; use for IRIs or any token that would otherwise be misread as a connective |
+
+Anything else in atom position is a parse error. In particular, a connective written as a word is rejected with a hint rather than silently accepted as an atom:
+
+```
+$ pynmms ask -b base.json "(p conj q) => r"
+Error: Malformed sentence: 'p conj q' is not a valid atom. ... Did you mean a connective? Use ~ (not), & (and), | (or), -> (implies).
+```
+
+Commas inside applied atoms and quoted atoms do not split a sequent, so `hasChild(alice,bob), <x, y> => Person(bob)` has a two-element antecedent.
 
 **Connective glossary:**
 

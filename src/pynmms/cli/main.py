@@ -83,6 +83,10 @@ def main(argv: list[str] | None = None) -> int:
     )
 
     # --- repl ---
+    from pynmms.cli.rdf import add_rdf_parser
+
+    add_rdf_parser(subparsers)
+
     repl_parser = subparsers.add_parser("repl", help="Interactive REPL")
     repl_parser.add_argument("-b", "--base", default=None, help="Path to JSON base file to load")
     repl_parser.add_argument(
@@ -105,6 +109,9 @@ def main(argv: list[str] | None = None) -> int:
     elif args.command == "repl":
         from pynmms.cli.repl import run_repl
         return run_repl(args)
+    elif args.command == "rdf":
+        from pynmms.cli.rdf import run_rdf
+        return run_rdf(args)
 
     return 0
 

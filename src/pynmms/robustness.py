@@ -32,11 +32,10 @@ entries satisfies Definition 1 of Ch. 3 and the NMMS metatheory applies.
 from __future__ import annotations
 
 from collections.abc import Iterable
-from collections.abc import Set as AbstractSet
 from dataclasses import dataclass
 from typing import Any
 
-from pynmms.sequent import intersects
+from pynmms.sequent import AtomsView, intersects
 from pynmms.syntax import find_top_level, split_top_level
 
 EXACT_KIND = "exact"
@@ -73,7 +72,7 @@ class Robustness:
     def is_exact(self) -> bool:
         return self.kind == EXACT_KIND
 
-    def allows(self, gamma: AbstractSet[str], delta: AbstractSet[str]) -> bool:
+    def allows(self, gamma: AtomsView, delta: AtomsView) -> bool:
         """True if a superset match ``Γ ⊇ Γ₀, Δ ⊇ Δ₀`` is licensed for these sides.
 
         EXACT entries never subset-match (the caller handles exact equality);
@@ -87,7 +86,7 @@ class Robustness:
             return False
         return True
 
-    def defeated_by(self, gamma: AbstractSet[str], delta: AbstractSet[str]) -> frozenset[str]:
+    def defeated_by(self, gamma: AtomsView, delta: AtomsView) -> frozenset[str]:
         """The defeaters actually present (for logging and explanation)."""
         return frozenset(x for x in self.left if x in gamma) | frozenset(
             x for x in self.right if x in delta

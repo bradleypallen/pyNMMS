@@ -26,7 +26,6 @@ import json
 import logging
 import re
 from collections.abc import Sequence
-from collections.abc import Set as AbstractSet
 from pathlib import Path
 from typing import NamedTuple
 
@@ -40,6 +39,7 @@ from pynmms.onto.syntax import (
     parse_onto_sentence,
 )
 from pynmms.robustness import EXACT, Robustness
+from pynmms.sequent import AtomsView
 
 logger = logging.getLogger(__name__)
 
@@ -347,7 +347,7 @@ class OntoMaterialBase(MaterialBase):
 
     # --- Axiom check ---
 
-    def is_axiom(self, gamma: AbstractSet[str], delta: AbstractSet[str]) -> bool:
+    def is_axiom(self, gamma: AtomsView, delta: AtomsView) -> bool:
         """Check if Gamma => Delta is an axiom.
 
         Ax1 (Containment): Gamma & Delta != empty.
@@ -360,7 +360,7 @@ class OntoMaterialBase(MaterialBase):
             return True
         return False
 
-    def _check_onto_schemas(self, gamma: AbstractSet[str], delta: AbstractSet[str]) -> bool:
+    def _check_onto_schemas(self, gamma: AtomsView, delta: AtomsView) -> bool:
         """Index-driven schema match.
 
         Inference schemas need a singleton consequent; incompatibility schemas
@@ -374,7 +374,7 @@ class OntoMaterialBase(MaterialBase):
         return False
 
     def _applies(
-        self, e: SchemaEntry, gamma: AbstractSet[str], individuals: tuple[str, ...], needed: int
+        self, e: SchemaEntry, gamma: AtomsView, individuals: tuple[str, ...], needed: int
     ) -> bool:
         """Policy check once the schema's own antecedent atoms are known to be in Γ.
 
@@ -393,7 +393,7 @@ class OntoMaterialBase(MaterialBase):
                     return False
         return True
 
-    def _check_inference_schemas(self, gamma: AbstractSet[str], d: str) -> bool:
+    def _check_inference_schemas(self, gamma: AtomsView, d: str) -> bool:
         m = _CONCEPT_RE.match(d)
         if m:
             concept, x = m.group(1), m.group(2)
@@ -427,7 +427,7 @@ class OntoMaterialBase(MaterialBase):
 
     @staticmethod
     def _find_role(
-        gamma: AbstractSet[str],
+        gamma: AtomsView,
         role: str,
         *,
         arg1: str | None = None,
@@ -452,7 +452,7 @@ class OntoMaterialBase(MaterialBase):
                 return (a, b)
         return None
 
-    def _check_incompatibility_schemas(self, gamma: AbstractSet[str]) -> bool:
+    def _check_incompatibility_schemas(self, gamma: AtomsView) -> bool:
         if len(gamma) < 2:
             return False
         if len(gamma) == 2:

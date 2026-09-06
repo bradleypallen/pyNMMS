@@ -187,7 +187,18 @@ Deliverable: tests for each policy on each schema type, the
 test, serialization round-trip with the new field, bench results for indexed
 hit and miss.
 
-### Phase 3: `pynmms.rdf` with rdflib (v0.8.0, large)
+### Phase 3: `pynmms.rdf` with rdflib (v0.8.0, large) — IN PROGRESS (slice 1 done 2026-09-06)
+
+Slice 1 delivered: `TripleAtom` (a `str` subclass with the canonical `<s p o>`
+name, which made the hashable-payload generalisation of `Sentence`
+unnecessary), `GraphView`, `GraphBackend` protocol with `MemoryBackend` and
+`SPARQLBackend`, `Rule`/`Regime`/`parse_rule` with `SIMPLE` and `RDFS`, the
+semi-naive `ClosureEngine` (both full closure and per-node extras), `RDFBase`
+and `RegimeBase`, `pynmms rdf ask`, the owlrl oracle test for Theorem 35, and
+`bench/rdf_scale.py`. Remaining for slice 2: OWL 2 RL regime (item 3), blank
+nodes in the consequent via `PatternAtom` (item 6), `pynmms rdf tell` and REPL
+`load` (item 9), converters (item 8), Oxigraph backend and a SPARQL backend
+test against a live endpoint (item 5), rdfs1/rdfD1 literal typing.
 
 Goal: `Γ ⇒ Δ` where Γ is an RDF graph and the base is a regime of
 Definition 9, at a scale set by the graph store rather than by Python. rdflib

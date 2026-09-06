@@ -16,12 +16,11 @@ import json
 import logging
 import re
 from collections.abc import Iterable
-from collections.abc import Set as AbstractSet
 from dataclasses import dataclass, field
 from pathlib import Path
 
 from pynmms.robustness import EXACT, Robustness
-from pynmms.sequent import intersects
+from pynmms.sequent import AtomsView, intersects
 from pynmms.syntax import ATOM, parse_sentence
 
 logger = logging.getLogger(__name__)
@@ -230,7 +229,7 @@ class MaterialBase:
 
     # --- Axiom check ---
 
-    def is_axiom(self, gamma: AbstractSet[str], delta: AbstractSet[str]) -> bool:
+    def is_axiom(self, gamma: AtomsView, delta: AtomsView) -> bool:
         """Check if Gamma => Delta is an axiom of NMMS_B.
 
         Ax1 (Containment): Gamma ∩ Delta ≠ ∅.
@@ -255,7 +254,7 @@ class MaterialBase:
             return self._check_robust(gamma, delta)
         return False
 
-    def _check_robust(self, gamma: AbstractSet[str], delta: AbstractSet[str]) -> bool:
+    def _check_robust(self, gamma: AtomsView, delta: AtomsView) -> bool:
         seen: set[int] = set()
         for key in (*delta, _EMPTY_KEY):
             for entry in self._robust_by_delta.get(key, ()):

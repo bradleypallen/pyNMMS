@@ -26,6 +26,7 @@ from collections.abc import Iterable, Iterator
 from collections.abc import Set as AbstractSet
 from dataclasses import dataclass
 from functools import lru_cache
+from typing import Protocol
 
 from pynmms.syntax import (
     ATOM,
@@ -44,7 +45,33 @@ _WS_RE = re.compile(r"\s+")
 _EMPTY: frozenset[str] = frozenset()
 
 
-def intersects(a: AbstractSet[str], b: AbstractSet[str]) -> bool:
+class AtomsView(Protocol):
+    """Read-only view of a set of atom names: what ``is_axiom`` receives.
+
+    Satisfied by ``frozenset``, :class:`AtomSet`, and
+    :class:`pynmms.rdf.view.GraphView`.
+    """
+
+    def __contains__(self, x: object) -> bool: ...
+
+    def __iter__(self) -> Iterator[str]: ...
+
+    def __len__(self) -> int: ...
+
+
+class AtomSetLike(AtomsView, Protocol):
+    """What a sequent side's atomic part must support (AtomSet, GraphView)."""
+
+    def with_added(self, x: str) -> AtomSetLike: ...
+
+    def with_removed(self, x: str) -> AtomSetLike: ...
+
+    def with_added_all(self, xs: Iterable[str]) -> AtomSetLike: ...
+
+    def intersects(self, other: AtomsView) -> bool: ...
+
+
+def intersects(a: AtomsView, b: AtomsView) -> bool:
     """True if *a* and *b* share an element; iterates the smaller side."""
     if len(a) > len(b):
         a, b = b, a
@@ -134,7 +161,7 @@ class AtomSet(AbstractSet[str]):
 
     # --- Convenience ---
 
-    def intersects(self, other: AbstractSet[str]) -> bool:
+    def intersects(self, other: AtomsView) -> bool:
         return intersects(self, other)
 
     def to_frozenset(self) -> frozenset[str]:
@@ -159,7 +186,7 @@ def connective_count(s: Sentence) -> int:
     return 1 + connective_count(s.left) + connective_count(s.right)
 
 
-def _side_str(atoms: AtomSet, complex_: frozenset[Sentence]) -> str:
+def _side_str(atoms: AtomsView, complex_: frozenset[Sentence]) -> str:
     items = sorted([*atoms, *(str(c) for c in complex_)])
     return ", ".join(items) if items else "∅"
 
@@ -168,9 +195,9 @@ def _side_str(atoms: AtomSet, complex_: frozenset[Sentence]) -> str:
 class Sequent:
     """A proof node Γ ⇒ Δ with each side partitioned into atoms and complex sentences."""
 
-    gamma_atoms: AtomSet
+    gamma_atoms: AtomSetLike
     gamma_complex: frozenset[Sentence]
-    delta_atoms: AtomSet
+    delta_atoms: AtomSetLike
     delta_complex: frozenset[Sentence]
 
     @classmethod

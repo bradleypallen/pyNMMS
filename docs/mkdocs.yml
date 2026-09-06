@@ -33,12 +33,19 @@ nav:
       - CLI Usage: tutorial/cli-usage.md
       - "Chapter 3 Walkthrough": tutorial/chapter3-walkthrough.md
       - Ontology Extension: tutorial/onto-tutorial.md
+      - Reasoning over RDF: tutorial/rdf-tutorial.md
   - API Reference:
       - MaterialBase: api/base.md
       - NMMSReasoner: api/reasoner.md
       - Syntax: api/syntax.md
       - Sequent and AtomSet: api/sequent.md
       - Robustness: api/robustness.md
+      - RDF Atoms: api/rdf-atoms.md
+      - RDF Graph View: api/rdf-view.md
+      - RDF Bases: api/rdf-base.md
+      - RDF Rules and Regimes: api/rdf-rules.md
+      - RDF Closure: api/rdf-closure.md
+      - RDF Backends: api/rdf-backends.md
       - Ontology Material Base: api/onto-base.md
       - Ontology Syntax: api/onto-syntax.md
   - Theory:

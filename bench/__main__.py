@@ -7,13 +7,14 @@ import logging
 import sys
 from pathlib import Path
 
-from . import antecedent_scaling, query_complexity, schema_scaling
+from . import antecedent_scaling, query_complexity, rdf_scale, schema_scaling
 from ._util import Section, env_info, git_sha, write_record
 
 SECTIONS = {
     "antecedent_scaling": antecedent_scaling.run,
     "schema_scaling": schema_scaling.run,
     "query_complexity": query_complexity.run,
+    "rdf_scale": rdf_scale.run,
 }
 
 

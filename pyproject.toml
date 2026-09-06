@@ -36,6 +36,10 @@ docs = [
     "mkdocs-material",
     "mkdocstrings[python]",
 ]
+rdf = [
+    "rdflib>=7.0",
+    "owlrl>=7.0",
+]
 
 [project.scripts]
 pynmms = "pynmms.cli.main:main"

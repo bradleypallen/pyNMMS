@@ -42,9 +42,14 @@ pynmms tell -b onto_base.json --create --onto "atom Man(socrates)"
 pynmms tell -b onto_base.json --onto --batch schemas.txt
 pynmms ask -b onto_base.json --onto "Man(socrates) => Mortal(socrates)"
 pynmms repl --onto
+
+# RDF (requires the rdf extra): the graph is the antecedent
+pynmms rdf ask -g graph.ttl --regime rdfs "<ex:tweety a ex:Thing>"
+pynmms rdf ask -g graph.ttl --regime rdfs --rules rules.txt "<ex:x a ex:Alive> => ~<ex:x a ex:Dead>"
+pynmms rdf ask --store http://localhost:7200/repositories/x --regime rdfs "..."
 ```
 
-Uses Python 3.10+ standard library only (no runtime dependencies). Dev dependencies: pytest, pytest-cov, ruff, mypy.
+The core uses the Python 3.10+ standard library only (no runtime dependencies). The `rdf` extra adds rdflib and owlrl (`pip install -e ".[dev,rdf]"`). Dev dependencies: pytest, pytest-cov, hypothesis, ruff, mypy.
 
 ## Theoretical Foundation
 
@@ -116,6 +121,19 @@ The `pynmms.onto` subpackage extends propositional NMMS with ontology axiom sche
 
    **No separate reasoner** — the base `NMMSReasoner` works transparently with `OntoMaterialBase` because ontology schemas extend `is_axiom()`, not the proof rules.
 
+### RDF Extension (`src/pynmms/rdf/`, optional extra)
+
+Implements Allen, "Implication-Space Semantics for RDF" (TGDK). Requires rdflib; owlrl is used only as a test oracle.
+
+- **`rdf/atoms.py`** — `TripleAtom(s, p, o)`: a `str` subclass whose value is the canonical quoted-atom name `<s p o>` (full IRIs, escaped literals, no `<`/`>` inside) carrying the three rdflib terms. `Resolver` expands `prefix:local` and `a`; unprefixed names must be absolute IRIs. Because it is a `str`, a triple flows through the string-typed core unchanged.
+- **`rdf/view.py`** — `GraphView(backend, added, removed)`: Γ as a reference to the stored graph plus small diffs; implements the `AtomSetLike` protocol of `sequent.py`. Hash/equality use backend identity, generation, and the diffs only. Proof rules never remove atoms, so `removed` stays empty in practice.
+- **`rdf/rules.py`** — `Var`, `Rule` (range-restricted Horn schema, conclusion `None` = ⊥), `Regime(name, rules, axioms)`, `parse_rule("?x a ex:A, ?x a ex:B -> false")`, shipped `SIMPLE` and `RDFS` (rdf1, rdfs2–13, finite axiomatic triples; rdfs1/rdfD1 omitted), `custom(..., extends=)`.
+- **`rdf/closure.py`** — `ClosureEngine.close()` (full closure) and `.extend(extras, store_lookup, store_contains)` (semi-naive: fires only rules with a premise matching a new triple, joins the rest against the store). Cost ∝ extras, not |G|.
+- **`rdf/base.py`** — `RDFBase(MaterialBase)`: intensional lexicon, explicit entries with robustness over `TripleAtom`s, `sequent(antecedent, consequent, include_graph=True)` builds `G, Γ ⇒ Δ` with a `GraphView`. `RegimeBase`: `is_axiom` = Containment or explicit entry or (Γ R-inconsistent or Δ ∩ cl_R(Γ) ≠ ∅), with cl_R(G) from the backend and the extras closed in-process (cached per extras set). `is_inconsistent(extras)` is Proposition 34.
+- **`rdf/backends/`** — `GraphBackend` protocol (`contains`, `triples`, `closure_contains`, `closure_triples`, `is_inconsistent`, `generation`, `resolver`); `MemoryBackend` (rdflib Graph, Skolemizes blank nodes on load, materialises the regime closure into a second graph, `add()` extends it incrementally); `SPARQLBackend` (rdflib SPARQLStore; closure = whatever the endpoint materialises; optional probe; logs round trips and latency).
+- **`cli/rdf.py`** — `pynmms rdf ask` with `-g` (repeatable) or `--store`, `--regime`, `--rules`, `--trace`, `--json`, `-q`, `--batch`, `--max-depth`.
+- Not yet: OWL 2 RL regime, blank nodes in the consequent (`PatternAtom`), `pynmms rdf tell`, REPL integration, converters from `OntoMaterialBase`, Oxigraph backend. See PLAN.md Phase 3.
+
 ### Key design properties preserved by the calculus:
 - **MOF**: Nonmonotonicity — adding premises can defeat inferences (no [Weakening])
 - **SCL**: Supraclassicality — all classically valid sequents derivable
@@ -125,7 +143,7 @@ The `pynmms.onto` subpackage extends propositional NMMS with ontology axiom sche
 
 ## Test Suite
 
-606 tests across 21 test files:
+633 tests across 22 test files:
 
 **Propositional core (381 tests, 14 files):**
 - `test_syntax.py` — parser unit tests, strict atom grammar, quoted atoms, split helpers
@@ -151,6 +169,9 @@ The `pynmms.onto` subpackage extends propositional NMMS with ontology axiom sche
 - `test_onto_cli_json.py` — ontology-specific tests for JSON output, exit codes, batch, annotations
 - `test_onto_legacy_equivalence.py` — propositional backward compat, medical concept/role, ontology schema equivalence
 - `test_onto_logging.py` — ontology schema registration logging, proof traces
+
+**RDF extension (27 tests, 1 file):**
+- `test_rdf.py` — TripleAtom, GraphView, ClosureEngine, RegimeBase, Skolemization, owlrl oracle (Theorem 35), `pynmms rdf ask` CLI; skipped entirely if rdflib is absent
 
 ## Benchmarks
 

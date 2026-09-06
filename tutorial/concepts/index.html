@@ -425,6 +425,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#robustness-policies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Robustness Policies
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -621,6 +632,34 @@
     
   
     Ontology Extension
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rdf-tutorial/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reasoning over RDF
   
 
     
@@ -842,6 +881,202 @@
   
   
     <li class="md-nav__item">
+      <a href="../../api/rdf-atoms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RDF Atoms
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/rdf-view/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RDF Graph View
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/rdf-base/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RDF Bases
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/rdf-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RDF Rules and Regimes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/rdf-closure/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RDF Closure
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/rdf-backends/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RDF Backends
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/rdf-convert/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RDF Converters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../api/onto-base/" class="md-nav__link">
         
   
@@ -1015,6 +1250,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../theory/rdf-semantics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RDF Semantics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../theory/querying-and-entitlement/" class="md-nav__link">
         
   
@@ -1097,6 +1360,17 @@
     <span class="md-ellipsis">
       
         Exact Match (No Weakening)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#robustness-policies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Robustness Policies
       
     </span>
   </a>
@@ -1191,7 +1465,9 @@
 <h3 id="containment-axiom">Containment Axiom<a class="headerlink" href="#containment-axiom" title="Permanent link">&para;</a></h3>
 <p>Every material base automatically satisfies <strong>Containment</strong>: if Gamma and Delta share any element (Gamma ∩ Delta ≠ ∅), then Gamma |~_B Delta. This is the analogue of the identity axiom in classical logic.</p>
 <h3 id="exact-match-no-weakening">Exact Match (No Weakening)<a class="headerlink" href="#exact-match-no-weakening" title="Permanent link">&para;</a></h3>
-<p>Base consequences require <strong>exact syntactic match</strong>. If the base contains <code>{A} |~ {B}</code>, then <code>{A, C} |~ {B}</code> is <strong>not</strong> an axiom. This is what makes the system nonmonotonic — extra premises can defeat inferences.</p>
+<p>By default a base consequence <code>Γ₀ |~ Δ₀</code> licenses only the sequent <code>Γ₀ ⇒ Δ₀</code> itself: there is no Weakening, so <code>{A, C} ⇒ B</code> is not an axiom just because <code>{A} |~ B</code> is. This is what makes the base nonmonotonic.</p>
+<h3 id="robustness-policies">Robustness Policies<a class="headerlink" href="#robustness-policies" title="Permanent link">&para;</a></h3>
+<p>Exact match is the narrowest point on a <strong>range of subjunctive robustness</strong> (Hlobil &amp; Brandom 2025, Ch. 5): the additions to premises and conclusions under which an implication survives. Every entry and ontology schema carries a policy: <code>exact</code> (the default), <code>monotone</code> (survives any addition; the reading of an RDF entailment regime), or <code>guarded</code> by named defeaters (<code>Bird |~ Flies unless Penguin</code>: survives any addition except a defeater). Guarded entries distinguish <em>relevant</em> defeat from the arbitrary defeat of exact matching. Containment holds whatever the policy, so the NMMS metatheory is unchanged.</p>
 <h2 id="sequents">Sequents<a class="headerlink" href="#sequents" title="Permanent link">&para;</a></h2>
 <p>A <strong>sequent</strong> Gamma =&gt; Delta represents a reason relation: the sentences in Gamma (the antecedent) provide reason for at least one of the sentences in Delta (the succedent).</p>
 <ul>

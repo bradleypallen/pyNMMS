@@ -571,6 +571,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="tutorial/rdf-tutorial/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reasoning over RDF
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -779,6 +807,202 @@
   
   
     <li class="md-nav__item">
+      <a href="api/rdf-atoms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RDF Atoms
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api/rdf-view/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RDF Graph View
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api/rdf-base/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RDF Bases
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api/rdf-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RDF Rules and Regimes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api/rdf-closure/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RDF Closure
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api/rdf-backends/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RDF Backends
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api/rdf-convert/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RDF Converters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="api/onto-base/" class="md-nav__link">
         
   
@@ -952,6 +1176,34 @@
   
   
     <li class="md-nav__item">
+      <a href="theory/rdf-semantics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RDF Semantics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="theory/querying-and-entitlement/" class="md-nav__link">
         
   
@@ -1068,7 +1320,10 @@
 <li><strong>Supraclassicality</strong>: all classically valid sequents remain derivable</li>
 <li>A <strong>Tell/Ask CLI</strong> and <strong>interactive REPL</strong> for exploring reason relations</li>
 <li>Full <strong>proof traces</strong> for understanding derivations</li>
-<li><strong>Ontology extension</strong> with schema-level macros for material inferential commitments and incompatibilities (subClassOf, range, domain, subPropertyOf, disjointWith, disjointProperties)</li>
+<li><strong>Ontology extension</strong> with schema-level macros for material inferential commitments and incompatibilities (subClassOf, range, domain, subPropertyOf, disjointWith, disjointProperties, jointCommitment)</li>
+<li><strong>Robustness policies</strong> on every base entry and schema: <code>exact</code>, <code>monotone</code>, or <code>guarded</code> by named defeaters, so that relevant defeat (<code>Penguin</code> defeats <code>Bird |~ Flies</code>) is distinguished from arbitrary defeat</li>
+<li><strong>Reasoning over RDF</strong> (<code>pip install "pyNMMS[rdf]"</code>): triples as atoms, entailment regimes (simple, RDFS, OWL 2 RL, custom rules) as bases specified by closure, the graph kept in a backend so query cost is independent of graph size, and negation over RDF via incoherence, following Allen, <em>Implication-Space Semantics for RDF</em></li>
+<li><strong>Query cost independent of antecedent size</strong>: proof nodes are persistent diffs over a shared base, sentences are parsed once, and the search is complete without a depth cap</li>
 </ul>
 <h2 id="quick-example">Quick Example<a class="headerlink" href="#quick-example" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pynmms</span><span class="w"> </span><span class="kn">import</span> <span class="n">MaterialBase</span><span class="p">,</span> <span class="n">NMMSReasoner</span>

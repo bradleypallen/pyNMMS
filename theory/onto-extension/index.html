@@ -16,7 +16,7 @@
         <link rel="prev" href="../nmms-calculus/">
       
       
-        <link rel="next" href="../querying-and-entitlement/">
+        <link rel="next" href="../rdf-semantics/">
       
       
         
@@ -493,6 +493,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorial/rdf-tutorial/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reasoning over RDF
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -681,6 +709,202 @@
     
   
     Robustness
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/rdf-atoms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RDF Atoms
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/rdf-view/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RDF Graph View
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/rdf-base/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RDF Bases
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/rdf-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RDF Rules and Regimes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/rdf-closure/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RDF Closure
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/rdf-backends/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RDF Backends
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/rdf-convert/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RDF Converters
   
 
     
@@ -1188,6 +1412,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#84-from-nmms_onto-to-nmms-over-rdf" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.4 From NMMS_Onto to NMMS over RDF
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1247,6 +1482,34 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rdf-semantics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RDF Semantics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -1596,6 +1859,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#84-from-nmms_onto-to-nmms-over-rdf" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.4 From NMMS_Onto to NMMS over RDF
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1863,14 +2137,17 @@
 <p>These readings are legitimate. They correspond to what Hlobil &amp; Brandom (2025, Ch. 5) identify as a three-way correspondence between sequent calculi, implicational role inclusions, and truth-maker theory. A <code>subClassOf(Man, Mortal)</code> schema can be read inferentially (the premisory role of <code>Man(x)</code> includes the premisory role of <code>Mortal(x)</code>), representationally (every truth-maker for <code>Man(x)</code> is a truth-maker for <code>Mortal(x)</code>), or model-theoretically (the extension of Man is a subset of the extension of Mortal). These are not competing interpretations but three metavocabulary renderings of the same reason-relational structure.</p>
 <h3 id="82-where-behavior-diverges">8.2 Where Behavior Diverges<a class="headerlink" href="#82-where-behavior-diverges" title="Permanent link">&para;</a></h3>
 <p>The representationalist reading is correct as far as it goes, but it sets up expectations that NMMS_Onto does not satisfy. Three divergences matter most:</p>
-<p><strong>Non-transitivity.</strong> In OWL, <code>SubClassOf(A, B)</code> and <code>SubClassOf(B, C)</code> entail <code>SubClassOf(A, C)</code>. In NMMS_Onto, <code>subClassOf(A, B)</code> and <code>subClassOf(B, C)</code> do not jointly entail <code>{A(x)} |~ {C(x)}</code>. The calculus lacks [Mixed-Cut], so individually valid inferences do not compose. If the chain should hold, it must be registered explicitly as <code>subClassOf(A, C)</code>. This is by design: some subclass chains should compose (Man -&gt; Mortal -&gt; Physical) and others should not, depending on the domain. The representationalist reading, which treats subClassOf as a subset relation, makes non-transitivity look like a bug. The inferentialist reading, which treats each schema as an independent defeasible commitment, makes it intelligible: undertaking a commitment to A-entails-B and a commitment to B-entails-C does not automatically constitute a commitment to A-entails-C.</p>
-<p><strong>Defeasibility.</strong> In OWL, if <code>Man SubClassOf Mortal</code>, then adding any further assertions about Socrates cannot defeat the inference from <code>Man(socrates)</code> to <code>Mortal(socrates)</code>. In NMMS_Onto, <code>{Man(socrates), Immortal(socrates)} |~ {Mortal(socrates)}</code> is not derivable -- the additional premise defeats the inference because the antecedent no longer exactly matches the schema pattern. The representationalist reading, which treats class membership as extensional and monotonic, provides no resources for understanding why adding information could defeat an inference. The inferentialist reading makes it immediate: the commitment encoded by the schema is undertaken for the specific case where <code>Man(x)</code> is the sole ground for inferring <code>Mortal(x)</code>. Additional grounds change the situation.</p>
+<p><strong>Non-transitivity.</strong> In OWL, <code>SubClassOf(A, B)</code> and <code>SubClassOf(B, C)</code> entail <code>SubClassOf(A, C)</code>. In NMMS_Onto, <code>subClassOf(A, B)</code> and <code>subClassOf(B, C)</code> do not jointly entail <code>{A(x)} |~ {C(x)}</code>. The calculus lacks [Mixed-Cut], so individually valid inferences do not compose. If the chain should hold, it must be registered explicitly as <code>subClassOf(A, C)</code>. (The RDF layer's <code>RegimeBase</code> is different: an entailment regime is defined by closure, so chains compose there, as Section 8.4 explains.) This is by design: some subclass chains should compose (Man -&gt; Mortal -&gt; Physical) and others should not, depending on the domain. The representationalist reading, which treats subClassOf as a subset relation, makes non-transitivity look like a bug. The inferentialist reading, which treats each schema as an independent defeasible commitment, makes it intelligible: undertaking a commitment to A-entails-B and a commitment to B-entails-C does not automatically constitute a commitment to A-entails-C.</p>
+<p><strong>Defeasibility.</strong> In OWL, if <code>Man SubClassOf Mortal</code>, then adding any further assertions about Socrates cannot defeat the inference from <code>Man(socrates)</code> to <code>Mortal(socrates)</code>. In NMMS_Onto with the default <code>exact</code> policy, <code>{Man(socrates), Immortal(socrates)} |~ {Mortal(socrates)}</code> is not derivable -- the additional premise defeats the inference because the antecedent no longer exactly matches the schema pattern. Since v0.7 a schema can instead be <code>guarded</code> by named defeater concepts (<code>subClassOf(Bird, Flies) unless Penguin</code>), so that irrelevant additions such as <code>Tall(tweety)</code> leave the inference intact and only <code>Penguin(tweety)</code> defeats it, or <code>monotone</code>, which is the OWL reading. The representationalist reading, which treats class membership as extensional and monotonic, provides no resources for understanding why adding information could defeat an inference. The inferentialist reading makes it immediate: a schema records a commitment undertaken under a range of subjunctive robustness (Hlobil &amp; Brandom 2025, Ch. 5), and the policy says how wide that range is. <code>exact</code> is the narrowest, <code>monotone</code> the widest, and <code>guarded</code> names the specific additions that fall outside it.</p>
 <p><strong>No exhaustiveness or partition structure.</strong> In OWL 2, <code>DisjointUnion(Color, Red, Green, Blue)</code> entails both that the three color classes are pairwise disjoint and that every Color is one of the three -- enabling process-of-elimination reasoning. NMMS_Onto can express the pairwise disjointness (via <code>disjointWith</code>) and the species-to-genus direction (via <code>subClassOf</code>), but not the genus-to-disjunction-of-species direction. This means NMMS_Onto does not support eliminative reasoning of the form "it's a Color and not Red and not Green, therefore Blue." The representationalist reading makes this look like a missing feature. The inferentialist reading reveals it as a principled omission: the exhaustiveness claim ("these species are all there are") is a strong commitment about the closure of a conceptual space, and in open discursive practice -- where new species can always be introduced -- it is a commitment that may not be warranted.</p>
 <h3 id="83-the-correspondence-as-bridge">8.3 The Correspondence as Bridge<a class="headerlink" href="#83-the-correspondence-as-bridge" title="Permanent link">&para;</a></h3>
 <p>The Hlobil-Brandom correspondence (Ch. 5 of <em>Reasons for Logic, Logic for Reasons</em>) establishes that implication-space semantics, sequent calculi, and truth-maker theory are three characterizations of the same underlying structure of reason relations. This correspondence extends beyond logical vocabulary to nonlogical conceptual connections, including the species-genus, property-cluster, and equivalence relations analyzed by Tanter (2021).</p>
 <p>The practical significance for knowledge engineers is this: the representationalist reading of NMMS_Onto schemas is one legitimate side of the correspondence. A knowledge engineer can use familiar ontological intuitions -- class hierarchies, domain/range constraints, disjointness -- to build and understand NMMS_Onto bases. The schemas will behave in broadly familiar ways for the assertive direction of knowledge engineering: given what is known, what follows?</p>
 <p>But the representationalist reading is incomplete. When behavior diverges from OWL -- when a subclass chain fails to compose, when an inference is defeated by new information, when elimination reasoning is unavailable -- the inferentialist reading is what makes the divergences intelligible. The inferentialist vocabulary ("defeasible commitment," "exact-match entitlement," "open reason relation") is not an alternative to the representationalist vocabulary but a complement that explains the design decisions.</p>
 <p>The recommended approach for Semantic Web practitioners is: use the representationalist reading for modeling (it correctly guides schema selection and ontology structure), and the inferentialist reading for explanation (it correctly accounts for the system's behavior under non-standard conditions). The two readings are not in tension -- they are two sides of the same correspondence.</p>
+<h3 id="84-from-nmms_onto-to-nmms-over-rdf">8.4 From NMMS_Onto to NMMS over RDF<a class="headerlink" href="#84-from-nmms_onto-to-nmms-over-rdf" title="Permanent link">&para;</a></h3>
+<p>Allen (2026) gives RDF itself an implication-space semantics, and <code>pynmms.rdf</code> implements it (see <a href="../rdf-semantics/">RDF Semantics</a>). In that setting the atomic bearers are ground triples, and NMMS_Onto's vocabulary is the <code>rdf:type</code> fragment of the encoding: <code>C(x)</code> is <code>(x rdf:type C)</code> and <code>R(x, y)</code> is <code>(x R y)</code>. Schema commitments become schema triples (<code>rdfs:subClassOf</code>, <code>rdfs:range</code>, <code>rdfs:domain</code>, <code>rdfs:subPropertyOf</code>, <code>owl:disjointWith</code>, <code>owl:propertyDisjointWith</code>), which an entailment regime reads through its rules; <code>jointCommitment</code> becomes a rule. <code>onto_to_graph</code>, <code>onto_to_rules</code>, and <code>consequences_to_triples</code> perform the translation.</p>
+<p>The two layers differ in exactly the way Section 8.2 describes. A regime base <code>B_R</code> is defined by closure, so it is monotone, transitive, and explosive: subclass chains compose, additions never defeat, and an inconsistent graph entails everything. Allen (2026, Sec. 3.3) notes that a base which took the rule instances without closing -- which is what an <code>exact</code> NMMS_Onto schema generates -- "corresponds to no regime" and fails monotonicity "by omission rather than by defeat". NMMS_Onto is therefore not a fragment of RDFS but a different kind of base: the place for material inferential commitments with their defeat conditions, which the regimes leave out. In <code>pynmms.rdf</code> both kinds sit in one <code>RegimeBase</code>: the regime part is store-resident and monotone, the material part is explicit entries with <code>guarded</code> robustness, and Containment holds for the union, so the metatheory of Section 4 applies to the whole.</p>
 <h2 id="9-assumptions-and-open-questions">9. Assumptions and Open Questions<a class="headerlink" href="#9-assumptions-and-open-questions" title="Permanent link">&para;</a></h2>
 <h3 id="assumptions">Assumptions<a class="headerlink" href="#assumptions" title="Permanent link">&para;</a></h3>
 <ol>
@@ -1887,7 +2164,7 @@
 <h3 id="open-questions">Open Questions<a class="headerlink" href="#open-questions" title="Permanent link">&para;</a></h3>
 <ol>
 <li>
-<p><strong>Schema interaction principles</strong>: Should there be systematic rules for how schemas interact? For instance, should <code>subClassOf(C, D)</code> and <code>domain(R, C)</code> jointly entail anything about <code>R</code> and <code>D</code>? In classical ontology languages, they do (via monotonic closure). In NMMS_Onto, they do not, by design. But are there principled middle grounds -- forms of controlled interaction that preserve the nonmonotonic character while recovering some useful entailments?</p>
+<p><strong>Schema interaction principles</strong>: Should there be systematic rules for how schemas interact? For instance, should <code>subClassOf(C, D)</code> and <code>domain(R, C)</code> jointly entail anything about <code>R</code> and <code>D</code>? In classical ontology languages they do, via monotonic closure, and for the regime bases of <code>pynmms.rdf</code> the question is answered the same way: an entailment regime is defined by closure, so its rules interact freely (rdfs2 and rdfs9 chain, scm-dom1 composes domain with subclass, and so on), and Theorem 35 of Allen (2026) guarantees that the closure is exactly the regime's own entailment. For NMMS_Onto and for <code>guarded</code> entries the question stays open: closure is the wrong operation for defeasible commitments, because composing two guarded inferences would need a guard for the composite, and nothing in the two guards determines it. Whether there are principled forms of controlled interaction that preserve the nonmonotonic character while recovering some useful entailments is still to be worked out.</p>
 </li>
 <li>
 <p><strong>Retraction semantics</strong>: The <code>CommitmentStore</code> supports retracting schemas by source label. What are the formal properties of retraction? Does retracting a schema correspond to a well-defined operation on the consequence relation? How does retraction interact with cached proof results?</p>
@@ -1899,7 +2176,7 @@
 <p><strong>Adequacy as a question about discursive practice, not model correspondence</strong>: In an inferentialist framework, <strong>the proof theory is the semantics</strong> -- meaning is constituted by inferential role, not by correspondence to model-theoretic structures. The question of completeness relative to a model-theoretic semantics presupposes that meaning is fixed by models, which is precisely what inferentialism rejects. The more appropriate question for NMMS_Onto is whether the seven schema types adequately capture the material inferential commitments that competent practitioners would recognize as constitutive of ontological vocabulary -- whether <code>subClassOf</code>, <code>range</code>, <code>domain</code>, <code>subPropertyOf</code>, <code>disjointWith</code>, <code>disjointProperties</code>, and <code>jointCommitment</code> suffice for the classificatory discursive practices one encounters in knowledge engineering. This is an empirical question about discursive practice, not a mathematical question about model correspondence.</p>
 </li>
 <li>
-<p><strong>Scaling properties</strong>: The lazy evaluation strategy avoids combinatorial explosion in schema grounding, but the proof search itself has exponential worst-case complexity (due to the multi-premise Ketonen rules for [L-&gt;], [L|], [R&amp;]). How does the addition of ontology schemas affect proof search performance in practice? Are there heuristics for ordering schema checks to improve average-case behavior?</p>
+<p><strong>Scaling properties</strong>: The lazy evaluation strategy avoids combinatorial explosion in schema grounding, but the proof search itself has exponential worst-case complexity (due to the multi-premise Ketonen rules for [L-&gt;], [L|], [R&amp;]). Measurements (the <code>bench/</code> suite, records under <code>bench/results/</code>) now separate the two costs. Since v0.7 the cost of a query is independent of the size of the antecedent and of the number of registered schemas: an atomic query against 8,001 atoms and a guarded schema takes about 7 µs, and a schema hit or miss against 100,000 schemas about 6 µs, where v0.6 took 507 ms and 4.4 ms respectively. Proof cost grows as roughly 2.17^k in the number of connectives k in the query, a tautology with k = 8 taking about 9 ms, and no base-side indexing changes that curve. For the RDF layer, per-query cost is flat from 20,000 to 200,000 triples while the one-time in-process closure grows linearly (39 s at 200,000 triples), which is why closure belongs in the store at scale. The remaining O(|Γ|) paths are the non-exact <code>range</code>, <code>domain</code>, and incompatibility schemas, which must find a partner atom somewhere in Γ; heuristics for those, and for ordering rule application in the closure step, are open.</p>
 </li>
 </ol>
 <h2 id="10-references">10. References<a class="headerlink" href="#10-references" title="Permanent link">&para;</a></h2>
@@ -1915,6 +2192,12 @@
 </li>
 <li>
 <p>Giordano, L., Gliozzi, V., Olivetti, N., &amp; Pozzato, G. L. (2013). A Non-Monotonic Description Logic for Reasoning About Typicality. <em>Artificial Intelligence</em>, 195, 165--202.</p>
+</li>
+<li>
+<p>Allen, B. P. (2026). Implication-Space Semantics for RDF. <em>Transactions on Graph Data and Knowledge</em>.</p>
+</li>
+<li>
+<p>Hlobil, U. (2026). First-order implication-space semantics. <em>Journal of Philosophical Logic</em>, 55(3), 529--554.</p>
 </li>
 <li>
 <p>Tanter, K. (2023). Subatomic Inferences: An Inferentialist Semantics for Atomics, Predicates, and Names. <em>The Review of Symbolic Logic</em>, 16(3), 672--699.</p>

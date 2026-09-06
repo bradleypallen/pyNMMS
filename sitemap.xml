@@ -21,6 +21,34 @@
          <lastmod>2026-09-06</lastmod>
     </url>
     <url>
+         <loc>https://bradleypallen.github.io/pyNMMS/api/rdf-atoms/</loc>
+         <lastmod>2026-09-06</lastmod>
+    </url>
+    <url>
+         <loc>https://bradleypallen.github.io/pyNMMS/api/rdf-backends/</loc>
+         <lastmod>2026-09-06</lastmod>
+    </url>
+    <url>
+         <loc>https://bradleypallen.github.io/pyNMMS/api/rdf-base/</loc>
+         <lastmod>2026-09-06</lastmod>
+    </url>
+    <url>
+         <loc>https://bradleypallen.github.io/pyNMMS/api/rdf-closure/</loc>
+         <lastmod>2026-09-06</lastmod>
+    </url>
+    <url>
+         <loc>https://bradleypallen.github.io/pyNMMS/api/rdf-convert/</loc>
+         <lastmod>2026-09-06</lastmod>
+    </url>
+    <url>
+         <loc>https://bradleypallen.github.io/pyNMMS/api/rdf-rules/</loc>
+         <lastmod>2026-09-06</lastmod>
+    </url>
+    <url>
+         <loc>https://bradleypallen.github.io/pyNMMS/api/rdf-view/</loc>
+         <lastmod>2026-09-06</lastmod>
+    </url>
+    <url>
          <loc>https://bradleypallen.github.io/pyNMMS/api/reasoner/</loc>
          <lastmod>2026-09-06</lastmod>
     </url>
@@ -49,6 +77,10 @@
          <lastmod>2026-09-06</lastmod>
     </url>
     <url>
+         <loc>https://bradleypallen.github.io/pyNMMS/theory/rdf-semantics/</loc>
+         <lastmod>2026-09-06</lastmod>
+    </url>
+    <url>
          <loc>https://bradleypallen.github.io/pyNMMS/tutorial/chapter3-walkthrough/</loc>
          <lastmod>2026-09-06</lastmod>
     </url>
@@ -70,6 +102,10 @@
     </url>
     <url>
          <loc>https://bradleypallen.github.io/pyNMMS/tutorial/proof-search/</loc>
+         <lastmod>2026-09-06</lastmod>
+    </url>
+    <url>
+         <loc>https://bradleypallen.github.io/pyNMMS/tutorial/rdf-tutorial/</loc>
          <lastmod>2026-09-06</lastmod>
     </url>
 </urlset>

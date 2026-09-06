@@ -13,7 +13,7 @@
         <link rel="canonical" href="https://bradleypallen.github.io/pyNMMS/api/onto-base/">
       
       
-        <link rel="prev" href="../robustness/">
+        <link rel="prev" href="../rdf-convert/">
       
       
         <link rel="next" href="../onto-syntax/">
@@ -493,6 +493,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorial/rdf-tutorial/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reasoning over RDF
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -681,6 +709,202 @@
     
   
     Robustness
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rdf-atoms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RDF Atoms
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rdf-view/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RDF Graph View
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rdf-base/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RDF Bases
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rdf-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RDF Rules and Regimes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rdf-closure/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RDF Closure
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rdf-backends/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RDF Backends
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rdf-convert/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RDF Converters
   
 
     
@@ -1293,6 +1517,34 @@
     
   
     Ontology Extension
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../theory/rdf-semantics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RDF Semantics
   
 
     
@@ -2680,7 +2932,7 @@ to find a role or partner atom somewhere in Γ; a store-backed antecedent
 <a id="__codelineno-0-347" name="__codelineno-0-347"></a>
 <a id="__codelineno-0-348" name="__codelineno-0-348"></a>    <span class="c1"># --- Axiom check ---</span>
 <a id="__codelineno-0-349" name="__codelineno-0-349"></a>
-<a id="__codelineno-0-350" name="__codelineno-0-350"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">is_axiom</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gamma</span><span class="p">:</span> <span class="n">AbstractSet</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">delta</span><span class="p">:</span> <span class="n">AbstractSet</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<a id="__codelineno-0-350" name="__codelineno-0-350"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">is_axiom</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gamma</span><span class="p">:</span> <span class="n">AtomsView</span><span class="p">,</span> <span class="n">delta</span><span class="p">:</span> <span class="n">AtomsView</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <a id="__codelineno-0-351" name="__codelineno-0-351"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if Gamma =&gt; Delta is an axiom.</span>
 <a id="__codelineno-0-352" name="__codelineno-0-352"></a>
 <a id="__codelineno-0-353" name="__codelineno-0-353"></a><span class="sd">        Ax1 (Containment): Gamma &amp; Delta != empty.</span>
@@ -2693,7 +2945,7 @@ to find a role or partner atom somewhere in Γ; a store-backed antecedent
 <a id="__codelineno-0-360" name="__codelineno-0-360"></a>            <span class="k">return</span> <span class="kc">True</span>
 <a id="__codelineno-0-361" name="__codelineno-0-361"></a>        <span class="k">return</span> <span class="kc">False</span>
 <a id="__codelineno-0-362" name="__codelineno-0-362"></a>
-<a id="__codelineno-0-363" name="__codelineno-0-363"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_check_onto_schemas</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gamma</span><span class="p">:</span> <span class="n">AbstractSet</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">delta</span><span class="p">:</span> <span class="n">AbstractSet</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<a id="__codelineno-0-363" name="__codelineno-0-363"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_check_onto_schemas</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gamma</span><span class="p">:</span> <span class="n">AtomsView</span><span class="p">,</span> <span class="n">delta</span><span class="p">:</span> <span class="n">AtomsView</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <a id="__codelineno-0-364" name="__codelineno-0-364"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Index-driven schema match.</span>
 <a id="__codelineno-0-365" name="__codelineno-0-365"></a>
 <a id="__codelineno-0-366" name="__codelineno-0-366"></a><span class="sd">        Inference schemas need a singleton consequent; incompatibility schemas</span>
@@ -2707,7 +2959,7 @@ to find a role or partner atom somewhere in Γ; a store-backed antecedent
 <a id="__codelineno-0-374" name="__codelineno-0-374"></a>        <span class="k">return</span> <span class="kc">False</span>
 <a id="__codelineno-0-375" name="__codelineno-0-375"></a>
 <a id="__codelineno-0-376" name="__codelineno-0-376"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_applies</span><span class="p">(</span>
-<a id="__codelineno-0-377" name="__codelineno-0-377"></a>        <span class="bp">self</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span> <span class="n">SchemaEntry</span><span class="p">,</span> <span class="n">gamma</span><span class="p">:</span> <span class="n">AbstractSet</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">individuals</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">needed</span><span class="p">:</span> <span class="nb">int</span>
+<a id="__codelineno-0-377" name="__codelineno-0-377"></a>        <span class="bp">self</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span> <span class="n">SchemaEntry</span><span class="p">,</span> <span class="n">gamma</span><span class="p">:</span> <span class="n">AtomsView</span><span class="p">,</span> <span class="n">individuals</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">needed</span><span class="p">:</span> <span class="nb">int</span>
 <a id="__codelineno-0-378" name="__codelineno-0-378"></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <a id="__codelineno-0-379" name="__codelineno-0-379"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Policy check once the schema&#39;s own antecedent atoms are known to be in Γ.</span>
 <a id="__codelineno-0-380" name="__codelineno-0-380"></a>
@@ -2726,7 +2978,7 @@ to find a role or partner atom somewhere in Γ; a store-backed antecedent
 <a id="__codelineno-0-393" name="__codelineno-0-393"></a>                    <span class="k">return</span> <span class="kc">False</span>
 <a id="__codelineno-0-394" name="__codelineno-0-394"></a>        <span class="k">return</span> <span class="kc">True</span>
 <a id="__codelineno-0-395" name="__codelineno-0-395"></a>
-<a id="__codelineno-0-396" name="__codelineno-0-396"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_check_inference_schemas</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gamma</span><span class="p">:</span> <span class="n">AbstractSet</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">d</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<a id="__codelineno-0-396" name="__codelineno-0-396"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_check_inference_schemas</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gamma</span><span class="p">:</span> <span class="n">AtomsView</span><span class="p">,</span> <span class="n">d</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <a id="__codelineno-0-397" name="__codelineno-0-397"></a>        <span class="n">m</span> <span class="o">=</span> <span class="n">_CONCEPT_RE</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
 <a id="__codelineno-0-398" name="__codelineno-0-398"></a>        <span class="k">if</span> <span class="n">m</span><span class="p">:</span>
 <a id="__codelineno-0-399" name="__codelineno-0-399"></a>            <span class="n">concept</span><span class="p">,</span> <span class="n">x</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
@@ -2760,7 +3012,7 @@ to find a role or partner atom somewhere in Γ; a store-backed antecedent
 <a id="__codelineno-0-427" name="__codelineno-0-427"></a>
 <a id="__codelineno-0-428" name="__codelineno-0-428"></a>    <span class="nd">@staticmethod</span>
 <a id="__codelineno-0-429" name="__codelineno-0-429"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_find_role</span><span class="p">(</span>
-<a id="__codelineno-0-430" name="__codelineno-0-430"></a>        <span class="n">gamma</span><span class="p">:</span> <span class="n">AbstractSet</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+<a id="__codelineno-0-430" name="__codelineno-0-430"></a>        <span class="n">gamma</span><span class="p">:</span> <span class="n">AtomsView</span><span class="p">,</span>
 <a id="__codelineno-0-431" name="__codelineno-0-431"></a>        <span class="n">role</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
 <a id="__codelineno-0-432" name="__codelineno-0-432"></a>        <span class="o">*</span><span class="p">,</span>
 <a id="__codelineno-0-433" name="__codelineno-0-433"></a>        <span class="n">arg1</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -2785,7 +3037,7 @@ to find a role or partner atom somewhere in Γ; a store-backed antecedent
 <a id="__codelineno-0-452" name="__codelineno-0-452"></a>                <span class="k">return</span> <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
 <a id="__codelineno-0-453" name="__codelineno-0-453"></a>        <span class="k">return</span> <span class="kc">None</span>
 <a id="__codelineno-0-454" name="__codelineno-0-454"></a>
-<a id="__codelineno-0-455" name="__codelineno-0-455"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_check_incompatibility_schemas</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gamma</span><span class="p">:</span> <span class="n">AbstractSet</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<a id="__codelineno-0-455" name="__codelineno-0-455"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_check_incompatibility_schemas</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gamma</span><span class="p">:</span> <span class="n">AtomsView</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <a id="__codelineno-0-456" name="__codelineno-0-456"></a>        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">gamma</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
 <a id="__codelineno-0-457" name="__codelineno-0-457"></a>            <span class="k">return</span> <span class="kc">False</span>
 <a id="__codelineno-0-458" name="__codelineno-0-458"></a>        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">gamma</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
@@ -3214,7 +3466,7 @@ Ax3 (Ontology schema consequence): matches a lazy ontology schema.</p>
 <span class="normal"><a href="#__codelineno-0-358">358</a></span>
 <span class="normal"><a href="#__codelineno-0-359">359</a></span>
 <span class="normal"><a href="#__codelineno-0-360">360</a></span>
-<span class="normal"><a href="#__codelineno-0-361">361</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-350" name="__codelineno-0-350"></a><span class="k">def</span><span class="w"> </span><span class="nf">is_axiom</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gamma</span><span class="p">:</span> <span class="n">AbstractSet</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">delta</span><span class="p">:</span> <span class="n">AbstractSet</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="normal"><a href="#__codelineno-0-361">361</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-350" name="__codelineno-0-350"></a><span class="k">def</span><span class="w"> </span><span class="nf">is_axiom</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gamma</span><span class="p">:</span> <span class="n">AtomsView</span><span class="p">,</span> <span class="n">delta</span><span class="p">:</span> <span class="n">AtomsView</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <a id="__codelineno-0-351" name="__codelineno-0-351"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Check if Gamma =&gt; Delta is an axiom.</span>
 <a id="__codelineno-0-352" name="__codelineno-0-352"></a>
 <a id="__codelineno-0-353" name="__codelineno-0-353"></a><span class="sd">    Ax1 (Containment): Gamma &amp; Delta != empty.</span>

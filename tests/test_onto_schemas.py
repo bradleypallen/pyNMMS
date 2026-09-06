@@ -740,3 +740,144 @@ class TestJointCommitmentNontransitivity:
             frozenset({"ChestPain(patient)", "ElevatedTroponin(patient)"}),
             frozenset({"CardiacEvent(patient)"}),
         )
+
+
+# -------------------------------------------------------------------
+# Robustness policies on schemas (Phase 2)
+# -------------------------------------------------------------------
+
+from pynmms.robustness import MONOTONE, guarded  # noqa: E402
+
+F = frozenset
+
+
+class TestSchemaRobustness:
+    def test_bird_tall_penguin(self):
+        """The canonical relevant-defeat example from the change notes."""
+        base = OntoMaterialBase()
+        base.register_subclass("Bird", "Flies", robustness=guarded(["Penguin"]))
+        assert base.is_axiom(F({"Bird(a)"}), F({"Flies(a)"}))
+        assert base.is_axiom(F({"Bird(a)", "Tall(a)"}), F({"Flies(a)"}))
+        assert not base.is_axiom(F({"Bird(a)", "Penguin(a)"}), F({"Flies(a)"}))
+        # defeater on a different individual does not defeat
+        assert base.is_axiom(F({"Bird(a)", "Penguin(b)"}), F({"Flies(a)"}))
+
+    def test_exact_schema_still_exact(self):
+        base = OntoMaterialBase()
+        base.register_subclass("Bird", "Flies")
+        assert not base.is_axiom(F({"Bird(a)", "Tall(a)"}), F({"Flies(a)"}))
+
+    def test_monotone_subclass_with_large_antecedent(self):
+        base = OntoMaterialBase()
+        base.register_subclass("Man", "Mortal", robustness=MONOTONE)
+        big = F(f"P{i}(x{i})" for i in range(50_000)) | {"Man(a)"}
+        assert NMMSReasoner(base).derives(big, F({"Mortal(a)"})).derivable
+
+    def test_range_guarded(self):
+        base = OntoMaterialBase()
+        base.register_range("hasChild", "Person", robustness=guarded(["Robot"]))
+        assert base.is_axiom(F({"hasChild(a,b)", "Tall(a)"}), F({"Person(b)"}))
+        assert not base.is_axiom(F({"hasChild(a,b)", "Robot(b)"}), F({"Person(b)"}))
+        # defeater applies to the individuals of the matched role atom
+        assert not base.is_axiom(F({"hasChild(a,b)", "Robot(a)"}), F({"Person(b)"}))
+        assert not base.is_axiom(F({"hasChild(a,c)"}), F({"Person(b)"}))
+
+    def test_domain_monotone(self):
+        base = OntoMaterialBase()
+        base.register_domain("hasChild", "Parent", robustness=MONOTONE)
+        assert base.is_axiom(F({"Old(a)", "hasChild(a,b)"}), F({"Parent(a)"}))
+        assert not base.is_axiom(F({"Old(a)", "hasChild(b,a)"}), F({"Parent(a)"}))
+
+    def test_subproperty_guarded(self):
+        base = OntoMaterialBase()
+        base.register_subproperty("hasChild", "hasDescendant", robustness=guarded(["Adopted"]))
+        assert base.is_axiom(F({"hasChild(a,b)", "Tall(a)"}), F({"hasDescendant(a,b)"}))
+        assert not base.is_axiom(F({"hasChild(a,b)", "Adopted(b)"}), F({"hasDescendant(a,b)"}))
+
+    def test_joint_commitment_guarded(self):
+        base = OntoMaterialBase()
+        base.register_joint_commitment(
+            ["ChestPain", "ElevatedTroponin"], "MI", robustness=guarded(["Athlete"])
+        )
+        g = F({"ChestPain(p)", "ElevatedTroponin(p)", "Tall(p)"})
+        assert base.is_axiom(g, F({"MI(p)"}))
+        assert not base.is_axiom(g | {"Athlete(p)"}, F({"MI(p)"}))
+        assert not base.is_axiom(F({"ChestPain(p)", "Tall(p)"}), F({"MI(p)"}))
+
+    def test_disjoint_with_monotone_in_larger_context(self):
+        base = OntoMaterialBase()
+        base.register_disjoint("Alive", "Dead", robustness=MONOTONE)
+        assert base.is_axiom(F({"Alive(a)", "Dead(a)", "Tall(a)", "Q(b)"}), F())
+        assert not base.is_axiom(F({"Alive(a)", "Dead(b)", "Tall(a)"}), F())
+        # exact disjointness is defeated by any extra premise
+        exact = OntoMaterialBase()
+        exact.register_disjoint("Alive", "Dead")
+        assert exact.is_axiom(F({"Alive(a)", "Dead(a)"}), F())
+        assert not exact.is_axiom(F({"Alive(a)", "Dead(a)", "Tall(a)"}), F())
+
+    def test_disjoint_guarded_pair_defeated(self):
+        base = OntoMaterialBase()
+        base.register_disjoint("Alive", "Dead", robustness=guarded(["Zombie"]))
+        assert base.is_axiom(F({"Alive(a)", "Dead(a)"}), F())
+        assert not base.is_axiom(F({"Alive(a)", "Dead(a)", "Zombie(a)"}), F())
+
+    def test_disjoint_properties_monotone(self):
+        base = OntoMaterialBase()
+        base.register_disjoint_properties("employs", "isEmployedBy", robustness=MONOTONE)
+        assert base.is_axiom(F({"employs(a,b)", "isEmployedBy(a,b)", "Big(a)"}), F())
+        assert not base.is_axiom(F({"employs(a,b)", "isEmployedBy(b,a)", "Big(a)"}), F())
+
+    def test_negation_as_incoherence_with_monotone_disjointness(self):
+        """II: Γ |~ ~Dead(a) iff Γ, Dead(a) |~ ∅."""
+        base = OntoMaterialBase()
+        base.register_disjoint("Alive", "Dead", robustness=MONOTONE)
+        r = NMMSReasoner(base)
+        assert r.derives(F({"Alive(a)", "Tall(a)"}), F({"~Dead(a)"})).derivable
+        assert not r.derives(F({"Tall(a)"}), F({"~Dead(a)"})).derivable
+
+    def test_schema_serialization_round_trip(self):
+        base = OntoMaterialBase()
+        base.register_subclass("Bird", "Flies", annotation="birds fly",
+                               robustness=guarded(["Penguin"]))
+        base.register_disjoint("Alive", "Dead", robustness=MONOTONE)
+        base.register_range("hasChild", "Person")
+        d = base.to_dict()
+        assert d["onto_schemas"][0]["robustness"] == {
+            "kind": "guarded", "unless": {"antecedent": ["Penguin"], "consequent": []}
+        }
+        assert d["onto_schemas"][2]["robustness"] == {"kind": "exact"}
+        restored = OntoMaterialBase.from_dict(d)
+        assert restored.onto_schemas == base.onto_schemas
+        assert restored.is_axiom(F({"Bird(a)", "Tall(a)"}), F({"Flies(a)"}))
+        assert not restored.is_axiom(F({"Bird(a)", "Penguin(a)"}), F({"Flies(a)"}))
+
+    def test_commitment_store_robustness(self):
+        cs = CommitmentStore()
+        cs.commit_subclass("src", "Bird", "Flies", robustness=guarded(["Penguin"]))
+        base = cs.compile()
+        assert base.is_axiom(F({"Bird(a)", "Tall(a)"}), F({"Flies(a)"}))
+        assert "unless Penguin" in cs.describe()
+
+    def test_whitespace_in_role_assertion_is_canonicalised(self):
+        base = OntoMaterialBase(language={"hasChild(alice, bob)"})
+        assert "hasChild(alice,bob)" in base.language
+        base.register_range("hasChild", "Person")
+        r = NMMSReasoner(base)
+        assert r.derives(F({"hasChild(alice, bob)"}), F({"Person(bob)"})).derivable
+
+
+class TestSchemaIndex:
+    def test_many_schemas_hit_and_miss(self):
+        base = OntoMaterialBase()
+        for i in range(2000):
+            base.register_subclass(f"C{i}", f"C{i + 1}")
+        assert base.is_axiom(F({"C1000(a)"}), F({"C1001(a)"}))
+        assert not base.is_axiom(F({"C1000(a)"}), F({"C1002(a)"}))
+        assert not base.is_axiom(F({"Zed(a)"}), F({"Nope(a)"}))
+        assert len(base.onto_schemas) == 2000
+
+    def test_index_rebuilt_on_load(self):
+        base = OntoMaterialBase()
+        base.register_subclass("A", "B")
+        restored = OntoMaterialBase.from_dict(base.to_dict())
+        assert restored.is_axiom(F({"A(x)"}), F({"B(x)"}))

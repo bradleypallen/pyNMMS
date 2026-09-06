@@ -21,6 +21,7 @@ hash-compatible with ``frozenset``, so never mix the two as dict keys.
 
 from __future__ import annotations
 
+import re
 from collections.abc import Iterable, Iterator
 from collections.abc import Set as AbstractSet
 from dataclasses import dataclass
@@ -37,6 +38,8 @@ from pynmms.syntax import (
     Sentence,
     parse_sentence,
 )
+
+_WS_RE = re.compile(r"\s+")
 
 _EMPTY: frozenset[str] = frozenset()
 
@@ -249,8 +252,11 @@ def _partition(sentences: Iterable[str]) -> tuple[AtomSet, frozenset[Sentence]]:
         # Fast path: well-formed atom names need no parse. This is the same
         # test the parser applies in atom position, so the result is identical.
         stripped = text.strip()
-        if PLAIN_ATOM_RE.match(stripped) or QUOTED_ATOM_RE.match(stripped):
+        if QUOTED_ATOM_RE.match(stripped):
             atoms.add(stripped)
+            continue
+        if PLAIN_ATOM_RE.match(stripped):
+            atoms.add(_WS_RE.sub("", stripped) if "(" in stripped else stripped)
             continue
         parsed = parse_sentence(text)
         if parsed.type == ATOM:

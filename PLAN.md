@@ -143,7 +143,9 @@ Goal: query cost independent of |Γ| for atomic and shallow queries.
 Deliverable: same 512 tests, new tests for trace structure, flags, cache
 invalidation; bench results committed.
 
-### Phase 2: base semantics (v0.7.0 with Phase 1, or v0.7.1; medium)
+### Phase 2: base semantics (v0.7.0 with Phase 1, or v0.7.1; medium) — DONE 2026-09-06
+
+Implemented as `pynmms.robustness` plus a per-shape schema index in `OntoMaterialBase` and robust-entry indexing in `MaterialBase`. CLI syntax is a trailing clause (`unless X, Y` / `monotone`) rather than a flag so it works in batch, stdin, and REPL alike. Default stays EXACT. Measured: schema hit/miss flat at ~6 µs from 10³ to 10⁵ schemas (was 2.2 / 4.4 ms at 10⁵); guarded and defeated queries flat at ~7 µs from 501 to 8001 antecedent atoms. Applied atoms are canonicalised (`R(a, b)` ≡ `R(a,b)`) so index membership tests are exact.
 
 Goal: schema lookup in O(1), and defeat that is relevant rather than
 arbitrary.

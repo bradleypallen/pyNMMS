@@ -368,7 +368,7 @@ class TestCommitmentStore:
         cs = CommitmentStore()
         cs.commit_subclass("man_mortal", "Man", "Mortal")
         assert len(cs._onto_commitments) == 1
-        assert cs._onto_commitments[0] == ("man_mortal", "subClassOf", "Man", "Mortal")
+        assert cs._onto_commitments[0][:4] == ("man_mortal", "subClassOf", "Man", "Mortal")
 
     def test_commit_range(self):
         cs = CommitmentStore()
@@ -389,13 +389,13 @@ class TestCommitmentStore:
         cs = CommitmentStore()
         cs.commit_disjoint("man_woman", "Man", "Woman")
         assert len(cs._onto_commitments) == 1
-        assert cs._onto_commitments[0] == ("man_woman", "disjointWith", "Man", "Woman")
+        assert cs._onto_commitments[0][:4] == ("man_woman", "disjointWith", "Man", "Woman")
 
     def test_commit_disjoint_properties(self):
         cs = CommitmentStore()
         cs.commit_disjoint_properties("child_parent", "hasChild", "hasParent")
         assert len(cs._onto_commitments) == 1
-        assert cs._onto_commitments[0] == (
+        assert cs._onto_commitments[0][:4] == (
             "child_parent", "disjointProperties", "hasChild", "hasParent",
         )
 
@@ -500,7 +500,7 @@ class TestCommitmentStore:
         cs = CommitmentStore()
         cs.commit_joint_commitment("mi_rule", ["ChestPain", "ElevatedTroponin"], "MI")
         assert len(cs._onto_commitments) == 1
-        assert cs._onto_commitments[0] == (
+        assert cs._onto_commitments[0][:4] == (
             "mi_rule", "jointCommitment", "ChestPain,ElevatedTroponin", "MI",
         )
 

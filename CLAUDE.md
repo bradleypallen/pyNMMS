@@ -83,7 +83,9 @@ These biconditionals are what make logical vocabulary "make explicit" reason rel
 
 1. **`syntax.py`** — Recursive descent parser for propositional sentences: atoms, negation (~), conjunction (&), disjunction (|), implication (->). Returns frozen `Sentence` dataclass AST nodes. Operator precedence: `&` > `|` > `->`. Atoms follow a strict grammar: an identifier, an identifier applied to comma-separated identifiers (`C(a)`, `R(a,b)`), or a *quoted atom* `<...>` whose content is verbatim (brackets included in the name). Anything else in atom position raises `ValueError`. Exports depth-aware lexical helpers `find_top_level`, `split_top_level`, `is_fully_wrapped` that skip parentheses and quoted atoms; the onto parser and the CLI sequent splitters use them.
 
-2. **`base.py`** — `MaterialBase` class implementing the material base B = <L_B, |~_B>. Stores atomic language, consequence relation, and optional atom annotations. Exact syntactic match (no weakening). JSON serialization via `to_file()`/`from_file()`.
+2. **`base.py`** — `MaterialBase` class implementing the material base B = <L_B, |~_B>. Stores atomic language, consequence relation, optional atom annotations, and a per-consequence robustness policy. EXACT entries are matched from a `(|Γ|,|Δ|)` size index; MONOTONE/GUARDED entries from a consequent-atom index with subset matching and a defeater guard. Atom names are canonicalised (whitespace inside `R(a, b)` removed). JSON serialization via `to_file()`/`from_file()`; every consequence is written with an explicit `robustness` field.
+
+   **`robustness.py`** — `Robustness(kind, left, right)` with `EXACT`, `MONOTONE`, `guarded(left, right)`; `allows()` implements the guard; `split_robustness_clause()` parses the trailing `unless X, Y` / `monotone` clause used by tell statements and schema lines.
 
 3. **`sequent.py`** — Proof-search data structures. `AtomSet` is a persistent set of atom names (shared base `frozenset` plus small added/removed diffs) with structural hash/equality, so derived proof nodes cost O(|diff|) rather than O(|Γ|). `Sequent` is a proof node with each side partitioned into an `AtomSet` and a `frozenset[Sentence]` of complex sentences; strings are parsed once at the API boundary (with a small cache keyed on the input frozenset). `TraceEntry` is a structured trace record formatted only on `str()`.
 
@@ -110,7 +112,7 @@ The `pynmms.onto` subpackage extends propositional NMMS with ontology axiom sche
    - **disjointWith(C, D)**: `{C(x), D(x)} |~` for any individual x (material incompatibility)
    - **disjointProperties(R, S)**: `{R(x,y), S(x,y)} |~` for any x, y (material incompatibility)
    - **jointCommitment([C1,...,Cn], D)**: `{C1(x),...,Cn(x)} |~ {D(x)}` for any x (joint inferential commitment, min 2 antecedents)
-   All use exact match (no weakening). `CommitmentStore` provides a higher-level API.
+   Every schema is a `SchemaEntry(type, arg1, arg2, annotation, robustness)`. Schemas are indexed by consequent concept/role (or concept pair for incompatibilities), so hits and misses are O(candidates) regardless of schema count. EXACT schemas (default) match only the generated instance; GUARDED schemas take defeater *concept names*, instantiated on the individuals of the matched consequent. `CommitmentStore` provides a higher-level API. `cli/schema_line.py` parses and registers `schema ...` lines for both `tell` and the REPL.
 
    **No separate reasoner** — the base `NMMSReasoner` works transparently with `OntoMaterialBase` because ontology schemas extend `is_axiom()`, not the proof rules.
 
@@ -123,11 +125,12 @@ The `pynmms.onto` subpackage extends propositional NMMS with ontology axiom sche
 
 ## Test Suite
 
-566 tests across 21 test files:
+606 tests across 21 test files:
 
-**Propositional core (359 tests, 14 files):**
+**Propositional core (381 tests, 14 files):**
 - `test_syntax.py` — parser unit tests, strict atom grammar, quoted atoms, split helpers
 - `test_sequent.py` — AtomSet persistence/normalisation, Sequent partitioning, TraceEntry formatting
+- `test_robustness.py` — Robustness policies, clause parsing, robust entries in MaterialBase
 - `test_base.py` — MaterialBase construction, validation, axiom checks, serialization
 - `test_reasoner_axioms.py` — axiom-level derivability (Demo 1 equivalence)
 - `test_reasoner_rules.py` — individual rule correctness
@@ -140,10 +143,10 @@ The `pynmms.onto` subpackage extends propositional NMMS with ontology axiom sche
 - `test_cli_json.py` — JSON output, quiet mode, stdin, batch, exit codes, empty sides, annotations, Toy Base T integration
 - `test_logging.py` — proof trace and logging output, completeness flags, persistent cache
 
-**Ontology extension (207 tests, 7 files):**
+**Ontology extension (225 tests, 7 files):**
 - `test_onto_syntax.py` — ontology sentence parsing (concept/role assertions), atomicity checks
 - `test_onto_base.py` — OntoMaterialBase construction, validation, ontology schemas, CommitmentStore
-- `test_onto_schemas.py` — all 7 ontology schema types, nonmonotonicity, non-transitivity, lazy evaluation, NMMSReasoner integration
+- `test_onto_schemas.py` — all 7 ontology schema types, nonmonotonicity, non-transitivity, lazy evaluation, NMMSReasoner integration, robustness policies per schema type, schema index
 - `test_onto_cli.py` — `--onto` flag with tell/ask/repl
 - `test_onto_cli_json.py` — ontology-specific tests for JSON output, exit codes, batch, annotations
 - `test_onto_legacy_equivalence.py` — propositional backward compat, medical concept/role, ontology schema equivalence

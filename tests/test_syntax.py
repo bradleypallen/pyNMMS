@@ -202,7 +202,8 @@ class TestAtomGrammar:
     def test_applied_atoms_allowed(self):
         assert parse_sentence("Man(socrates)").name == "Man(socrates)"
         assert parse_sentence("hasChild(alice,bob)").name == "hasChild(alice,bob)"
-        assert parse_sentence("hasChild(alice, bob)").name == "hasChild(alice, bob)"
+        # whitespace inside an applied atom is not significant
+        assert parse_sentence("hasChild(alice, bob)").name == "hasChild(alice,bob)"
 
     def test_word_connective_rejected_with_hint(self):
         with pytest.raises(ValueError, match="not a valid atom.*Did you mean a connective"):

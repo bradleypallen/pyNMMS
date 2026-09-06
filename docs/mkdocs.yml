@@ -38,6 +38,7 @@ nav:
       - NMMSReasoner: api/reasoner.md
       - Syntax: api/syntax.md
       - Sequent and AtomSet: api/sequent.md
+      - Robustness: api/robustness.md
       - Ontology Material Base: api/onto-base.md
       - Ontology Syntax: api/onto-syntax.md
   - Theory:

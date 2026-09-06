@@ -2,29 +2,44 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/bradleypallen/pyNMMS/schemas/onto_base.schema.json",
   "title": "Ontology Material Base",
-  "description": "A material base for NMMS with ontology axiom schemas. Extends the propositional base with individuals, concepts, roles, and six ontology schema types.",
+  "description": "A material base for NMMS with ontology axiom schemas. Extends the propositional base with individuals, concepts, roles, and seven ontology schema types.",
   "type": "object",
-  "required": ["language", "consequences"],
+  "required": [
+    "language",
+    "consequences"
+  ],
   "properties": {
     "language": {
       "type": "array",
       "description": "The atomic language — concept assertions C(a) and role assertions R(a,b).",
-      "items": { "type": "string" }
+      "items": {
+        "type": "string"
+      }
     },
     "consequences": {
       "type": "array",
       "description": "The base consequence relation |~_B.",
       "items": {
         "type": "object",
-        "required": ["antecedent", "consequent"],
+        "required": [
+          "antecedent",
+          "consequent"
+        ],
         "properties": {
           "antecedent": {
             "type": "array",
-            "items": { "type": "string" }
+            "items": {
+              "type": "string"
+            }
           },
           "consequent": {
             "type": "array",
-            "items": { "type": "string" }
+            "items": {
+              "type": "string"
+            }
+          },
+          "robustness": {
+            "$ref": "#/$defs/robustness"
           }
         },
         "additionalProperties": false
@@ -33,38 +48,69 @@
     "annotations": {
       "type": "object",
       "description": "Optional natural-language descriptions for atoms.",
-      "additionalProperties": { "type": "string" }
+      "additionalProperties": {
+        "type": "string"
+      }
     },
     "individuals": {
       "type": "array",
       "description": "Known individual names extracted from assertions.",
-      "items": { "type": "string" }
+      "items": {
+        "type": "string"
+      }
     },
     "concepts": {
       "type": "array",
       "description": "Known concept names extracted from assertions.",
-      "items": { "type": "string" }
+      "items": {
+        "type": "string"
+      }
     },
     "roles": {
       "type": "array",
       "description": "Known role names extracted from assertions.",
-      "items": { "type": "string" }
+      "items": {
+        "type": "string"
+      }
     },
     "onto_schemas": {
       "type": "array",
       "description": "Ontology axiom schemas — evaluated lazily at query time.",
       "items": {
         "type": "object",
-        "required": ["type", "arg1", "arg2"],
+        "required": [
+          "type",
+          "arg1",
+          "arg2"
+        ],
         "properties": {
           "type": {
             "type": "string",
-            "enum": ["subClassOf", "range", "domain", "subPropertyOf", "disjointWith", "disjointProperties"],
+            "enum": [
+              "subClassOf",
+              "range",
+              "domain",
+              "subPropertyOf",
+              "disjointWith",
+              "disjointProperties",
+              "jointCommitment"
+            ],
             "description": "The ontology schema type."
           },
           "arg1": {
-            "type": "string",
-            "description": "First argument: sub-concept (subClassOf/disjointWith), role (range/domain/subPropertyOf/disjointProperties)."
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 2
+              }
+            ],
+            "description": "First argument: sub-concept (subClassOf/disjointWith), role (range/domain/subPropertyOf/disjointProperties), or the list of antecedent concepts (jointCommitment)."
           },
           "arg2": {
             "type": "string",
@@ -73,11 +119,53 @@
           "annotation": {
             "type": "string",
             "description": "Optional human-readable description of the schema."
+          },
+          "robustness": {
+            "$ref": "#/$defs/robustness"
           }
         },
         "additionalProperties": false
       }
     }
   },
-  "additionalProperties": false
+  "additionalProperties": false,
+  "$defs": {
+    "robustness": {
+      "type": "object",
+      "description": "Robustness policy: how the entry survives additions to its antecedent and consequent. 'exact' matches only the entry itself; 'monotone' matches any superset; 'guarded' matches supersets unless a listed defeater is present.",
+      "required": [
+        "kind"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "exact",
+            "monotone",
+            "guarded"
+          ]
+        },
+        "unless": {
+          "type": "object",
+          "description": "Defeaters (only for kind 'guarded'). For ontology schemas the antecedent-side defeaters are concept names.",
+          "properties": {
+            "antecedent": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "consequent": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  }
 }

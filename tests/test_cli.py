@@ -251,3 +251,37 @@ class TestQuotedAtoms:
         assert "not a valid atom" in capsys.readouterr().err
 
         Path(path).unlink()
+
+
+class TestRobustnessClause:
+    def test_tell_unless_and_monotone(self):
+        with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f:
+            path = f.name
+        Path(path).unlink()
+
+        assert main(["tell", "-b", path, "--create", "Bird |~ Flies unless Penguin, Dead"]) == 0
+        assert main(["tell", "-b", path, "Man |~ Mortal monotone"]) == 0
+        with open(path) as f:
+            data = json.load(f)
+        by_ant = {tuple(e["antecedent"]): e["robustness"] for e in data["consequences"]}
+        assert by_ant[("Bird",)] == {
+            "kind": "guarded", "unless": {"antecedent": ["Dead", "Penguin"], "consequent": []}
+        }
+        assert by_ant[("Man",)] == {"kind": "monotone"}
+
+        assert main(["ask", "-b", path, "Bird, Tall => Flies"]) == 0
+        assert main(["ask", "-b", path, "Bird, Penguin => Flies"]) == 2
+        assert main(["ask", "-b", path, "Man, Greek => Mortal"]) == 0
+
+        Path(path).unlink()
+
+    def test_tell_json_reports_robustness(self, capsys):
+        with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f:
+            path = f.name
+        Path(path).unlink()
+
+        assert main(["tell", "-b", path, "--create", "--json", "A |~ B unless C"]) == 0
+        out = json.loads(capsys.readouterr().out)
+        assert out["consequence"]["robustness"]["kind"] == "guarded"
+
+        Path(path).unlink()

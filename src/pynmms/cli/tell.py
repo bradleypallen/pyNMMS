@@ -15,6 +15,7 @@ from pynmms.cli.output import (
     tell_atom_response,
     tell_consequence_response,
 )
+from pynmms.robustness import EXACT, Robustness, split_robustness_clause
 from pynmms.syntax import find_top_level, split_top_level
 
 logger = logging.getLogger(__name__)
@@ -43,20 +44,28 @@ def _parse_atom_with_annotation(rest: str) -> tuple[str, str | None]:
     return rest, None
 
 
-def _parse_tell_statement(
-    statement: str,
-) -> tuple[str, frozenset[str] | None, frozenset[str] | None, str | None]:
+TellStatement = tuple[
+    str, frozenset[str] | None, frozenset[str] | None, str | None, Robustness
+]
+
+
+def _parse_tell_statement(statement: str) -> TellStatement:
     """Parse a tell statement.
 
-    Returns:
-        ("atom", frozenset({name}), None, annotation_or_None) for ``atom X`` or ``atom X "desc"``
-        ("consequence", antecedent, consequent, None) for ``A, B |~ C, D``
+    Returns ``(kind, antecedent, consequent, annotation, robustness)``:
+        ("atom", frozenset({name}), None, annotation_or_None, EXACT)
+            for ``atom X`` or ``atom X "desc"``
+        ("consequence", antecedent, consequent, None, robustness)
+            for ``A, B |~ C, D``, optionally followed by ``unless X, Y`` or
+            ``monotone``
     """
     statement = statement.strip()
 
     if statement.lower().startswith("atom "):
         atom, annotation = _parse_atom_with_annotation(statement[5:])
-        return ("atom", frozenset({atom}), None, annotation)
+        return ("atom", frozenset({atom}), None, annotation, EXACT)
+
+    statement, robustness = split_robustness_clause(statement)
 
     if "|~" not in statement:
         raise ValueError(
@@ -76,7 +85,7 @@ def _parse_tell_statement(
     antecedent = frozenset(split_top_level(antecedent_str, ","))
     consequent = frozenset(split_top_level(consequent_str, ","))
 
-    return ("consequence", antecedent, consequent, None)
+    return ("consequence", antecedent, consequent, None, robustness)
 
 
 def _process_tell_statement(
@@ -89,7 +98,7 @@ def _process_tell_statement(
 ) -> int:
     """Process a single tell statement. Returns exit code."""
     try:
-        kind, antecedent, consequent, annotation = _parse_tell_statement(statement)
+        kind, antecedent, consequent, annotation, robustness = _parse_tell_statement(statement)
     except ValueError as e:
         emit_error(str(e), json_mode=json_mode, quiet=quiet)
         return EXIT_ERROR
@@ -116,14 +125,16 @@ def _process_tell_statement(
         ant = antecedent if antecedent else frozenset()
         con = consequent if consequent else frozenset()
         try:
-            base.add_consequence(ant, con)
+            base.add_consequence(ant, con, robustness=robustness)
         except ValueError as e:
             emit_error(str(e), json_mode=json_mode, quiet=quiet)
             return EXIT_ERROR
         if json_mode:
-            emit_json(tell_consequence_response(ant, con, str(base_path)))
+            emit_json(tell_consequence_response(
+                ant, con, str(base_path), robustness=robustness.to_json()))
         elif not quiet:
-            print(f"Added consequence: {set(ant)} |~ {set(con)}")
+            suffix = "" if robustness.is_exact else f" [{robustness}]"
+            print(f"Added consequence: {set(ant)} |~ {set(con)}{suffix}")
 
     return EXIT_SUCCESS
 
@@ -226,21 +237,10 @@ def _run_tell_batch(
 
 
 def _extract_trailing_annotation(text: str) -> tuple[str, str | None]:
-    """Extract an optional trailing quoted annotation from *text*.
+    """Alias for :func:`pynmms.cli.schema_line.extract_trailing_annotation`."""
+    from pynmms.cli.schema_line import extract_trailing_annotation
 
-    Returns (remaining_text, annotation_or_None).
-    """
-    for quote_char in ('"', "'"):
-        idx = text.find(quote_char)
-        if idx != -1:
-            end_idx = text.find(quote_char, idx + 1)
-            if end_idx == -1:
-                annotation = text[idx + 1:].strip()
-            else:
-                annotation = text[idx + 1:end_idx]
-            remaining = text[:idx].strip()
-            return remaining, annotation if annotation else None
-    return text, None
+    return extract_trailing_annotation(text)
 
 
 def _process_onto_schema_line(
@@ -253,120 +253,19 @@ def _process_onto_schema_line(
 ) -> int:
     """Process an ontology schema line like ``schema subClassOf Man Mortal``."""
     from pynmms.cli.output import emit_json, tell_schema_response
+    from pynmms.cli.schema_line import format_registration, register_schema_line
     from pynmms.onto.base import OntoMaterialBase
 
     assert isinstance(base, OntoMaterialBase)
-
-    # Extract optional trailing quoted annotation
-    body, annotation = _extract_trailing_annotation(line)
-    parts = body.split()
-
     try:
-        if len(parts) >= 4 and parts[1] == "subClassOf":
-            _, _, sub_concept, super_concept = parts[:4]
-            base.register_subclass(sub_concept, super_concept, annotation=annotation)
-            details = f"{{{sub_concept}(x)}} |~ {{{super_concept}(x)}}"
-            if json_mode:
-                emit_json(tell_schema_response(
-                    "subClassOf", details, str(base_path), annotation=annotation))
-            elif not quiet:
-                msg = f"Registered subClassOf schema: {details}"
-                if annotation:
-                    msg += f" \u2014 {annotation}"
-                print(msg)
-            return EXIT_SUCCESS
-        elif len(parts) >= 4 and parts[1] == "range":
-            _, _, role, concept = parts[:4]
-            base.register_range(role, concept, annotation=annotation)
-            details = f"{{{role}(x,y)}} |~ {{{concept}(y)}}"
-            if json_mode:
-                emit_json(tell_schema_response(
-                    "range", details, str(base_path), annotation=annotation))
-            elif not quiet:
-                msg = f"Registered range schema: {details}"
-                if annotation:
-                    msg += f" \u2014 {annotation}"
-                print(msg)
-            return EXIT_SUCCESS
-        elif len(parts) >= 4 and parts[1] == "domain":
-            _, _, role, concept = parts[:4]
-            base.register_domain(role, concept, annotation=annotation)
-            details = f"{{{role}(x,y)}} |~ {{{concept}(x)}}"
-            if json_mode:
-                emit_json(tell_schema_response(
-                    "domain", details, str(base_path), annotation=annotation))
-            elif not quiet:
-                msg = f"Registered domain schema: {details}"
-                if annotation:
-                    msg += f" \u2014 {annotation}"
-                print(msg)
-            return EXIT_SUCCESS
-        elif len(parts) >= 4 and parts[1] == "subPropertyOf":
-            _, _, sub_role, super_role = parts[:4]
-            base.register_subproperty(sub_role, super_role, annotation=annotation)
-            details = f"{{{sub_role}(x,y)}} |~ {{{super_role}(x,y)}}"
-            if json_mode:
-                emit_json(tell_schema_response(
-                    "subPropertyOf", details, str(base_path), annotation=annotation))
-            elif not quiet:
-                msg = f"Registered subPropertyOf schema: {details}"
-                if annotation:
-                    msg += f" \u2014 {annotation}"
-                print(msg)
-            return EXIT_SUCCESS
-        elif len(parts) >= 4 and parts[1] == "disjointWith":
-            _, _, concept1, concept2 = parts[:4]
-            base.register_disjoint(concept1, concept2, annotation=annotation)
-            details = f"{{{concept1}(x), {concept2}(x)}} |~"
-            if json_mode:
-                emit_json(tell_schema_response(
-                    "disjointWith", details, str(base_path), annotation=annotation))
-            elif not quiet:
-                msg = f"Registered disjointWith schema: {details}"
-                if annotation:
-                    msg += f" \u2014 {annotation}"
-                print(msg)
-            return EXIT_SUCCESS
-        elif len(parts) >= 4 and parts[1] == "disjointProperties":
-            _, _, role1, role2 = parts[:4]
-            base.register_disjoint_properties(role1, role2, annotation=annotation)
-            details = f"{{{role1}(x,y), {role2}(x,y)}} |~"
-            if json_mode:
-                emit_json(tell_schema_response(
-                    "disjointProperties", details, str(base_path), annotation=annotation))
-            elif not quiet:
-                msg = f"Registered disjointProperties schema: {details}"
-                if annotation:
-                    msg += f" \u2014 {annotation}"
-                print(msg)
-            return EXIT_SUCCESS
-        elif len(parts) >= 4 and parts[1] == "jointCommitment":
-            _, _, ant_str, consequent = parts[:4]
-            antecedent_concepts = ant_str.split(",")
-            if len(antecedent_concepts) < 2:
-                emit_error(
-                    "jointCommitment requires at least 2 comma-separated "
-                    "antecedent concepts.",
-                    json_mode=json_mode, quiet=quiet,
-                )
-                return EXIT_ERROR
-            base.register_joint_commitment(
-                antecedent_concepts, consequent, annotation=annotation,
-            )
-            ant_display = ", ".join(f"{c}(x)" for c in antecedent_concepts)
-            details = f"{{{ant_display}}} |~ {{{consequent}(x)}}"
-            if json_mode:
-                emit_json(tell_schema_response(
-                    "jointCommitment", details, str(base_path), annotation=annotation))
-            elif not quiet:
-                msg = f"Registered jointCommitment schema: {details}"
-                if annotation:
-                    msg += f" \u2014 {annotation}"
-                print(msg)
-            return EXIT_SUCCESS
-        else:
-            emit_error(f"Invalid schema line: {line!r}", json_mode=json_mode, quiet=quiet)
-            return EXIT_ERROR
-    except (IndexError, ValueError) as e:
+        schema_type, details, robustness, annotation = register_schema_line(base, line)
+    except ValueError as e:
         emit_error(str(e), json_mode=json_mode, quiet=quiet)
         return EXIT_ERROR
+    if json_mode:
+        emit_json(tell_schema_response(
+            schema_type, details, str(base_path), annotation=annotation,
+            robustness=robustness.to_json()))
+    elif not quiet:
+        print(format_registration(schema_type, details, robustness, annotation))
+    return EXIT_SUCCESS

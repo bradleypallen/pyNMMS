@@ -115,6 +115,17 @@ pynmms ask -b onto_base.json --onto "Man(socrates) => Mortal(socrates)"
 pynmms repl --onto
 ```
 
+## Robustness Policies
+
+Every base consequence and ontology schema carries a robustness policy: `exact` (the default; any added premise defeats it), `monotone` (survives any addition), or `guarded` by named defeaters (survives any addition except a defeater). This is the range-of-subjunctive-robustness idea of Hlobil & Brandom (Ch. 5) restricted to singleton additions, and it separates relevant defeat from arbitrary defeat:
+
+```bash
+pynmms tell -b birds.json --create "Bird |~ Flies unless Penguin"
+pynmms ask -b birds.json "Bird, Tall => Flies"      # DERIVABLE
+pynmms ask -b birds.json "Bird, Penguin => Flies"   # NOT DERIVABLE
+pynmms tell -b onto.json --create --onto --batch - <<< "schema subClassOf Bird Flies unless Penguin"
+```
+
 ## Key Properties
 
 - **Nonmonotonicity**: Adding premises can defeat inferences (no Weakening)
@@ -149,15 +160,15 @@ The reasoner uses root-first backward proof search with memoization and backtrac
 - The persistent cache (`persistent_cache=True`) is invalidated wholesale on any base mutation; there is no incremental cache maintenance
 - Multi-premise rules ([L→], [L∨], [R∧]) each generate 3 subgoals, giving worst-case exponential branching
 - Flat proof trace (a list of `TraceEntry` records) — no proof tree or proof certificates
-- Ontology schemas are matched by a linear scan of the registered schemas (indexing is planned)
+- MONOTONE/GUARDED `range`, `domain`, and incompatibility schemas must scan Γ for a role or partner atom (O(|Γ|) per check); `subClassOf`, `subPropertyOf`, `jointCommitment`, and all EXACT schemas are O(1) index lookups
 - Does not implement NMMS\\ctr (contraction-free variant, Section 3.2.3), Monotonicity Box (□, Section 3.3.1), or classicality operator (⌈cl⌉, Section 3.3.2)
 
 ### Test suite
 
-566 tests across 21 test files:
+606 tests across 21 test files:
 
-- **Propositional core (359 tests)**: Syntax parsing (including the strict atom grammar and quoted atoms), AtomSet/Sequent proof-node structures, MaterialBase construction/serialization, individual rule correctness, axiom derivability, structural properties (nonmonotonicity, nontransitivity, supraclassicality, DD/II/AA/SS), soundness audit, CLI integration, logging/tracing, Ch. 3 worked examples, Hypothesis property-based tests, cross-validation against ROLE.jl ground truth
-- **Ontology extension (207 tests)**: Ontology sentence parsing, OntoMaterialBase construction/validation, seven ontology schema types (subClassOf, range, domain, subPropertyOf, disjointWith, disjointProperties, jointCommitment), nonmonotonicity and non-transitivity of schemas, lazy evaluation, NMMSReasoner integration, CommitmentStore, CLI `--onto` integration, JSON output/exit codes, batch mode, annotations, legacy equivalence, logging
+- **Propositional core (381 tests)**: Syntax parsing (including the strict atom grammar and quoted atoms), AtomSet/Sequent proof-node structures, robustness policies (exact/monotone/guarded) on base entries, MaterialBase construction/serialization, individual rule correctness, axiom derivability, structural properties (nonmonotonicity, nontransitivity, supraclassicality, DD/II/AA/SS), soundness audit, CLI integration, logging/tracing, Ch. 3 worked examples, Hypothesis property-based tests, cross-validation against ROLE.jl ground truth
+- **Ontology extension (225 tests)**: Ontology sentence parsing, OntoMaterialBase construction/validation, seven ontology schema types (subClassOf, range, domain, subPropertyOf, disjointWith, disjointProperties, jointCommitment), nonmonotonicity and non-transitivity of schemas, schema robustness policies and indexing, lazy evaluation, NMMSReasoner integration, CommitmentStore, CLI `--onto` integration, JSON output/exit codes, batch mode, annotations, legacy equivalence, logging
 
 ### Benchmarks
 

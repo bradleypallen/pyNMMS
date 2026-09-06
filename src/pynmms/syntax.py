@@ -45,6 +45,7 @@ IMPL = "impl"
 _IDENT = r"[A-Za-z_][A-Za-z0-9_]*"
 PLAIN_ATOM_RE = re.compile(rf"^{_IDENT}(?:\(\s*{_IDENT}(?:\s*,\s*{_IDENT})*\s*\))?$")
 QUOTED_ATOM_RE = re.compile(r"^<[^<>]*>$")
+_WS_RE = re.compile(r"\s+")
 
 # Words that suggest the user wrote a connective in the wrong notation.
 _CONNECTIVE_WORDS = frozenset(
@@ -161,8 +162,12 @@ def validate_atom_name(s: str) -> str:
     """Return *s* if it is a well-formed atom name, else raise ValueError."""
     # Fast path: a plain identifier needs no regex (this runs at every proof
     # node for every element of Γ until Phase 1 removes the re-parse).
-    if s.isidentifier() or PLAIN_ATOM_RE.match(s) or QUOTED_ATOM_RE.match(s):
+    if s.isidentifier() or QUOTED_ATOM_RE.match(s):
         return s
+    if PLAIN_ATOM_RE.match(s):
+        # Canonical form of an applied atom has no internal whitespace, so
+        # R(a, b) and R(a,b) name the same atom.
+        return _WS_RE.sub("", s)
     hint = ""
     words = {w.lower() for w in s.replace("(", " ").replace(")", " ").split()}
     if words & _CONNECTIVE_WORDS:

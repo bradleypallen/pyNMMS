@@ -55,9 +55,10 @@ def tell_consequence_response(
     antecedent: frozenset[str],
     consequent: frozenset[str],
     base_file: str,
+    robustness: dict | None = None,
 ) -> dict:
     """Build a tell-consequence response dict."""
-    return {
+    d: dict = {
         "action": "added_consequence",
         "consequence": {
             "antecedent": sorted(antecedent),
@@ -65,6 +66,9 @@ def tell_consequence_response(
         },
         "base_file": base_file,
     }
+    if robustness is not None:
+        d["consequence"]["robustness"] = robustness
+    return d
 
 
 def tell_schema_response(
@@ -72,6 +76,7 @@ def tell_schema_response(
     details: str,
     base_file: str,
     annotation: str | None = None,
+    robustness: dict | None = None,
 ) -> dict:
     """Build a tell-schema response dict."""
     d: dict = {
@@ -81,6 +86,8 @@ def tell_schema_response(
     }
     if annotation is not None:
         d["annotation"] = annotation
+    if robustness is not None:
+        d["robustness"] = robustness
     return d
 
 

@@ -6,9 +6,15 @@
   "oneOf": [
     {
       "type": "object",
-      "required": ["action", "atom", "base_file"],
+      "required": [
+        "action",
+        "atom",
+        "base_file"
+      ],
       "properties": {
-        "action": { "const": "added_atom" },
+        "action": {
+          "const": "added_atom"
+        },
         "atom": {
           "type": "string",
           "description": "The atom that was added."
@@ -26,20 +32,36 @@
     },
     {
       "type": "object",
-      "required": ["action", "consequence", "base_file"],
+      "required": [
+        "action",
+        "consequence",
+        "base_file"
+      ],
       "properties": {
-        "action": { "const": "added_consequence" },
+        "action": {
+          "const": "added_consequence"
+        },
         "consequence": {
           "type": "object",
-          "required": ["antecedent", "consequent"],
+          "required": [
+            "antecedent",
+            "consequent"
+          ],
           "properties": {
             "antecedent": {
               "type": "array",
-              "items": { "type": "string" }
+              "items": {
+                "type": "string"
+              }
             },
             "consequent": {
               "type": "array",
-              "items": { "type": "string" }
+              "items": {
+                "type": "string"
+              }
+            },
+            "robustness": {
+              "$ref": "#/$defs/robustness"
             }
           },
           "additionalProperties": false
@@ -52,7 +74,11 @@
     },
     {
       "type": "object",
-      "required": ["action", "details", "base_file"],
+      "required": [
+        "action",
+        "details",
+        "base_file"
+      ],
       "properties": {
         "action": {
           "type": "string",
@@ -65,9 +91,51 @@
         },
         "base_file": {
           "type": "string"
+        },
+        "robustness": {
+          "$ref": "#/$defs/robustness"
         }
       },
       "additionalProperties": false
     }
-  ]
+  ],
+  "$defs": {
+    "robustness": {
+      "type": "object",
+      "description": "Robustness policy: how the entry survives additions to its antecedent and consequent. 'exact' matches only the entry itself; 'monotone' matches any superset; 'guarded' matches supersets unless a listed defeater is present.",
+      "required": [
+        "kind"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "exact",
+            "monotone",
+            "guarded"
+          ]
+        },
+        "unless": {
+          "type": "object",
+          "description": "Defeaters (only for kind 'guarded'). For ontology schemas the antecedent-side defeaters are concept names.",
+          "properties": {
+            "antecedent": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "consequent": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  }
 }

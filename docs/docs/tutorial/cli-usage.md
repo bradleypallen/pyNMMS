@@ -56,7 +56,35 @@ $ pynmms ask -b base.json "(p conj q) => r"
 Error: Malformed sentence: 'p conj q' is not a valid atom. ... Did you mean a connective? Use ~ (not), & (and), | (or), -> (implies).
 ```
 
-Commas inside applied atoms and quoted atoms do not split a sequent, so `hasChild(alice,bob), <x, y> => Person(bob)` has a two-element antecedent.
+Commas inside applied atoms and quoted atoms do not split a sequent, so `hasChild(alice,bob), <x, y> => Person(bob)` has a two-element antecedent. Whitespace inside an applied atom is not significant: `hasChild(alice, bob)` and `hasChild(alice,bob)` name the same atom.
+
+## Robustness of Base Entries
+
+Every base consequence and every ontology schema carries a **robustness policy** that says how far it survives additions to its antecedent and consequent (its range of subjunctive robustness, Hlobil & Brandom 2025, Ch. 5, restricted to singleton additions):
+
+| Policy | `tell` syntax | Matches |
+|--------|---------------|---------|
+| exact (default) | `A, B \|~ C` | only `A, B ⇒ C` itself; any further premise or conclusion defeats it |
+| guarded | `A, B \|~ C unless X, Y` | any `Γ ⊇ {A, B}`, `Δ ⊇ {C}` unless `X` or `Y` is in Γ |
+| monotone | `A, B \|~ C monotone` | any `Γ ⊇ {A, B}`, `Δ ⊇ {C}` |
+
+```
+$ pynmms tell -b birds.json --create "Bird |~ Flies unless Penguin, Dead"
+Added consequence: {'Bird'} |~ {'Flies'} [unless Dead, Penguin]
+$ pynmms ask -b birds.json "Bird, Tall => Flies"      # exit 0: irrelevant premise is harmless
+$ pynmms ask -b birds.json "Bird, Penguin => Flies"   # exit 2: relevant defeat
+```
+
+The same clause applies to schema lines in `--onto` mode; there the defeaters are **concept names**, instantiated on the individuals of the matched consequent:
+
+```
+schema subClassOf Bird Flies unless Penguin "birds fly"
+schema disjointWith Alive Dead monotone
+```
+
+With the guarded schema, `Bird(a), Tall(a) => Flies(a)` is derivable and `Bird(a), Penguin(a) => Flies(a)` is not. With the monotone disjointness, `Alive(a), Dead(a), Tall(a) =>` is derivable, and by the II condition so is `Alive(a), Tall(a) => ~Dead(a)`.
+
+Base files record the policy on every entry as a `robustness` object; files written before v0.7 have no such field and load as exact.
 
 **Connective glossary:**
 
@@ -98,6 +126,9 @@ sentence   ::=  ...                                          (* all propositiona
 | `subPropertyOf` | `schema subPropertyOf R S` | {R(x,y)} \|~ {S(x,y)} for any x,y |
 | `disjointWith` | `schema disjointWith C D` | {C(x), D(x)} \|~ {} for any x |
 | `disjointProperties` | `schema disjointProperties R S` | {R(x,y), S(x,y)} \|~ {} for any x,y |
+| `jointCommitment` | `schema jointCommitment C1,C2 D` | {C1(x), C2(x)} \|~ {D(x)} for any x |
+
+Each schema line may end with `unless C1, C2` (guarded) or `monotone`; see [Robustness of Base Entries](#robustness-of-base-entries).
 
 ## `pynmms tell`
 

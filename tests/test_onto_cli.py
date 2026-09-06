@@ -259,3 +259,43 @@ class TestRoleAssertionsInSequents:
         ]
 
         Path(path).unlink()
+
+
+class TestSchemaRobustnessClause:
+    def test_guarded_schema_via_batch_and_ask(self):
+        with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f:
+            path = f.name
+        Path(path).unlink()
+        with tempfile.NamedTemporaryFile(suffix=".txt", delete=False, mode="w") as bf:
+            bf.write('schema subClassOf Bird Flies unless Penguin "birds fly"\n')
+            bf.write("schema disjointWith Alive Dead monotone\n")
+            batch_path = bf.name
+
+        assert main(["tell", "-b", path, "--create", "--onto", "--batch", batch_path]) == 0
+        with open(path) as f:
+            data = json.load(f)
+        assert data["onto_schemas"][0]["robustness"]["unless"]["antecedent"] == ["Penguin"]
+        assert data["onto_schemas"][0]["annotation"] == "birds fly"
+        assert data["onto_schemas"][1]["robustness"] == {"kind": "monotone"}
+
+        assert main(["ask", "-b", path, "--onto", "Bird(a), Tall(a) => Flies(a)"]) == 0
+        assert main(["ask", "-b", path, "--onto", "Bird(a), Penguin(a) => Flies(a)"]) == 2
+        assert main(["ask", "-b", path, "--onto", "Alive(a), Dead(a), Tall(a) =>"]) == 0
+
+        Path(path).unlink()
+        Path(batch_path).unlink()
+
+    def test_repl_schema_with_clause_and_show(self, capsys):
+        inputs = iter([
+            "tell schema subClassOf Bird Flies unless Penguin",
+            "tell Bird(b) |~ Sings(b) monotone",
+            "show schemas",
+            "show",
+            "quit",
+        ])
+        with patch("builtins.input", lambda _: next(inputs)):
+            main(["repl", "--onto"])
+        out = capsys.readouterr().out
+        assert "Registered subClassOf schema: {Bird(x)} |~ {Flies(x)} [unless Penguin]" in out
+        assert "subClassOf: {Bird(x)} |~ {Flies(x)} [unless Penguin]" in out
+        assert "[monotone]" in out

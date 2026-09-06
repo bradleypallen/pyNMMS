@@ -1,53 +1,106 @@
 """Ontology Material Base -- ontology axiom schemas for NMMS.
 
-Extends the propositional ``MaterialBase`` with ontology-style vocabulary
-tracking (individuals, concepts, roles) and seven defeasible axiom schema
-types: subClassOf, range, domain, subPropertyOf, disjointWith,
-disjointProperties, jointCommitment.
+``OntoMaterialBase`` extends ``MaterialBase`` with vocabulary tracking
+(individuals, concepts, roles) and seven lazily evaluated ontology axiom
+schema types. Schemas are macros over base axioms: they never add proof
+rules, only pairs to |~_B, so the plain ``NMMSReasoner`` works unchanged.
+
+Every schema carries a :class:`~pynmms.robustness.Robustness` policy:
+
+* EXACT (default): ``{C(x)} |~ {D(x)}`` matches only that sequent.
+* MONOTONE: also matches any ``Γ ⊇ {C(x)}``, ``Δ ⊇ {D(x)}``.
+* GUARDED(left): MONOTONE unless some defeater concept ``E`` in ``left`` has
+  ``E(i) ∈ Γ`` for an individual ``i`` of the matched consequent.
+
+Schemas are indexed by the consequent's concept or role (and by concept pair
+for incompatibilities), so a match costs O(candidates) regardless of how many
+schemas are registered, for hits and misses alike. The only O(|Γ|) paths are
+MONOTONE/GUARDED ``range``, ``domain`` and incompatibility schemas, which have
+to find a role or partner atom somewhere in Γ; a store-backed antecedent
+(Phase 3) answers those with a pattern query instead.
 """
 
 from __future__ import annotations
 
 import json
 import logging
+import re
+from collections.abc import Sequence
 from collections.abc import Set as AbstractSet
 from pathlib import Path
+from typing import NamedTuple
 
 from pynmms.base import MaterialBase, Sequent
 from pynmms.onto.syntax import (
     ATOM_CONCEPT,
     ATOM_ROLE,
     OntoSentence,
-    is_onto_atomic,
     make_concept_assertion,
     make_role_assertion,
     parse_onto_sentence,
 )
+from pynmms.robustness import EXACT, Robustness
 
 logger = logging.getLogger(__name__)
 
+# Canonical atom forms (no internal whitespace).
+_CONCEPT_RE = re.compile(r"^(\w+)\((\w+)\)$")
+_ROLE_RE = re.compile(r"^(\w+)\((\w+),(\w+)\)$")
 
-def _validate_onto_atomic(s: str, context: str) -> None:
-    """Raise ValueError if *s* is not an onto-atomic sentence."""
-    if not is_onto_atomic(s):
-        raise ValueError(
-            f"{context}: '{s}' is not valid in NMMS_Onto. "
-            f"Only concept assertions C(a) and role assertions R(a,b) "
-            f"are permitted in the ontology material base."
-        )
+INFERENCE_SCHEMAS = ("subClassOf", "range", "domain", "subPropertyOf", "jointCommitment")
+INCOMPATIBILITY_SCHEMAS = ("disjointWith", "disjointProperties")
+SCHEMA_TYPES = INFERENCE_SCHEMAS + INCOMPATIBILITY_SCHEMAS
+
+
+def _validate_onto_atomic(s: str, context: str) -> str:
+    """Return the canonical form of an onto-atomic sentence, or raise ValueError."""
+    try:
+        parsed = parse_onto_sentence(s)
+    except ValueError:
+        parsed = None
+    if isinstance(parsed, OntoSentence):
+        if parsed.type == ATOM_CONCEPT:
+            assert parsed.concept is not None and parsed.individual is not None
+            return make_concept_assertion(parsed.concept, parsed.individual)
+        if parsed.type == ATOM_ROLE:
+            assert parsed.role is not None
+            assert parsed.arg1 is not None and parsed.arg2 is not None
+            return make_role_assertion(parsed.role, parsed.arg1, parsed.arg2)
+    raise ValueError(
+        f"{context}: '{s}' is not valid in NMMS_Onto. "
+        f"Only concept assertions C(a) and role assertions R(a,b) "
+        f"are permitted in the ontology material base."
+    )
+
+
+class SchemaEntry(NamedTuple):
+    """A registered ontology schema.
+
+    ``arg1`` is the sub-concept / role / first concept, or for
+    ``jointCommitment`` the comma-joined antecedent concepts; ``arg2`` is the
+    super-concept / concept / super-role / second concept.
+    """
+
+    type: str
+    arg1: str
+    arg2: str
+    annotation: str | None
+    robustness: Robustness
+
+    @property
+    def concepts(self) -> list[str]:
+        """Antecedent concepts of a jointCommitment schema."""
+        return self.arg1.split(",")
 
 
 class OntoMaterialBase(MaterialBase):
-    """A material base for NMMS with ontology axiom schemas.
+    """Material base with vocabulary tracking and ontology axiom schemas.
 
-    Extends ``MaterialBase`` to accept concept/role assertions as atomic,
-    track vocabulary (individuals, concepts, roles), and support seven
-    ontology axiom schema types: subClassOf, range, domain, subPropertyOf,
-    disjointWith, disjointProperties, jointCommitment.
-
-    Schemas are evaluated lazily at query time -- not grounded over known
-    individuals. All use exact match (no weakening) to preserve
-    nonmonotonicity.
+    Parameters:
+        language: Onto-atomic sentences (``C(a)``, ``R(a,b)``).
+        consequences: Base consequence pairs over onto-atomic sentences.
+        annotations: Optional natural-language descriptions for atoms.
+        robustness: Optional per-consequence policies (see ``MaterialBase``).
     """
 
     def __init__(
@@ -57,36 +110,19 @@ class OntoMaterialBase(MaterialBase):
             set[Sequent] | set[tuple[frozenset[str], frozenset[str]]] | None
         ) = None,
         annotations: dict[str, str] | None = None,
+        robustness: dict[Sequent, Robustness] | None = None,
     ) -> None:
         self._individuals: set[str] = set()
         self._concepts: set[str] = set()
         self._roles: set[str] = set()
-        self._onto_schemas: list[tuple[str, str, str, str | None]] = []
-        # Antecedent sizes of registered jointCommitment schemas; lets the
-        # joint-commitment check reject a large Γ without parsing it.
-        self._joint_sizes: set[int] = set()
-        # Temporarily bypass parent validation -- we override _validate
-        self._onto_language: set[str] = set(language) if language else set()
-        self._onto_consequences: set[Sequent] = set()
-
-        # Validate onto-atomic
-        for s in self._onto_language:
-            _validate_onto_atomic(s, "Ontology material base language")
-            self._extract_vocab(s)
-
-        if consequences:
-            for gamma, delta in consequences:
-                for s in gamma | delta:
-                    _validate_onto_atomic(s, "Ontology material base consequence")
-                    self._extract_vocab(s)
-                self._onto_consequences.add((gamma, delta))
-
-        # Initialize parent with empty sets -- we manage storage ourselves
-        super().__init__(annotations=annotations)
-        self._language = self._onto_language
-        self._consequences = self._onto_consequences
-        self._reindex()
-
+        self._onto_schemas: list[SchemaEntry] = []
+        self._init_schema_index()
+        super().__init__(
+            language=language,
+            consequences=consequences,
+            annotations=annotations,
+            robustness=robustness,
+        )
         logger.debug(
             "OntoMaterialBase created: %d atoms, %d consequences, "
             "%d individuals, %d concepts, %d roles",
@@ -97,17 +133,25 @@ class OntoMaterialBase(MaterialBase):
             len(self._roles),
         )
 
+    # --- Validation and vocabulary ---
+
+    def _validate_atom(self, s: str, context: str) -> str:
+        name = _validate_onto_atomic(s, context)
+        self._extract_vocab(name)
+        return name
+
     def _extract_vocab(self, s: str) -> None:
-        """Extract vocabulary (individuals, concepts, roles) from a sentence."""
-        parsed = parse_onto_sentence(s)
-        if isinstance(parsed, OntoSentence):
-            if parsed.type == ATOM_CONCEPT:
-                self._individuals.add(parsed.individual)  # type: ignore[arg-type]
-                self._concepts.add(parsed.concept)  # type: ignore[arg-type]
-            elif parsed.type == ATOM_ROLE:
-                self._individuals.add(parsed.arg1)  # type: ignore[arg-type]
-                self._individuals.add(parsed.arg2)  # type: ignore[arg-type]
-                self._roles.add(parsed.role)  # type: ignore[arg-type]
+        """Record the individuals, concepts, and roles occurring in canonical *s*."""
+        m = _CONCEPT_RE.match(s)
+        if m:
+            self._concepts.add(m.group(1))
+            self._individuals.add(m.group(2))
+            return
+        m = _ROLE_RE.match(s)
+        if m:
+            self._roles.add(m.group(1))
+            self._individuals.add(m.group(2))
+            self._individuals.add(m.group(3))
 
     # --- Read-only properties ---
 
@@ -127,33 +171,11 @@ class OntoMaterialBase(MaterialBase):
         return frozenset(self._roles)
 
     @property
-    def onto_schemas(self) -> list[tuple[str, str, str, str | None]]:
-        """Ontology schemas (read-only copy)."""
+    def onto_schemas(self) -> list[SchemaEntry]:
+        """Registered ontology schemas, in registration order (read-only copy)."""
         return list(self._onto_schemas)
 
     # --- Mutation ---
-
-    def add_atom(self, s: str) -> None:
-        """Add an onto-atomic sentence to the language."""
-        _validate_onto_atomic(s, "add_atom")
-        self._language.add(s)
-        self._extract_vocab(s)
-        self._touch()
-        logger.debug("Added atom: %s", s)
-
-    def add_consequence(
-        self, antecedent: frozenset[str], consequent: frozenset[str]
-    ) -> None:
-        """Add a base consequence. All sentences must be onto-atomic."""
-        for s in antecedent | consequent:
-            _validate_onto_atomic(s, "add_consequence")
-            self._language.add(s)
-            self._extract_vocab(s)
-        if (antecedent, consequent) not in self._consequences:
-            self._consequences.add((antecedent, consequent))
-            self._index_consequence(antecedent, consequent)
-        self._touch()
-        logger.debug("Added consequence: %s |~ %s", set(antecedent), set(consequent))
 
     def add_individual(self, role: str, subject: str, obj: str) -> None:
         """Add a role assertion R(subject, obj) to the language."""
@@ -165,20 +187,27 @@ class OntoMaterialBase(MaterialBase):
 
     # --- Ontology schema registration ---
 
+    def _register(self, entry: SchemaEntry, pattern: str) -> None:
+        self._onto_schemas.append(entry)
+        self._index_schema(entry)
+        self._touch()
+        logger.debug(
+            "Registered %s schema: %s [%s]%s",
+            entry.type, pattern, entry.robustness,
+            f" -- {entry.annotation}" if entry.annotation else "",
+        )
+
     def register_subclass(
         self,
         sub_concept: str,
         super_concept: str,
         annotation: str | None = None,
+        robustness: Robustness = EXACT,
     ) -> None:
-        """Register subClassOf schema: {sub(x)} |~ {super(x)} for any x.
-
-        Stored lazily -- not grounded over known individuals.
-        """
-        self._onto_schemas.append(("subClassOf", sub_concept, super_concept, annotation))
-        self._touch()
-        logger.debug(
-            "Registered subClassOf schema: %s ⊑ %s", sub_concept, super_concept
+        """Register subClassOf schema: {sub(x)} |~ {super(x)} for any x."""
+        self._register(
+            SchemaEntry("subClassOf", sub_concept, super_concept, annotation, robustness),
+            f"{sub_concept} ⊑ {super_concept}",
         )
 
     def register_range(
@@ -186,43 +215,38 @@ class OntoMaterialBase(MaterialBase):
         role: str,
         concept: str,
         annotation: str | None = None,
+        robustness: Robustness = EXACT,
     ) -> None:
-        """Register range schema: {R(x,y)} |~ {C(y)} for any x, y.
-
-        Stored lazily -- not grounded over known individuals.
-        """
-        self._onto_schemas.append(("range", role, concept, annotation))
-        self._touch()
-        logger.debug("Registered range schema: range(%s) = %s", role, concept)
+        """Register range schema: {R(x,y)} |~ {C(y)} for any x, y."""
+        self._register(
+            SchemaEntry("range", role, concept, annotation, robustness),
+            f"range({role}) = {concept}",
+        )
 
     def register_domain(
         self,
         role: str,
         concept: str,
         annotation: str | None = None,
+        robustness: Robustness = EXACT,
     ) -> None:
-        """Register domain schema: {R(x,y)} |~ {C(x)} for any x, y.
-
-        Stored lazily -- not grounded over known individuals.
-        """
-        self._onto_schemas.append(("domain", role, concept, annotation))
-        self._touch()
-        logger.debug("Registered domain schema: domain(%s) = %s", role, concept)
+        """Register domain schema: {R(x,y)} |~ {C(x)} for any x, y."""
+        self._register(
+            SchemaEntry("domain", role, concept, annotation, robustness),
+            f"domain({role}) = {concept}",
+        )
 
     def register_subproperty(
         self,
         sub_role: str,
         super_role: str,
         annotation: str | None = None,
+        robustness: Robustness = EXACT,
     ) -> None:
-        """Register subPropertyOf schema: {R(x,y)} |~ {S(x,y)} for any x, y.
-
-        Stored lazily -- not grounded over known individuals.
-        """
-        self._onto_schemas.append(("subPropertyOf", sub_role, super_role, annotation))
-        self._touch()
-        logger.debug(
-            "Registered subPropertyOf schema: %s ⊑ %s", sub_role, super_role
+        """Register subPropertyOf schema: {R(x,y)} |~ {S(x,y)} for any x, y."""
+        self._register(
+            SchemaEntry("subPropertyOf", sub_role, super_role, annotation, robustness),
+            f"{sub_role} ⊑ {super_role}",
         )
 
     def register_disjoint(
@@ -230,15 +254,12 @@ class OntoMaterialBase(MaterialBase):
         concept1: str,
         concept2: str,
         annotation: str | None = None,
+        robustness: Robustness = EXACT,
     ) -> None:
-        """Register disjointWith schema: {C(x), D(x)} |~_B {} for any x.
-
-        Material incompatibility between two concepts. Stored lazily.
-        """
-        self._onto_schemas.append(("disjointWith", concept1, concept2, annotation))
-        self._touch()
-        logger.debug(
-            "Registered disjointWith schema: %s ⊥ %s", concept1, concept2
+        """Register disjointWith schema: {C(x), D(x)} |~ {} for any x."""
+        self._register(
+            SchemaEntry("disjointWith", concept1, concept2, annotation, robustness),
+            f"{concept1} ⊥ {concept2}",
         )
 
     def register_disjoint_properties(
@@ -246,217 +267,238 @@ class OntoMaterialBase(MaterialBase):
         role1: str,
         role2: str,
         annotation: str | None = None,
+        robustness: Robustness = EXACT,
     ) -> None:
-        """Register disjointProperties schema: {R(x,y), S(x,y)} |~_B {} for any x, y.
-
-        Material incompatibility between two roles. Stored lazily.
-        """
-        self._onto_schemas.append(("disjointProperties", role1, role2, annotation))
-        self._touch()
-        logger.debug(
-            "Registered disjointProperties schema: %s ⊥ %s", role1, role2
+        """Register disjointProperties schema: {R(x,y), S(x,y)} |~ {} for any x, y."""
+        self._register(
+            SchemaEntry("disjointProperties", role1, role2, annotation, robustness),
+            f"{role1} ⊥ {role2}",
         )
 
     def register_joint_commitment(
         self,
-        antecedent_concepts: list[str],
+        antecedent_concepts: Sequence[str],
         consequent_concept: str,
         annotation: str | None = None,
+        robustness: Robustness = EXACT,
     ) -> None:
-        """Register jointCommitment schema: {C1(x), ..., Cn(x)} |~_B {D(x)} for any x.
+        """Register jointCommitment schema: {C1(x), ..., Cn(x)} |~ {D(x)} for any x.
 
-        Joint material inferential commitment from multiple concepts to a
-        consequent concept.  Requires at least 2 antecedent concepts (with 1,
-        use ``register_subclass`` instead).  Stored lazily.
+        Requires at least 2 antecedent concepts (with 1, use ``register_subclass``).
         """
-        if len(antecedent_concepts) < 2:
+        concepts = list(antecedent_concepts)
+        if len(concepts) < 2:
             raise ValueError(
                 "jointCommitment requires at least 2 antecedent concepts "
                 "(use subClassOf for a single antecedent)."
             )
-        arg1 = ",".join(antecedent_concepts)
-        self._onto_schemas.append(("jointCommitment", arg1, consequent_concept, annotation))
-        self._joint_sizes.add(len(arg1.split(",")))
-        self._touch()
-        logger.debug(
-            "Registered jointCommitment schema: {%s} |~ {%s}",
-            ", ".join(f"{c}(x)" for c in antecedent_concepts),
-            f"{consequent_concept}(x)",
+        self._register(
+            SchemaEntry(
+                "jointCommitment", ",".join(concepts), consequent_concept, annotation, robustness
+            ),
+            f"{{{', '.join(concepts)}}} |~ {consequent_concept}",
         )
 
-    # --- Axiom check (overrides parent) ---
+    # --- Schema index ---
+
+    def _init_schema_index(self) -> None:
+        self._sub_by_super: dict[str, list[SchemaEntry]] = {}
+        self._range_by_concept: dict[str, list[SchemaEntry]] = {}
+        self._domain_by_concept: dict[str, list[SchemaEntry]] = {}
+        self._subprop_by_super: dict[str, list[SchemaEntry]] = {}
+        self._joint_by_consequent: dict[str, list[SchemaEntry]] = {}
+        self._disjoint_by_pair: dict[frozenset[str], list[SchemaEntry]] = {}
+        self._disjoint_by_concept: dict[str, list[SchemaEntry]] = {}
+        self._disjoint_props_by_pair: dict[frozenset[str], list[SchemaEntry]] = {}
+        self._disjoint_props_by_role: dict[str, list[SchemaEntry]] = {}
+        # True once any incompatibility schema is MONOTONE/GUARDED, which is
+        # the only case that needs a scan of Γ for a partner atom.
+        self._robust_incompat: bool = False
+
+    def _index_schema(self, e: SchemaEntry) -> None:
+        if e.type == "subClassOf":
+            self._sub_by_super.setdefault(e.arg2, []).append(e)
+        elif e.type == "range":
+            self._range_by_concept.setdefault(e.arg2, []).append(e)
+        elif e.type == "domain":
+            self._domain_by_concept.setdefault(e.arg2, []).append(e)
+        elif e.type == "subPropertyOf":
+            self._subprop_by_super.setdefault(e.arg2, []).append(e)
+        elif e.type == "jointCommitment":
+            self._joint_by_consequent.setdefault(e.arg2, []).append(e)
+        elif e.type == "disjointWith":
+            self._disjoint_by_pair.setdefault(frozenset({e.arg1, e.arg2}), []).append(e)
+            for c in {e.arg1, e.arg2}:
+                self._disjoint_by_concept.setdefault(c, []).append(e)
+            self._robust_incompat |= not e.robustness.is_exact
+        elif e.type == "disjointProperties":
+            self._disjoint_props_by_pair.setdefault(frozenset({e.arg1, e.arg2}), []).append(e)
+            for r in {e.arg1, e.arg2}:
+                self._disjoint_props_by_role.setdefault(r, []).append(e)
+            self._robust_incompat |= not e.robustness.is_exact
+        else:  # pragma: no cover
+            raise ValueError(f"Unknown schema type {e.type!r}")
+
+    def _reindex(self) -> None:
+        super()._reindex()
+        self._init_schema_index()
+        for e in self._onto_schemas:
+            self._index_schema(e)
+
+    # --- Axiom check ---
 
     def is_axiom(self, gamma: AbstractSet[str], delta: AbstractSet[str]) -> bool:
         """Check if Gamma => Delta is an axiom.
 
         Ax1 (Containment): Gamma & Delta != empty.
-        Ax2 (Base consequence): (Gamma, Delta) in |~_B exactly.
+        Ax2 (Base consequence): (Gamma, Delta) in |~_B (exact or robust).
         Ax3 (Ontology schema consequence): matches a lazy ontology schema.
         """
-        # Ax1 and Ax2
         if super().is_axiom(gamma, delta):
             return True
-        # Ax3: Ontology schema evaluation
         if self._onto_schemas and self._check_onto_schemas(gamma, delta):
             return True
         return False
 
-    def _check_onto_schemas(
-        self, gamma: AbstractSet[str], delta: AbstractSet[str]
-    ) -> bool:
-        """Check if any ontology schema makes gamma |~ delta hold.
+    def _check_onto_schemas(self, gamma: AbstractSet[str], delta: AbstractSet[str]) -> bool:
+        """Index-driven schema match.
 
-        Exact match (no weakening) preserves nonmonotonicity.
-        Inference schemas: len(gamma) == 1, len(delta) == 1.
-        Incompatibility schemas: len(gamma) == 2, len(delta) == 0.
-        Joint commitment schemas: len(gamma) >= 2, len(delta) == 1.
+        Inference schemas need a singleton consequent; incompatibility schemas
+        need an empty one. Dispatch is on the consequent's concept or role, so
+        neither hits nor misses scan the schema list.
         """
-        # --- Inference schemas: singleton antecedent, singleton consequent ---
-        if len(gamma) == 1 and len(delta) == 1:
-            gamma_str = next(iter(gamma))
-            delta_str = next(iter(delta))
+        if len(delta) == 1:
+            return self._check_inference_schemas(gamma, next(iter(delta)))
+        if len(delta) == 0:
+            return self._check_incompatibility_schemas(gamma)
+        return False
 
-            try:
-                gamma_parsed = parse_onto_sentence(gamma_str)
-                delta_parsed = parse_onto_sentence(delta_str)
-            except ValueError:
-                return False
+    def _applies(
+        self, e: SchemaEntry, gamma: AbstractSet[str], individuals: tuple[str, ...], needed: int
+    ) -> bool:
+        """Policy check once the schema's own antecedent atoms are known to be in Γ.
 
-            if not isinstance(gamma_parsed, OntoSentence) or not isinstance(
-                delta_parsed, OntoSentence
-            ):
-                return False
-
-            for schema_type, arg1, arg2, _annotation in self._onto_schemas:
-                if schema_type == "subClassOf":
-                    # {C(x)} |~ {D(x)} -- same individual
-                    if (
-                        gamma_parsed.type == ATOM_CONCEPT
-                        and delta_parsed.type == ATOM_CONCEPT
-                        and gamma_parsed.concept == arg1
-                        and delta_parsed.concept == arg2
-                        and gamma_parsed.individual == delta_parsed.individual
-                    ):
-                        return True
-
-                elif schema_type == "range":
-                    # {R(x,y)} |~ {C(y)} -- role.arg2 == concept.individual
-                    if (
-                        gamma_parsed.type == ATOM_ROLE
-                        and delta_parsed.type == ATOM_CONCEPT
-                        and gamma_parsed.role == arg1
-                        and delta_parsed.concept == arg2
-                        and gamma_parsed.arg2 == delta_parsed.individual
-                    ):
-                        return True
-
-                elif schema_type == "domain":
-                    # {R(x,y)} |~ {C(x)} -- role.arg1 == concept.individual
-                    if (
-                        gamma_parsed.type == ATOM_ROLE
-                        and delta_parsed.type == ATOM_CONCEPT
-                        and gamma_parsed.role == arg1
-                        and delta_parsed.concept == arg2
-                        and gamma_parsed.arg1 == delta_parsed.individual
-                    ):
-                        return True
-
-                elif schema_type == "subPropertyOf":
-                    # {R(x,y)} |~ {S(x,y)} -- same arg1, same arg2
-                    if (
-                        gamma_parsed.type == ATOM_ROLE
-                        and delta_parsed.type == ATOM_ROLE
-                        and gamma_parsed.role == arg1
-                        and delta_parsed.role == arg2
-                        and gamma_parsed.arg1 == delta_parsed.arg1
-                        and gamma_parsed.arg2 == delta_parsed.arg2
-                    ):
-                        return True
-
-            return False
-
-        # --- Incompatibility schemas: two-element antecedent, empty consequent ---
-        if len(gamma) == 2 and len(delta) == 0:
-            gamma_list = sorted(gamma)  # deterministic iteration
-            try:
-                parsed_0 = parse_onto_sentence(gamma_list[0])
-                parsed_1 = parse_onto_sentence(gamma_list[1])
-            except ValueError:
-                return False
-
-            if not isinstance(parsed_0, OntoSentence) or not isinstance(
-                parsed_1, OntoSentence
-            ):
-                return False
-
-            for schema_type, arg1, arg2, _annotation in self._onto_schemas:
-                if schema_type == "disjointWith":
-                    # Both concept assertions, same individual, concepts match {arg1, arg2}
-                    if (
-                        parsed_0.type == ATOM_CONCEPT
-                        and parsed_1.type == ATOM_CONCEPT
-                        and parsed_0.individual == parsed_1.individual
-                        and {parsed_0.concept, parsed_1.concept} == {arg1, arg2}
-                    ):
-                        return True
-
-                elif schema_type == "disjointProperties":
-                    # Both role assertions, same args, roles match {arg1, arg2}
-                    if (
-                        parsed_0.type == ATOM_ROLE
-                        and parsed_1.type == ATOM_ROLE
-                        and parsed_0.arg1 == parsed_1.arg1
-                        and parsed_0.arg2 == parsed_1.arg2
-                        and {parsed_0.role, parsed_1.role} == {arg1, arg2}
-                    ):
-                        return True
-
-            return False
-
-        # --- Joint commitment schemas: multi-element antecedent, singleton consequent ---
-        if len(gamma) >= 2 and len(delta) == 1:
-            if len(gamma) not in self._joint_sizes:
-                return False
-            delta_str = next(iter(delta))
-
-            try:
-                delta_parsed = parse_onto_sentence(delta_str)
-            except ValueError:
-                return False
-
-            if not isinstance(delta_parsed, OntoSentence):
-                return False
-            if delta_parsed.type != ATOM_CONCEPT:
-                return False
-
-            # Parse all gamma elements -- all must be concept assertions
-            gamma_parsed_list: list[OntoSentence] = []
-            for g_str in gamma:
-                try:
-                    g_parsed = parse_onto_sentence(g_str)
-                except ValueError:
+        *needed* is the size of the schema's antecedent instance; an EXACT
+        schema requires Γ to be exactly that instance.
+        """
+        rob = e.robustness
+        if rob.is_exact:
+            return len(gamma) == needed
+        for defeater in rob.left:
+            for i in individuals:
+                if make_concept_assertion(defeater, i) in gamma:
+                    logger.debug(
+                        "%s schema %s/%s defeated by %s(%s)", e.type, e.arg1, e.arg2, defeater, i
+                    )
                     return False
-                if not isinstance(g_parsed, OntoSentence):
-                    return False
-                if g_parsed.type != ATOM_CONCEPT:
-                    return False
-                gamma_parsed_list.append(g_parsed)
+        return True
 
-            # All gamma elements must share the same individual as delta
-            target_individual = delta_parsed.individual
-            if not all(g.individual == target_individual for g in gamma_parsed_list):
-                return False
-
-            gamma_concepts = {g.concept for g in gamma_parsed_list}
-
-            for schema_type, arg1, arg2, _annotation in self._onto_schemas:
-                if schema_type == "jointCommitment":
-                    schema_concepts = set(arg1.split(","))
-                    if gamma_concepts == schema_concepts and delta_parsed.concept == arg2:
-                        return True
-
+    def _check_inference_schemas(self, gamma: AbstractSet[str], d: str) -> bool:
+        m = _CONCEPT_RE.match(d)
+        if m:
+            concept, x = m.group(1), m.group(2)
+            for e in self._sub_by_super.get(concept, ()):
+                if make_concept_assertion(e.arg1, x) in gamma and self._applies(e, gamma, (x,), 1):
+                    return True
+            for e in self._joint_by_consequent.get(concept, ()):
+                cs = e.concepts
+                if all(make_concept_assertion(c, x) in gamma for c in cs) and self._applies(
+                    e, gamma, (x,), len(cs)
+                ):
+                    return True
+            for e in self._range_by_concept.get(concept, ()):
+                args = self._find_role(gamma, e.arg1, arg2=x, exact=e.robustness.is_exact)
+                if args is not None and self._applies(e, gamma, args, 1):
+                    return True
+            for e in self._domain_by_concept.get(concept, ()):
+                args = self._find_role(gamma, e.arg1, arg1=x, exact=e.robustness.is_exact)
+                if args is not None and self._applies(e, gamma, args, 1):
+                    return True
             return False
+        m = _ROLE_RE.match(d)
+        if m:
+            role, x, y = m.group(1), m.group(2), m.group(3)
+            for e in self._subprop_by_super.get(role, ()):
+                if make_role_assertion(e.arg1, x, y) in gamma and self._applies(
+                    e, gamma, (x, y), 1
+                ):
+                    return True
+        return False
 
+    @staticmethod
+    def _find_role(
+        gamma: AbstractSet[str],
+        role: str,
+        *,
+        arg1: str | None = None,
+        arg2: str | None = None,
+        exact: bool,
+    ) -> tuple[str, str] | None:
+        """Find ``role(a, b)`` in Γ with the given fixed argument(s).
+
+        An EXACT schema only looks at a singleton Γ; otherwise Γ is scanned.
+        """
+        if exact and len(gamma) != 1:
+            return None
+        prefix = role + "("
+        for atom in gamma:
+            if not atom.startswith(prefix):
+                continue
+            m = _ROLE_RE.match(atom)
+            if not m:
+                continue
+            a, b = m.group(2), m.group(3)
+            if (arg1 is None or a == arg1) and (arg2 is None or b == arg2):
+                return (a, b)
+        return None
+
+    def _check_incompatibility_schemas(self, gamma: AbstractSet[str]) -> bool:
+        if len(gamma) < 2:
+            return False
+        if len(gamma) == 2:
+            a, b = sorted(gamma)
+            ca, cb = _CONCEPT_RE.match(a), _CONCEPT_RE.match(b)
+            if ca and cb and ca.group(2) == cb.group(2):
+                pair = frozenset({ca.group(1), cb.group(1)})
+                for e in self._disjoint_by_pair.get(pair, ()):
+                    if self._applies(e, gamma, (ca.group(2),), 2):
+                        return True
+                return False
+            ra, rb = _ROLE_RE.match(a), _ROLE_RE.match(b)
+            if ra and rb and ra.group(2) == rb.group(2) and ra.group(3) == rb.group(3):
+                pair = frozenset({ra.group(1), rb.group(1)})
+                for e in self._disjoint_props_by_pair.get(pair, ()):
+                    if self._applies(e, gamma, (ra.group(2), ra.group(3)), 2):
+                        return True
+            return False
+        if not self._robust_incompat:
+            return False
+        # MONOTONE/GUARDED incompatibilities inside a larger Γ: scan for a
+        # concept or role atom whose disjoint partner is also present.
+        for atom in gamma:
+            m = _CONCEPT_RE.match(atom)
+            if m:
+                c, x = m.group(1), m.group(2)
+                for e in self._disjoint_by_concept.get(c, ()):
+                    if e.robustness.is_exact:
+                        continue
+                    other = e.arg2 if e.arg1 == c else e.arg1
+                    if make_concept_assertion(other, x) in gamma and self._applies(
+                        e, gamma, (x,), 2
+                    ):
+                        return True
+                continue
+            m = _ROLE_RE.match(atom)
+            if m:
+                r, x, y = m.group(1), m.group(2), m.group(3)
+                for e in self._disjoint_props_by_role.get(r, ()):
+                    if e.robustness.is_exact:
+                        continue
+                    other = e.arg2 if e.arg1 == r else e.arg1
+                    if make_role_assertion(other, x, y) in gamma and self._applies(
+                        e, gamma, (x, y), 2
+                    ):
+                        return True
         return False
 
     # --- Serialization ---
@@ -468,14 +510,15 @@ class OntoMaterialBase(MaterialBase):
         base_dict["concepts"] = sorted(self._concepts)
         base_dict["roles"] = sorted(self._roles)
         onto_schema_list = []
-        for schema_type, arg1, arg2, annotation in self._onto_schemas:
-            entry: dict[str, str | list[str]] = {
-                "type": schema_type,
-                "arg1": arg1.split(",") if schema_type == "jointCommitment" else arg1,
-                "arg2": arg2,
+        for e in self._onto_schemas:
+            entry: dict[str, object] = {
+                "type": e.type,
+                "arg1": e.concepts if e.type == "jointCommitment" else e.arg1,
+                "arg2": e.arg2,
             }
-            if annotation:
-                entry["annotation"] = annotation
+            if e.annotation:
+                entry["annotation"] = e.annotation
+            entry["robustness"] = e.robustness.to_json()
             onto_schema_list.append(entry)
         base_dict["onto_schemas"] = onto_schema_list
         return base_dict
@@ -485,31 +528,37 @@ class OntoMaterialBase(MaterialBase):
         """Deserialize from a dict (as produced by ``to_dict``)."""
         language = set(data.get("language", []))
         consequences: set[Sequent] = set()
+        robustness: dict[Sequent, Robustness] = {}
         for entry in data.get("consequences", []):
-            gamma = frozenset(entry["antecedent"])
-            delta = frozenset(entry["consequent"])
-            consequences.add((gamma, delta))
+            pair = (frozenset(entry["antecedent"]), frozenset(entry["consequent"]))
+            consequences.add(pair)
+            policy = Robustness.from_json(entry.get("robustness"))
+            if not policy.is_exact:
+                robustness[pair] = policy
         annotations = data.get("annotations", {})
 
-        base = cls(language=language, consequences=consequences, annotations=annotations)
+        base = cls(
+            language=language,
+            consequences=consequences,
+            annotations=annotations,
+            robustness=robustness,
+        )
 
-        # Restore ontology schemas
-        schemas_data = data.get("onto_schemas", [])
-        for schema in schemas_data:
+        for schema in data.get("onto_schemas", []):
             arg1 = schema["arg1"]
             # jointCommitment stores arg1 as a list in JSON; join for internal repr
             if isinstance(arg1, list):
                 arg1 = ",".join(arg1)
-            base._onto_schemas.append((
-                schema["type"],
-                arg1,
-                schema["arg2"],
-                schema.get("annotation"),
-            ))
-            if schema["type"] == "jointCommitment":
-                base._joint_sizes.add(len(arg1.split(",")))
-            base._touch()
-
+            base._register(
+                SchemaEntry(
+                    schema["type"],
+                    arg1,
+                    schema["arg2"],
+                    schema.get("annotation"),
+                    Robustness.from_json(schema.get("robustness")),
+                ),
+                f"{arg1} -> {schema['arg2']}",
+            )
         return base
 
     def to_file(self, path: str | Path) -> None:
@@ -531,19 +580,19 @@ class CommitmentStore:
     """Manages ontology commitments and compiles them to an OntoMaterialBase.
 
     Higher-level API for managing assertions and ontology schemas, bridging
-    natural language commitments to the atomic material base.
+    natural language commitments to the atomic material base. Each commitment
+    is tagged with a *source* label so that it can be retracted as a group.
     """
 
     def __init__(self) -> None:
         self.assertions: set[str] = set()
-        self._onto_commitments: list[tuple[str, str, str, str]] = []
-        self._ground_rules: set[Sequent] = set()
+        self._onto_commitments: list[tuple[str, str, str, str, Robustness]] = []
+        self._ground_rules: dict[Sequent, Robustness] = {}
         self._base: OntoMaterialBase | None = None
 
     def add_assertion(self, s: str) -> None:
         """Add an atomic assertion."""
-        _validate_onto_atomic(s, "CommitmentStore.add_assertion")
-        self.assertions.add(s)
+        self.assertions.add(_validate_onto_atomic(s, "CommitmentStore.add_assertion"))
         self._base = None
 
     def add_role(self, role: str, subject: str, obj: str) -> None:
@@ -554,71 +603,56 @@ class CommitmentStore:
         """Add a concept assertion C(individual)."""
         self.add_assertion(make_concept_assertion(concept, individual))
 
+    def _commit(
+        self, source: str, schema_type: str, arg1: str, arg2: str, robustness: Robustness
+    ) -> None:
+        self._onto_commitments.append((source, schema_type, arg1, arg2, robustness))
+        self._base = None
+
     def commit_subclass(
-        self,
-        source: str,
-        sub_concept: str,
-        super_concept: str,
+        self, source: str, sub_concept: str, super_concept: str, *,
+        robustness: Robustness = EXACT,
     ) -> None:
         """Record a subClassOf commitment: {sub(x)} |~ {super(x)}."""
-        self._onto_commitments.append((source, "subClassOf", sub_concept, super_concept))
-        self._base = None
+        self._commit(source, "subClassOf", sub_concept, super_concept, robustness)
 
     def commit_range(
-        self,
-        source: str,
-        role: str,
-        concept: str,
+        self, source: str, role: str, concept: str, *, robustness: Robustness = EXACT
     ) -> None:
         """Record a range commitment: {R(x,y)} |~ {C(y)}."""
-        self._onto_commitments.append((source, "range", role, concept))
-        self._base = None
+        self._commit(source, "range", role, concept, robustness)
 
     def commit_domain(
-        self,
-        source: str,
-        role: str,
-        concept: str,
+        self, source: str, role: str, concept: str, *, robustness: Robustness = EXACT
     ) -> None:
         """Record a domain commitment: {R(x,y)} |~ {C(x)}."""
-        self._onto_commitments.append((source, "domain", role, concept))
-        self._base = None
+        self._commit(source, "domain", role, concept, robustness)
 
     def commit_subproperty(
-        self,
-        source: str,
-        sub_role: str,
-        super_role: str,
+        self, source: str, sub_role: str, super_role: str, *, robustness: Robustness = EXACT
     ) -> None:
         """Record a subPropertyOf commitment: {R(x,y)} |~ {S(x,y)}."""
-        self._onto_commitments.append((source, "subPropertyOf", sub_role, super_role))
-        self._base = None
+        self._commit(source, "subPropertyOf", sub_role, super_role, robustness)
 
     def commit_disjoint(
-        self,
-        source: str,
-        concept1: str,
-        concept2: str,
+        self, source: str, concept1: str, concept2: str, *, robustness: Robustness = EXACT
     ) -> None:
         """Record a disjointWith commitment: {C(x), D(x)} |~ {}."""
-        self._onto_commitments.append((source, "disjointWith", concept1, concept2))
-        self._base = None
+        self._commit(source, "disjointWith", concept1, concept2, robustness)
 
     def commit_disjoint_properties(
-        self,
-        source: str,
-        role1: str,
-        role2: str,
+        self, source: str, role1: str, role2: str, *, robustness: Robustness = EXACT
     ) -> None:
         """Record a disjointProperties commitment: {R(x,y), S(x,y)} |~ {}."""
-        self._onto_commitments.append((source, "disjointProperties", role1, role2))
-        self._base = None
+        self._commit(source, "disjointProperties", role1, role2, robustness)
 
     def commit_joint_commitment(
         self,
         source: str,
-        antecedent_concepts: list[str],
+        antecedent_concepts: Sequence[str],
         consequent_concept: str,
+        *,
+        robustness: Robustness = EXACT,
     ) -> None:
         """Record a jointCommitment commitment: {C1(x), ..., Cn(x)} |~ {D(x)}."""
         if len(antecedent_concepts) < 2:
@@ -626,62 +660,63 @@ class CommitmentStore:
                 "jointCommitment requires at least 2 antecedent concepts "
                 "(use subClassOf for a single antecedent)."
             )
-        arg1 = ",".join(antecedent_concepts)
-        self._onto_commitments.append((source, "jointCommitment", arg1, consequent_concept))
-        self._base = None
+        self._commit(
+            source, "jointCommitment", ",".join(antecedent_concepts), consequent_concept,
+            robustness,
+        )
 
     def commit_defeasible_rule(
         self,
         source: str,
         antecedent: frozenset[str],
         consequent: frozenset[str],
+        *,
+        robustness: Robustness = EXACT,
     ) -> None:
         """Record a ground defeasible material inference."""
-        for s in antecedent | consequent:
-            _validate_onto_atomic(s, f"commit_defeasible_rule ({source})")
-            self.assertions.add(s)
-        self._ground_rules.add((antecedent, consequent))
+        ant = frozenset(
+            _validate_onto_atomic(s, f"commit_defeasible_rule ({source})") for s in antecedent
+        )
+        con = frozenset(
+            _validate_onto_atomic(s, f"commit_defeasible_rule ({source})") for s in consequent
+        )
+        self.assertions.update(ant | con)
+        self._ground_rules[(ant, con)] = robustness
         self._base = None
 
     def retract_schema(self, source: str) -> None:
         """Retract all schemas with the given source."""
-        self._onto_commitments = [
-            c for c in self._onto_commitments if c[0] != source
-        ]
+        self._onto_commitments = [c for c in self._onto_commitments if c[0] != source]
         self._base = None
 
     def compile(self) -> OntoMaterialBase:
-        """Compile current commitments into an OntoMaterialBase.
-
-        Schemas are registered lazily -- no eager grounding.
-        """
+        """Compile current commitments into an OntoMaterialBase (schemas stay lazy)."""
         if self._base is not None:
             return self._base
 
-        language = set(self.assertions)
-        consequences: set[Sequent] = set(self._ground_rules)
-
         self._base = OntoMaterialBase(
-            language=language,
-            consequences=consequences,
+            language=set(self.assertions),
+            consequences=set(self._ground_rules),
+            robustness={k: v for k, v in self._ground_rules.items() if not v.is_exact},
         )
 
-        # Register ontology schemas lazily
-        for _source, schema_type, arg1, arg2 in self._onto_commitments:
+        for _source, schema_type, arg1, arg2, robustness in self._onto_commitments:
             if schema_type == "subClassOf":
-                self._base.register_subclass(arg1, arg2)
+                self._base.register_subclass(arg1, arg2, robustness=robustness)
             elif schema_type == "range":
-                self._base.register_range(arg1, arg2)
+                self._base.register_range(arg1, arg2, robustness=robustness)
             elif schema_type == "domain":
-                self._base.register_domain(arg1, arg2)
+                self._base.register_domain(arg1, arg2, robustness=robustness)
             elif schema_type == "subPropertyOf":
-                self._base.register_subproperty(arg1, arg2)
+                self._base.register_subproperty(arg1, arg2, robustness=robustness)
             elif schema_type == "disjointWith":
-                self._base.register_disjoint(arg1, arg2)
+                self._base.register_disjoint(arg1, arg2, robustness=robustness)
             elif schema_type == "disjointProperties":
-                self._base.register_disjoint_properties(arg1, arg2)
+                self._base.register_disjoint_properties(arg1, arg2, robustness=robustness)
             elif schema_type == "jointCommitment":
-                self._base.register_joint_commitment(arg1.split(","), arg2)
+                self._base.register_joint_commitment(
+                    arg1.split(","), arg2, robustness=robustness
+                )
 
         return self._base
 
@@ -692,7 +727,7 @@ class CommitmentStore:
         for s in sorted(self.assertions):
             lines.append(f"    {s}")
         lines.append(f"  Ontology Schemas: {len(self._onto_commitments)}")
-        for source, schema_type, arg1, arg2 in self._onto_commitments:
+        for source, schema_type, arg1, arg2, robustness in self._onto_commitments:
             if schema_type == "subClassOf":
                 pattern = f"{arg1}(x) |~ {arg2}(x)"
             elif schema_type == "range":
@@ -706,14 +741,15 @@ class CommitmentStore:
             elif schema_type == "disjointProperties":
                 pattern = f"{arg1}(x,y), {arg2}(x,y) |~"
             elif schema_type == "jointCommitment":
-                concepts = arg1.split(",")
-                ant_str = ", ".join(f"{c}(x)" for c in concepts)
+                ant_str = ", ".join(f"{c}(x)" for c in arg1.split(","))
                 pattern = f"{ant_str} |~ {arg2}(x)"
             else:
                 pattern = f"{arg1} -> {arg2}"  # pragma: no cover
-            lines.append(f"    [{source}] {schema_type}: {pattern}")
+            suffix = "" if robustness.is_exact else f" [{robustness}]"
+            lines.append(f"    [{source}] {schema_type}: {pattern}{suffix}")
         if self._ground_rules:
             lines.append(f"  Ground rules: {len(self._ground_rules)}")
-            for ant, con in self._ground_rules:
-                lines.append(f"    {set(ant)} |~ {set(con)}")
+            for (ant, con), robustness in self._ground_rules.items():
+                suffix = "" if robustness.is_exact else f" [{robustness}]"
+                lines.append(f"    {set(ant)} |~ {set(con)}{suffix}")
         return "\n".join(lines)

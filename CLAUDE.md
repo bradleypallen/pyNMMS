@@ -14,7 +14,8 @@ pytest -v
 # Run tests with coverage
 pytest --cov=pynmms --cov-report=term-missing
 
-# Lint, typecheck, test (Makefile targets)
+# Lint, typecheck, test (Makefile targets); CI (.github/workflows/ci.yml) runs the same on
+# Python 3.12 and 3.13 with the dev and rdf extras, then builds the package
 make check
 
 # Benchmarks (write a JSON record to bench/results/; --quick for reduced sizes)

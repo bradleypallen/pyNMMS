@@ -645,6 +645,62 @@
   
   
     <li class="md-nav__item">
+      <a href="../../api/sequent/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sequent and AtomSet
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/robustness/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Robustness
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../api/onto-base/" class="md-nav__link">
         
   
@@ -1822,7 +1878,7 @@
 <p><strong>Containment suffices</strong>: The Containment axiom (Definition 1 in Ch. 3) is the only structural requirement on the material base. We assume that Hlobil's proofs depend on no other properties of |~_B beyond Containment and the specific form of the proof rules. This assumption is supported by the text of Ch. 3, which states the results for "any material base satisfying Containment."</p>
 </li>
 <li>
-<p><strong>Exact match is the right notion of defeasibility</strong>: The schemas use singleton antecedent and singleton consequent (for inferential commitment schemas) or pair antecedent and empty consequent (for incompatibility schemas) with no weakening. This means that <em>any</em> additional premise defeats the inference or incompatibility. In practice, one might want finer-grained defeat: <code>{Man(socrates), Greek(socrates)} |~ {Mortal(socrates)}</code> might be desired even though the schema only directly generates the singleton-antecedent form. Users can accommodate this by adding explicit ground consequences for the desired multi-premise patterns.</p>
+<p><strong>Exact match is one point on a range of robustness, not the only one</strong>: Through v0.6 every schema generated axioms with singleton antecedent and singleton consequent (pair antecedent and empty consequent for incompatibilities) matched exactly, so that <em>any</em> additional premise defeated the inference. Allen (2026, Sec. 3.3) observes that such a base "corresponds to no regime" and that its failure of monotonicity is "by omission rather than by defeat". Since v0.7 every base entry and schema carries an explicit robustness policy fixing a fragment of its range of subjunctive robustness (Hlobil &amp; Brandom 2025, Ch. 5): <code>exact</code> (the v0.6 behaviour), <code>monotone</code> (the regime-base reading, in which additions never defeat), or <code>guarded</code> by a set of defeater concepts (additions never defeat except a named defeater on an individual of the matched consequent). <code>exact</code> remains the default so existing bases keep their meaning; <code>guarded</code> is the recommended policy for material inferential commitments, because it distinguishes relevant defeat (<code>Penguin</code> defeats <code>Bird |~ Flies</code>) from the arbitrary defeat of exact matching. Containment is unaffected by the policy, so the metatheory of Section 4 is unchanged.</p>
 </li>
 <li>
 <p><strong>Propositional connectives are sufficient for logical structure</strong>: The claim is that the seven ontology schemas, combined with propositional connectives via the eight proof rules, provide adequate expressive power for a useful fragment of ontological reasoning. This is an empirical claim that depends on the intended applications.</p>

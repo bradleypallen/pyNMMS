@@ -322,7 +322,9 @@ the ninety thousand of the in-memory case. Batch query workloads parallelize
 across processes since the store is shared and the reasoner is stateless
 apart from its cache.
 
-### Phase 4: documentation and theory (v0.8.x, small to medium)
+### Phase 4: documentation and theory (v0.8.x, small to medium) — DONE 2026-09-06
+
+`theory/rdf-semantics.md` written; `onto-extension.md` gained 8.4 (onto vocabulary as the `rdf:type` fragment), revised 8.2, Open Questions 1 and 5, and the new references; landing pages and README updated. Version bumped to 0.8.0.
 
 1. New theory page `theory/rdf-semantics.md`: Definitions 9, 13, 19, 25, 26;
    Theorem 28 and 35; Proposition 34; each stated once and mapped to the class

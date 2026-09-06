@@ -15,7 +15,10 @@ pyNMMS provides:
 - **Supraclassicality**: all classically valid sequents remain derivable
 - A **Tell/Ask CLI** and **interactive REPL** for exploring reason relations
 - Full **proof traces** for understanding derivations
-- **Ontology extension** with schema-level macros for material inferential commitments and incompatibilities (subClassOf, range, domain, subPropertyOf, disjointWith, disjointProperties)
+- **Ontology extension** with schema-level macros for material inferential commitments and incompatibilities (subClassOf, range, domain, subPropertyOf, disjointWith, disjointProperties, jointCommitment)
+- **Robustness policies** on every base entry and schema: `exact`, `monotone`, or `guarded` by named defeaters, so that relevant defeat (`Penguin` defeats `Bird |~ Flies`) is distinguished from arbitrary defeat
+- **Reasoning over RDF** (`pip install "pyNMMS[rdf]"`): triples as atoms, entailment regimes (simple, RDFS, OWL 2 RL, custom rules) as bases specified by closure, the graph kept in a backend so query cost is independent of graph size, and negation over RDF via incoherence, following Allen, *Implication-Space Semantics for RDF*
+- **Query cost independent of antecedent size**: proof nodes are persistent diffs over a shared base, sentences are parsed once, and the search is complete without a depth cap
 
 ## Quick Example
 

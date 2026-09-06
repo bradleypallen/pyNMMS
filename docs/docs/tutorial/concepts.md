@@ -15,7 +15,11 @@ Every material base automatically satisfies **Containment**: if Gamma and Delta 
 
 ### Exact Match (No Weakening)
 
-Base consequences require **exact syntactic match**. If the base contains `{A} |~ {B}`, then `{A, C} |~ {B}` is **not** an axiom. This is what makes the system nonmonotonic — extra premises can defeat inferences.
+By default a base consequence `Γ₀ |~ Δ₀` licenses only the sequent `Γ₀ ⇒ Δ₀` itself: there is no Weakening, so `{A, C} ⇒ B` is not an axiom just because `{A} |~ B` is. This is what makes the base nonmonotonic.
+
+### Robustness Policies
+
+Exact match is the narrowest point on a **range of subjunctive robustness** (Hlobil & Brandom 2025, Ch. 5): the additions to premises and conclusions under which an implication survives. Every entry and ontology schema carries a policy: `exact` (the default), `monotone` (survives any addition; the reading of an RDF entailment regime), or `guarded` by named defeaters (`Bird |~ Flies unless Penguin`: survives any addition except a defeater). Guarded entries distinguish *relevant* defeat from the arbitrary defeat of exact matching. Containment holds whatever the policy, so the NMMS metatheory is unchanged.
 
 ## Sequents
 

@@ -197,8 +197,10 @@ The committed records are the regression baseline for reasoner and base changes.
 This implements the NMMS sequent calculus from:
 
 - Hlobil, U., & Brandom, R. B. (2025). Reasons for logic, logic for reasons: Pragmatics, semantics, and conceptual roles. Routledge.
+- Allen, B. P. (2026). Implication-space semantics for RDF. *Transactions on Graph Data and Knowledge*. The semantics implemented by `pynmms.rdf`: triples as bearers, regime bases by closure, and the recovery theorems that the oracle tests check.
 
-NMMS codifies *open reason relations* — consequence relations where Monotonicity and Transitivity can fail. The material base encodes defeasible material inferences among atomic sentences, and the Ketonen-style logical rules extend this to compound sentences while preserving nonmonotonicity.
+NMMS codifies *open reason relations* — consequence relations where Monotonicity and Transitivity can fail. The material base encodes defeasible material inferences among atomic sentences, and the Ketonen-style logical rules extend this to compound sentences while preserving nonmonotonicity. Robustness policies on base entries fix how far each material inference survives additions to its premises; an RDF entailment regime is the limiting monotone case, specified by closure.
+
 
 ## License
 

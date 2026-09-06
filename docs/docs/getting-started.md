@@ -14,6 +14,12 @@ cd pyNMMS
 pip install -e ".[dev]"
 ```
 
+To reason over RDF graphs, add the `rdf` extra (rdflib and owlrl):
+
+```bash
+pip install "pyNMMS[rdf]"
+```
+
 ## Your First Material Base
 
 A **material base** encodes defeasible material inferences among atomic sentences.
@@ -66,3 +72,5 @@ pynmms repl -b mybase.json
 - [Key Concepts](tutorial/concepts.md) — understand material bases, nonmonotonicity, and sequents
 - [Proof Search](tutorial/proof-search.md) — how the reasoner works and how to read traces
 - [CLI Usage](tutorial/cli-usage.md) — full guide to the Tell/Ask CLI and REPL
+- [Reasoning over RDF](tutorial/rdf-tutorial.md) — triples as atoms, entailment regimes, negation over graphs
+- [Robustness of base entries](tutorial/cli-usage.md#robustness-of-base-entries) — `unless` and `monotone`

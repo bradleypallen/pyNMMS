@@ -136,6 +136,8 @@ class ClosureEngine:
                     yield from join(k + 1, b2)
 
         for b in join(0, b0):
+            if rule.guard is not None and not rule.guard(b):
+                continue
             yield None if rule.conclusion is None else _ground(rule.conclusion, b)
 
     def extend(
@@ -191,3 +193,26 @@ class ClosureEngine:
             (*self.regime.axioms, *triples), store_lookup=None, store_contains=None
         )
         return new.triples, bottom
+
+
+def match_patterns(patterns: Iterable[Pattern], lookup: Lookup) -> Bindings | None:
+    """Find one instance mapping making every pattern a triple in *lookup*.
+
+    This is the witness search of Lemma 33: with the blank nodes of a
+    succedent graph H as variables, ``H`` is entailed iff some binding puts
+    all of ``μ(H)`` in the closure. Returns the binding or ``None``.
+    """
+    pats = list(patterns)
+
+    def go(k: int, b: Bindings) -> Bindings | None:
+        if k == len(pats):
+            return b
+        for cand in lookup(_instantiate(pats[k], b)):
+            b2 = _unify(pats[k], cand, b)
+            if b2 is not None:
+                found = go(k + 1, b2)
+                if found is not None:
+                    return found
+        return None
+
+    return go(0, {})

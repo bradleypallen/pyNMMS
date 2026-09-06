@@ -8,6 +8,7 @@ import importlib.util
 import json
 import tempfile
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
@@ -320,3 +321,232 @@ class TestRdfCli:
             p = self._write_graph(Path(d))
             assert main(["rdf", "ask", "-g", str(p), "tweety"]) == 1
             assert "triple atom" in capsys.readouterr().err
+
+
+# ---------------------------------------------------------------------------
+# Slice 2: OWL 2 RL, pattern atoms, tell/repl, converters
+# ---------------------------------------------------------------------------
+
+from rdflib.namespace import OWL
+
+from pynmms.onto.base import OntoMaterialBase
+from pynmms.rdf import OWL2RL, PatternAtom, onto_to_graph, onto_to_rules
+from pynmms.rdf.convert import DEFAULT_NS, atom_to_triple, consequences_to_triples
+from pynmms.rdf.rules import OWL2RL_OMITTED
+from pynmms.robustness import MONOTONE
+
+
+class TestOwl2RL:
+    def _base(self, g: Graph) -> RegimeBase:
+        return RegimeBase(MemoryBackend(g, regime=OWL2RL))
+
+    def test_inverse_symmetric_transitive(self):
+        g = Graph()
+        g.add((EX.parentOf, OWL.inverseOf, EX.childOf))
+        g.add((EX.knows, RDF.type, OWL.SymmetricProperty))
+        g.add((EX.ancestorOf, RDF.type, OWL.TransitiveProperty))
+        g.add((EX.a, EX.parentOf, EX.b))
+        g.add((EX.a, EX.knows, EX.c))
+        g.add((EX.a, EX.ancestorOf, EX.b))
+        g.add((EX.b, EX.ancestorOf, EX.c))
+        base = self._base(g)
+        r = NMMSReasoner(base)
+        for t in ((EX.b, EX.childOf, EX.a), (EX.c, EX.knows, EX.a), (EX.a, EX.ancestorOf, EX.c)):
+            assert r.derives_sequent(base.sequent([], [TripleAtom(*t)])).derivable
+
+    def test_disjointness_and_functional_sameas(self):
+        g = Graph()
+        g.add((EX.Alive, OWL.disjointWith, EX.Dead))
+        g.add((EX.hasMother, RDF.type, OWL.FunctionalProperty))
+        g.add((EX.x, EX.hasMother, EX.m1))
+        g.add((EX.x, EX.hasMother, EX.m2))
+        base = self._base(g)
+        r = NMMSReasoner(base)
+        same = TripleAtom(EX.m1, OWL.sameAs, EX.m2)
+        assert r.derives_sequent(base.sequent([], [same])).derivable
+        # cax-dw gives negation-as-incoherence over OWL disjointness
+        assert r.derives_sequent(base.sequent(
+            [TripleAtom(EX.a, RDF.type, EX.Alive)], ["~" + TripleAtom(EX.a, RDF.type, EX.Dead)]
+        )).derivable
+        assert not base.is_inconsistent()
+        assert base.is_inconsistent([TripleAtom(EX.a, RDF.type, EX.Alive),
+                                     TripleAtom(EX.a, RDF.type, EX.Dead)])
+
+    def test_owlrl_oracle_on_fixed_arity_fragment(self):
+        import random
+
+        import owlrl
+
+        rnd = random.Random(11)
+        classes = [EX[f"C{i}"] for i in range(4)]
+        props = [EX[f"p{i}"] for i in range(3)]
+        inds = [EX[f"i{i}"] for i in range(4)]
+        for _ in range(12):
+            g = Graph()
+            for _ in range(rnd.randint(2, 6)):
+                k = rnd.random()
+                if k < 0.2:
+                    g.add((rnd.choice(classes), RDFS.subClassOf, rnd.choice(classes)))
+                elif k < 0.3:
+                    g.add((rnd.choice(classes), OWL.equivalentClass, rnd.choice(classes)))
+                elif k < 0.4:
+                    g.add((rnd.choice(props), OWL.inverseOf, rnd.choice(props)))
+                elif k < 0.5:
+                    g.add((rnd.choice(props), RDF.type, rnd.choice(
+                        [OWL.SymmetricProperty, OWL.TransitiveProperty])))
+                elif k < 0.6:
+                    g.add((rnd.choice(props), RDFS.range, rnd.choice(classes)))
+                elif k < 0.75:
+                    g.add((rnd.choice(inds), RDF.type, rnd.choice(classes)))
+                else:
+                    g.add((rnd.choice(inds), rnd.choice(props), rnd.choice(inds)))
+            oracle = Graph()
+            for t in g:
+                oracle.add(t)
+            owlrl.DeductiveClosure(owlrl.OWLRL_Semantics, axiomatic_triples=False).expand(oracle)
+            base = self._base(g)
+            r = NMMSReasoner(base)
+            queries = [(i, RDF.type, c) for i in inds for c in classes] + [
+                (i, p, j) for i in inds for p in props for j in inds]
+            for t in queries:
+                ours = r.derives_sequent(base.sequent([], [TripleAtom(*t)])).derivable
+                assert ours == (t in oracle), (g.serialize(format="nt"), t)
+
+    def test_omitted_rules_documented(self):
+        assert "cls-int1" in OWL2RL_OMITTED and len(OWL2RL.rules) > 60
+
+
+class TestPatternAtom:
+    def test_canonical_name_round_trip(self):
+        pat = PatternAtom([(BNode("b"), RDF.type, EX.Bird), (BNode("b"), EX.name, Literal("T"))])
+        assert str(pat).startswith("<{ ") and str(pat).endswith(" }>")
+        back = PatternAtom.from_name(str(pat))
+        assert back == pat and back.bnodes == {BNode("b")}
+        res = Resolver(tweety_graph())
+        p2 = PatternAtom.from_name('<{ _:b a ex:Bird . _:b ex:name "T" }>', res)
+        assert p2 == pat
+
+    def test_existential_consequent(self, regime_base):
+        r = NMMSReasoner(regime_base)
+        # someone is a Bird with a name: tweety
+        seq = regime_base.sequent(
+            [], ['<{ _:b a ex:Bird . _:b ex:name "Tweety \\u003Cbird\\u003E"@en }>']
+        )
+        assert r.derives_sequent(seq).derivable
+        # ... but nobody is a Fish
+        assert not r.derives_sequent(regime_base.sequent([], ["<{ _:b a ex:Fish }>"])).derivable
+        # shared blank node must be the same individual
+        seq = regime_base.sequent([], ['<{ _:b a ex:Bird . _:b ex:name "Other" }>'])
+        assert not r.derives_sequent(seq).derivable
+        # witness may come from the closure, and from the extras
+        assert r.derives_sequent(regime_base.sequent([], ["<{ _:b a ex:Thing }>"])).derivable
+        seq = regime_base.sequent(["<ex:bob ex:hasChild ex:kim>"], ["<{ _:c a ex:Person }>"])
+        assert r.derives_sequent(seq).derivable
+
+    def test_pattern_combines_with_connectives(self, regime_base):
+        r = NMMSReasoner(regime_base)
+        seq = regime_base.sequent([], ["<{ _:b a ex:Fish }> | <{ _:b a ex:Bird }>"])
+        assert r.derives_sequent(seq).derivable
+
+    def test_pattern_not_allowed_in_antecedent(self, regime_base):
+        with pytest.raises(ValueError, match="antecedent"):
+            regime_base.sequent(["<{ _:b a ex:Bird }>"], [])
+        with pytest.raises(ValueError, match="antecedent"):
+            regime_base.sequent([], ["<{ _:b a ex:Bird }> -> <ex:x a ex:Y>"])
+
+    def test_bnode_in_antecedent_is_skolemized(self, regime_base):
+        seq = regime_base.sequent(["<_:z a ex:Bird>"], ["<_:z a ex:Animal>"])
+        # the consequent bnode is NOT skolemized: it is a fresh existential in a
+        # single-triple pattern? No: a bare triple atom with a bnode in the
+        # succedent denotes that specific blank node, which nothing entails.
+        gamma = next(iter(seq.gamma_atoms.added))
+        assert "genid" in gamma
+        r = NMMSReasoner(regime_base)
+        assert not r.derives_sequent(seq).derivable
+        # the pattern form asks the existential question and succeeds
+        seq = regime_base.sequent(["<_:z a ex:Bird>"], ["<{ _:w a ex:Animal }>"])
+        assert r.derives_sequent(seq).derivable
+
+
+class TestConverters:
+    def _onto(self) -> OntoMaterialBase:
+        base = OntoMaterialBase(language={"Man(socrates)", "hasChild(a,b)"})
+        base.register_subclass("Man", "Mortal", robustness=MONOTONE)
+        base.register_range("hasChild", "Person")
+        base.register_disjoint("Alive", "Dead", robustness=guarded(["Zombie"]))
+        base.register_joint_commitment(["A", "B"], "C")
+        base.add_consequence(F({"Man(socrates)"}), F({"Wise(socrates)"}), robustness=MONOTONE)
+        return base
+
+    def test_atom_to_triple(self):
+        assert atom_to_triple("Man(socrates)") == TripleAtom(
+            DEFAULT_NS.socrates, RDF.type, DEFAULT_NS.Man)
+        assert atom_to_triple("hasChild(a,b)").p == DEFAULT_NS.hasChild
+
+    def test_graph_and_notes(self):
+        g, notes = onto_to_graph(self._onto())
+        assert (DEFAULT_NS.Man, RDFS.subClassOf, DEFAULT_NS.Mortal) in g
+        assert (DEFAULT_NS.socrates, RDF.type, DEFAULT_NS.Man) in g
+        assert (DEFAULT_NS.Alive, OWL.disjointWith, DEFAULT_NS.Dead) in g
+        assert any("range(hasChild, Person) is exact" in n for n in notes)
+        assert any("Zombie" in n or "unless" in n for n in notes)
+        assert any("jointCommitment" in n for n in notes)
+
+    def test_rules_and_reasoning_over_converted_graph(self):
+        onto = self._onto()
+        g, _ = onto_to_graph(onto)
+        rules = onto_to_rules(onto)
+        assert len(rules) == 1
+        regime = custom("onto", rules, extends=RDFS_REGIME)
+        base = RegimeBase(MemoryBackend(g, regime=regime))
+        for gamma, delta, rob in consequences_to_triples(onto):
+            base.add_consequence(gamma, delta, robustness=rob)
+        r = NMMSReasoner(base)
+        assert r.derives_sequent(base.sequent(
+            [], [TripleAtom(DEFAULT_NS.socrates, RDF.type, DEFAULT_NS.Mortal)])).derivable
+        assert r.derives_sequent(base.sequent(
+            [], [TripleAtom(DEFAULT_NS.socrates, RDF.type, DEFAULT_NS.Wise)])).derivable
+        seq = base.sequent([TripleAtom(DEFAULT_NS.x, RDF.type, DEFAULT_NS.A),
+                            TripleAtom(DEFAULT_NS.x, RDF.type, DEFAULT_NS.B)],
+                           [TripleAtom(DEFAULT_NS.x, RDF.type, DEFAULT_NS.C)])
+        assert r.derives_sequent(seq).derivable
+
+
+class TestRdfTellAndRepl:
+    def test_tell_creates_and_extends_file(self, capsys):
+        with tempfile.TemporaryDirectory() as d:
+            p = Path(d) / "new.ttl"
+            g = Graph()
+            g.bind("ex", EX)
+            g.serialize(destination=str(p), format="turtle")
+            assert main(["rdf", "tell", "-g", str(p),
+                         "<ex:tweety a ex:Bird>, <ex:tweety ex:name \"Tweety\"@en>"]) == 0
+            assert main(["rdf", "tell", "-g", str(p), "--json",
+                         "<ex:Bird rdfs:subClassOf ex:Animal>"]) == 0
+            data = json.loads(capsys.readouterr().out.strip().splitlines()[-1])
+            assert data["added"] == 1 and data["graph_triples"] == 3
+            assert main(["rdf", "ask", "-g", str(p), "--regime", "rdfs",
+                         "<ex:tweety a ex:Animal>"]) == 0
+            assert main(["rdf", "tell", "-g", str(p), "nonsense"]) == 1
+
+    def test_repl_session(self, capsys):
+        with tempfile.TemporaryDirectory() as d:
+            p = Path(d) / "g.ttl"
+            tweety_graph().serialize(destination=str(p), format="turtle")
+            inputs = iter([
+                "show",
+                "ask <ex:tweety a ex:Thing>",
+                "tell <ex:kim a ex:Fish>",
+                "ask <ex:kim a ex:Fish>",
+                "trace on",
+                "ask <ex:tweety a ex:Bird> -> <ex:tweety a ex:Animal>",
+                "save",
+                "quit",
+            ])
+            with patch("builtins.input", lambda _: next(inputs)):
+                assert main(["rdf", "repl", "-g", str(p), "--regime", "rdfs"]) == 0
+            out = capsys.readouterr().out
+            assert "regime: rdfs" in out
+            assert out.count("DERIVABLE") >= 3 and "[R→]" in out
+            assert "Added 1 triple(s)" in out and "Saved" in out
+            assert (EX.kim, RDF.type, EX.Fish) in Graph().parse(str(p))

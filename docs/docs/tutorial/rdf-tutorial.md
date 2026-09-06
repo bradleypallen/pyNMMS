@@ -52,7 +52,39 @@ pynmms rdf ask -g birds.ttl --regime rdfs "<ex:x a ex:Bird> -> <ex:x a ex:Animal
 
 A query is `antecedent => consequent`; the graph is always part of the
 antecedent. Without `=>` the whole query is the consequent. `--json`, `-q`,
-`--trace`, `--batch`, and `--max-depth` work as for `pynmms ask`.
+`--trace`, `--batch`, and `--max-depth` work as for `pynmms ask`. Use
+`--regime owl2rl` for the OWL 2 RL/RDF rules (see below).
+
+### Adding triples and an interactive session
+
+```bash
+pynmms rdf tell -g birds.ttl "<ex:kim a ex:Bird>, <ex:kim ex:name \"Kim\"@en>"
+pynmms rdf repl -g birds.ttl --regime rdfs
+rdf> ask <ex:kim a ex:Animal>
+rdf> tell <ex:kim ex:hasChild ex:pip>
+rdf> ask <ex:pip a ex:Person>
+rdf> save
+```
+
+`tell` parses the file, adds the triples, and writes it back in the same
+format. The REPL keeps the graph in memory (with its closure maintained
+incrementally) until you `save`.
+
+### Blank nodes in the consequent
+
+A consequent may be a *pattern atom* whose blank nodes are existential
+variables, written `<{ t1 . t2 . ... }>`:
+
+```bash
+pynmms rdf ask -g birds.ttl --regime rdfs '<{ _:b a ex:Bird . _:b ex:name "Tweety"@en }>'
+```
+
+This asks whether *some* individual is a Bird named Tweety, the witness
+search of Lemma 33 in the paper. Blank nodes in an antecedent are Skolemized
+(Lemma 30); a bare triple atom with a blank node in the consequent denotes
+that specific node and is never entailed, so use the pattern form there. A
+pattern atom is opaque to the logical rules: it can be combined with
+connectives but not decomposed, and it cannot appear in antecedent position.
 
 ### Custom rules and incoherence
 
@@ -131,14 +163,39 @@ to the extras, never to `|G|`.
 |---------|-----|---------|
 | `MemoryBackend(graph, regime=...)` | files, tests, development | computed in-process at load |
 | `SPARQLBackend(url, regime=...)` | a running store | whatever the store materialises; pass `probe=` to verify |
+| `OxigraphBackend(path, regime=...)` | fast local store (needs `oxrdflib`) | computed in-process at load |
 
 Blank nodes in the loaded graph are Skolemized (sound in the antecedent,
-Lemma 30 of the paper). Blank nodes in a *consequent* are not yet supported.
+Lemma 30 of the paper); blank nodes in a consequent go in a pattern atom.
 
 ## Shipped regimes
 
 - `SIMPLE`: no rules, so `Γ |~ Δ` is Containment (simple entailment, Corollary 36).
-- `RDFS`: rdf1 and rdfs2 to rdfs13 with the finite RDFS axiomatic triples
-  (Corollary 37). The literal-typing rules rdfs1 and rdfD1 are omitted.
+- `RDFS`: rdf1, rdfs1 (literal typing) and rdfs2 to rdfs13 with the finite RDFS
+  axiomatic triples (Corollary 37). rdfD1 (datatype-specific typing) is omitted.
+- `OWL2RL`: RDFS plus the fixed-arity OWL 2 RL/RDF rules of Tables 4 to 9
+  (Corollary 38): equality (`owl:sameAs`, `differentFrom`), property
+  characteristics (functional, inverse-functional, irreflexive, symmetric,
+  asymmetric, transitive, inverse, equivalent, disjoint), negative property
+  assertions, class restrictions (someValuesFrom/allValuesFrom/hasValue,
+  max-cardinality 0 and 1), class axioms (subClassOf, equivalentClass,
+  disjointWith, complementOf, `owl:Nothing`), and the schema rules. The
+  false-concluding rules among these are exactly the published
+  incompatibilities Proposition 34 recovers. Not implemented: the rule
+  families over `rdf:List` arguments (`intersectionOf`, `unionOf`, `oneOf`,
+  `AllDisjointClasses`, property chains, `hasKey`, `AllDifferent`) and the
+  datatype rules; `OWL2RL_OMITTED` lists them.
 
 `custom(name, rules, extends=RDFS)` adds your rules on top.
+
+## From the ontology extension
+
+`onto_to_graph(base)` turns an `OntoMaterialBase` into an RDF graph: `C(x)`
+becomes `x rdf:type C`, `R(x,y)` becomes `x R y`, and the schemas become
+`rdfs:subClassOf`, `rdfs:range`, `rdfs:domain`, `rdfs:subPropertyOf`,
+`owl:disjointWith`, and `owl:propertyDisjointWith` triples. `onto_to_rules`
+returns a rule for each `jointCommitment`, and `consequences_to_triples`
+carries the ground consequences over with their robustness policies. Schema
+triples are read monotonically by a regime, so EXACT brittleness and GUARDED
+defeaters on schemas are dropped in the conversion; the returned notes say
+which, so you can add guarded entries on the `RDFBase` instead.

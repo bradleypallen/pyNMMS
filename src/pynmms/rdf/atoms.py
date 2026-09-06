@@ -25,7 +25,7 @@ from __future__ import annotations
 
 import logging
 import re
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
 from typing import Any
 
 from rdflib import BNode, Graph, Literal, URIRef
@@ -244,3 +244,77 @@ class TripleAtom(str):
 
     def __reduce__(self) -> Any:
         return (TripleAtom, (self.s, self.p, self.o))
+
+
+# -------------------------------------------------------------------
+# Graph patterns as consequent atoms (blank nodes in the succedent)
+# -------------------------------------------------------------------
+
+SKOLEM_NS = "https://pynmms.dev/.well-known/genid/"
+
+
+def skolem(label: str) -> URIRef:
+    """The Skolem IRI standing in for blank node ``_:label`` in an antecedent."""
+    return URIRef(SKOLEM_NS + label)
+
+
+def skolemize_triple(t: Triple) -> Triple:
+    """Replace blank nodes in *t* by Skolem IRIs (sound in the antecedent, Lemma 30)."""
+    return tuple(skolem(str(n)) if isinstance(n, BNode) else n for n in t)  # type: ignore[return-value]
+
+
+class PatternAtom(str):
+    """A succedent graph pattern ``<{ s p o . s p o }>`` with blank nodes as variables.
+
+    Lemma 30 makes Skolemization unsound on the succedent side, so a
+    consequent graph with blank nodes is kept as one atom whose axiom check
+    is the witness search of Lemma 33: it holds iff some instance mapping
+    sends every triple into the closure of Γ. Ground patterns (no blank
+    nodes) simply require all their triples. The atom is opaque to the
+    logical rules; it can be combined with connectives but not decomposed.
+    """
+
+    triples: tuple[Triple, ...]
+
+    def __new__(cls, triples: Iterable[Triple]) -> PatternAtom:
+        ts = tuple(triples)
+        if not ts:
+            raise ValueError("A pattern atom needs at least one triple")
+        body = " . ".join(
+            " ".join(term_to_content(x) for x in t) for t in sorted(ts, key=str)
+        )
+        obj = super().__new__(cls, f"<{{ {body} }}>")
+        obj.triples = ts
+        return obj
+
+    @property
+    def bnodes(self) -> frozenset[BNode]:
+        return frozenset(n for t in self.triples for n in t if isinstance(n, BNode))
+
+    @classmethod
+    def from_name(cls, name: str, resolver: Resolver | None = None) -> PatternAtom:
+        name = name.strip()
+        if not (name.startswith("<{") and name.endswith("}>")):
+            raise ValueError(f"Not a pattern atom: {name!r}")
+        body = name[2:-2].strip()
+        parts = [p.strip() for p in body.split(" . ") if p.strip()]
+        if body.endswith("."):
+            parts[-1] = parts[-1].rstrip(" .")
+        return cls(content_to_triple(p, resolver) for p in parts)
+
+    @classmethod
+    def coerce(cls, x: object, resolver: Resolver | None = None) -> PatternAtom | None:
+        if isinstance(x, PatternAtom):
+            return x
+        if isinstance(x, str) and x.startswith("<{") and x.endswith("}>"):
+            try:
+                return cls.from_name(x, resolver)
+            except ValueError:
+                return None
+        return None
+
+    def __repr__(self) -> str:
+        return f"PatternAtom({str(self)!r})"
+
+    def __reduce__(self) -> Any:
+        return (PatternAtom, (self.triples,))

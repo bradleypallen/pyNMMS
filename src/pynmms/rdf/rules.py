@@ -21,11 +21,12 @@ Custom regimes are built from :func:`parse_rule` lines such as::
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from rdflib import URIRef
-from rdflib.namespace import RDF
+from rdflib import Literal, URIRef
+from rdflib.namespace import OWL, RDF
 from rdflib.namespace import RDFS as RDFSNS
 from rdflib.term import Node
 
@@ -50,13 +51,21 @@ Term = Node | Var
 Pattern = tuple[Term, Term, Term]
 
 
+Guard = Callable[[dict["Var", Node]], bool]
+
+
 @dataclass(frozen=True)
 class Rule:
-    """A Horn rule schema. ``conclusion is None`` means ⊥ (false-concluding)."""
+    """A Horn rule schema. ``conclusion is None`` means ⊥ (false-concluding).
+
+    ``guard`` is an optional side condition on the bindings (Definition 9
+    admits conditions such as "is a literal" that substitution preserves).
+    """
 
     name: str
     premises: tuple[Pattern, ...]
     conclusion: Pattern | None
+    guard: Guard | None = None
 
     def __post_init__(self) -> None:
         premise_vars = {t for p in self.premises for t in p if isinstance(t, Var)}
@@ -181,10 +190,148 @@ RDFS_AXIOMS: tuple[Triple, ...] = (
     (RDFSNS.Datatype, _SC, _CLS),
 )
 
-SIMPLE = Regime("simple")
-RDFS = Regime("rdfs", RDFS_RULES, RDFS_AXIOMS)
+L = Var("l")
 
-REGIMES: dict[str, Regime] = {"simple": SIMPLE, "rdfs": RDFS}
+
+def _is_literal(b: dict[Var, Node]) -> bool:
+    return isinstance(b.get(L), Literal)
+
+
+LITERAL_RULES: tuple[Rule, ...] = (
+    # rdfs1: every literal is an rdfs:Literal (generalized RDF lets it be a subject)
+    Rule("rdfs1", ((X, P, L),), (L, RDF.type, RDFSNS.Literal), guard=_is_literal),
+)
+
+SIMPLE = Regime("simple")
+RDFS = Regime("rdfs", RDFS_RULES + LITERAL_RULES, RDFS_AXIOMS)
+
+# --- OWL 2 RL/RDF (W3C OWL 2 Profiles, Section 4.3, Tables 4-9) ---
+#
+# The fixed-arity rules. Rules whose premises range over an rdf:List of
+# arbitrary length (prp-spo2, prp-key, prp-adp, cls-int1, cls-int2, cls-uni,
+# cls-oo, cax-adc, eq-diff2, eq-diff3, scm-int, scm-uni) are rule *families*
+# indexed by list length and are not expressible as a single pattern; they
+# are omitted here and documented in the tutorial. Datatype rules (Table 8
+# dt-*) are also omitted: they need the datatype value spaces.
+
+V1, V2, U, W, C1, C2, P1, P2, I1, I2 = (Var(v) for v in
+                                        ("v1", "v2", "u", "w", "c1", "c2", "p1", "p2", "i1", "i2"))
+_TYPE = RDF.type
+
+OWL2RL_RULES: tuple[Rule, ...] = (
+    # Table 4: equality
+    Rule("eq-sym", ((X, OWL.sameAs, Y),), (Y, OWL.sameAs, X)),
+    Rule("eq-trans", ((X, OWL.sameAs, Y), (Y, OWL.sameAs, Z)), (X, OWL.sameAs, Z)),
+    Rule("eq-rep-s", ((X, OWL.sameAs, Y), (X, P, Z)), (Y, P, Z)),
+    Rule("eq-rep-p", ((P, OWL.sameAs, Q), (X, P, Z)), (X, Q, Z)),
+    Rule("eq-rep-o", ((Z, OWL.sameAs, W), (X, P, Z)), (X, P, W)),
+    Rule("eq-diff1", ((X, OWL.sameAs, Y), (X, OWL.differentFrom, Y)), None),
+    # Table 5: properties
+    Rule("prp-dom", ((P, RDFSNS.domain, C), (X, P, Y)), (X, _TYPE, C)),
+    Rule("prp-rng", ((P, RDFSNS.range, C), (X, P, Y)), (Y, _TYPE, C)),
+    Rule("prp-fp", ((P, _TYPE, OWL.FunctionalProperty), (X, P, Y), (X, P, Z)), (Y, OWL.sameAs, Z)),
+    Rule("prp-ifp", ((P, _TYPE, OWL.InverseFunctionalProperty), (X, P, Y), (Z, P, Y)),
+         (X, OWL.sameAs, Z)),
+    Rule("prp-irp", ((P, _TYPE, OWL.IrreflexiveProperty), (X, P, X)), None),
+    Rule("prp-symp", ((P, _TYPE, OWL.SymmetricProperty), (X, P, Y)), (Y, P, X)),
+    Rule("prp-asyp", ((P, _TYPE, OWL.AsymmetricProperty), (X, P, Y), (Y, P, X)), None),
+    Rule("prp-trp", ((P, _TYPE, OWL.TransitiveProperty), (X, P, Y), (Y, P, Z)), (X, P, Z)),
+    Rule("prp-spo1", ((P1, RDFSNS.subPropertyOf, P2), (X, P1, Y)), (X, P2, Y)),
+    Rule("prp-eqp1", ((P1, OWL.equivalentProperty, P2), (X, P1, Y)), (X, P2, Y)),
+    Rule("prp-eqp2", ((P1, OWL.equivalentProperty, P2), (X, P2, Y)), (X, P1, Y)),
+    Rule("prp-pdw", ((P1, OWL.propertyDisjointWith, P2), (X, P1, Y), (X, P2, Y)), None),
+    Rule("prp-inv1", ((P1, OWL.inverseOf, P2), (X, P1, Y)), (Y, P2, X)),
+    Rule("prp-inv2", ((P1, OWL.inverseOf, P2), (X, P2, Y)), (Y, P1, X)),
+    Rule("prp-npa1", ((X, OWL.sourceIndividual, I1), (X, OWL.assertionProperty, P),
+                      (X, OWL.targetIndividual, I2), (I1, P, I2)), None),
+    Rule("prp-npa2", ((X, OWL.sourceIndividual, I1), (X, OWL.assertionProperty, P),
+                      (X, OWL.targetValue, L), (I1, P, L)), None),
+    # Table 6: classes
+    Rule("cls-nothing2", ((X, _TYPE, OWL.Nothing),), None),
+    Rule("cls-com", ((C1, OWL.complementOf, C2), (X, _TYPE, C1), (X, _TYPE, C2)), None),
+    Rule("cls-svf2", ((X, OWL.someValuesFrom, OWL.Thing), (X, OWL.onProperty, P), (U, P, V1)),
+         (U, _TYPE, X)),
+    Rule("cls-avf", ((X, OWL.allValuesFrom, Y), (X, OWL.onProperty, P), (U, _TYPE, X), (U, P, V1)),
+         (V1, _TYPE, Y)),
+    Rule("cls-hv1", ((X, OWL.hasValue, Y), (X, OWL.onProperty, P), (U, _TYPE, X)), (U, P, Y)),
+    Rule("cls-hv2", ((X, OWL.hasValue, Y), (X, OWL.onProperty, P), (U, P, Y)), (U, _TYPE, X)),
+    Rule("cls-maxc2", ((X, OWL.maxCardinality, Literal(1)), (X, OWL.onProperty, P),
+                       (U, _TYPE, X), (U, P, Y), (U, P, Z)), (Y, OWL.sameAs, Z)),
+    Rule("cls-maxqc3", ((X, OWL.maxQualifiedCardinality, Literal(1)), (X, OWL.onProperty, P),
+                        (X, OWL.onClass, C), (U, _TYPE, X), (U, P, Y), (Y, _TYPE, C),
+                        (U, P, Z), (Z, _TYPE, C)), (Y, OWL.sameAs, Z)),
+    Rule("cls-maxqc4", ((X, OWL.maxQualifiedCardinality, Literal(1)), (X, OWL.onProperty, P),
+                        (X, OWL.onClass, OWL.Thing), (U, _TYPE, X), (U, P, Y), (U, P, Z)),
+         (Y, OWL.sameAs, Z)),
+    Rule("cls-maxc1", ((X, OWL.maxCardinality, Literal(0)), (X, OWL.onProperty, P),
+                       (U, _TYPE, X), (U, P, Y)), None),
+    Rule("cls-maxqc1", ((X, OWL.maxQualifiedCardinality, Literal(0)), (X, OWL.onProperty, P),
+                        (X, OWL.onClass, C), (U, _TYPE, X), (U, P, Y), (Y, _TYPE, C)), None),
+    Rule("cls-maxqc2", ((X, OWL.maxQualifiedCardinality, Literal(0)), (X, OWL.onProperty, P),
+                        (X, OWL.onClass, OWL.Thing), (U, _TYPE, X), (U, P, Y)), None),
+    # Table 7: class axioms
+    Rule("cax-sco", ((C1, RDFSNS.subClassOf, C2), (X, _TYPE, C1)), (X, _TYPE, C2)),
+    Rule("cax-eqc1", ((C1, OWL.equivalentClass, C2), (X, _TYPE, C1)), (X, _TYPE, C2)),
+    Rule("cax-eqc2", ((C1, OWL.equivalentClass, C2), (X, _TYPE, C2)), (X, _TYPE, C1)),
+    Rule("cax-dw", ((C1, OWL.disjointWith, C2), (X, _TYPE, C1), (X, _TYPE, C2)), None),
+    # Table 9: schema
+    Rule("scm-cls", ((C, _TYPE, OWL.Class),), (C, RDFSNS.subClassOf, C)),
+    Rule("scm-cls2", ((C, _TYPE, OWL.Class),), (C, OWL.equivalentClass, C)),
+    Rule("scm-cls3", ((C, _TYPE, OWL.Class),), (C, RDFSNS.subClassOf, OWL.Thing)),
+    Rule("scm-cls4", ((C, _TYPE, OWL.Class),), (OWL.Nothing, RDFSNS.subClassOf, C)),
+    Rule("scm-sco", ((C1, RDFSNS.subClassOf, C2), (C2, RDFSNS.subClassOf, C)),
+         (C1, RDFSNS.subClassOf, C)),
+    Rule("scm-eqc1", ((C1, OWL.equivalentClass, C2),), (C1, RDFSNS.subClassOf, C2)),
+    Rule("scm-eqc1b", ((C1, OWL.equivalentClass, C2),), (C2, RDFSNS.subClassOf, C1)),
+    Rule("scm-eqc2", ((C1, RDFSNS.subClassOf, C2), (C2, RDFSNS.subClassOf, C1)),
+         (C1, OWL.equivalentClass, C2)),
+    Rule("scm-op", ((P, _TYPE, OWL.ObjectProperty),), (P, RDFSNS.subPropertyOf, P)),
+    Rule("scm-op2", ((P, _TYPE, OWL.ObjectProperty),), (P, OWL.equivalentProperty, P)),
+    Rule("scm-dp", ((P, _TYPE, OWL.DatatypeProperty),), (P, RDFSNS.subPropertyOf, P)),
+    Rule("scm-dp2", ((P, _TYPE, OWL.DatatypeProperty),), (P, OWL.equivalentProperty, P)),
+    Rule("scm-spo", ((P1, RDFSNS.subPropertyOf, P2), (P2, RDFSNS.subPropertyOf, P)),
+         (P1, RDFSNS.subPropertyOf, P)),
+    Rule("scm-eqp1", ((P1, OWL.equivalentProperty, P2),), (P1, RDFSNS.subPropertyOf, P2)),
+    Rule("scm-eqp1b", ((P1, OWL.equivalentProperty, P2),), (P2, RDFSNS.subPropertyOf, P1)),
+    Rule("scm-eqp2", ((P1, RDFSNS.subPropertyOf, P2), (P2, RDFSNS.subPropertyOf, P1)),
+         (P1, OWL.equivalentProperty, P2)),
+    Rule("scm-dom1", ((P, RDFSNS.domain, C1), (C1, RDFSNS.subClassOf, C2)),
+         (P, RDFSNS.domain, C2)),
+    Rule("scm-dom2", ((P2, RDFSNS.domain, C), (P1, RDFSNS.subPropertyOf, P2)),
+         (P1, RDFSNS.domain, C)),
+    Rule("scm-rng1", ((P, RDFSNS.range, C1), (C1, RDFSNS.subClassOf, C2)), (P, RDFSNS.range, C2)),
+    Rule("scm-rng2", ((P2, RDFSNS.range, C), (P1, RDFSNS.subPropertyOf, P2)),
+         (P1, RDFSNS.range, C)),
+    Rule("scm-hv", ((C1, OWL.hasValue, I1), (C1, OWL.onProperty, P1),
+                    (C2, OWL.hasValue, I1), (C2, OWL.onProperty, P2),
+                    (P1, RDFSNS.subPropertyOf, P2)), (C1, RDFSNS.subClassOf, C2)),
+    Rule("scm-svf1", ((C1, OWL.someValuesFrom, Y), (C1, OWL.onProperty, P),
+                      (C2, OWL.someValuesFrom, Z), (C2, OWL.onProperty, P),
+                      (Y, RDFSNS.subClassOf, Z)), (C1, RDFSNS.subClassOf, C2)),
+    Rule("scm-svf2", ((C1, OWL.someValuesFrom, Y), (C1, OWL.onProperty, P1),
+                      (C2, OWL.someValuesFrom, Y), (C2, OWL.onProperty, P2),
+                      (P1, RDFSNS.subPropertyOf, P2)), (C1, RDFSNS.subClassOf, C2)),
+    Rule("scm-avf1", ((C1, OWL.allValuesFrom, Y), (C1, OWL.onProperty, P),
+                      (C2, OWL.allValuesFrom, Z), (C2, OWL.onProperty, P),
+                      (Y, RDFSNS.subClassOf, Z)), (C1, RDFSNS.subClassOf, C2)),
+    Rule("scm-avf2", ((C1, OWL.allValuesFrom, Y), (C1, OWL.onProperty, P1),
+                      (C2, OWL.allValuesFrom, Y), (C2, OWL.onProperty, P2),
+                      (P1, RDFSNS.subPropertyOf, P2)), (C2, RDFSNS.subClassOf, C1)),
+)
+
+OWL2RL_OMITTED = (
+    "prp-spo2", "prp-key", "prp-adp", "cls-int1", "cls-int2", "cls-uni", "cls-oo",
+    "cax-adc", "eq-diff2", "eq-diff3", "scm-int", "scm-uni", "eq-ref", "cls-thing",
+    "cls-nothing1", "dt-type1", "dt-type2", "dt-eq", "dt-diff", "dt-not-type",
+)
+"""OWL 2 RL/RDF rules not implemented: list-valued rule families, the
+axiomatic-only rules (eq-ref, cls-thing, cls-nothing1 add a triple per term or
+one fixed triple) and the datatype rules."""
+
+OWL2RL = Regime("owl2rl", RDFS_RULES + LITERAL_RULES + OWL2RL_RULES,
+                RDFS_AXIOMS + ((OWL.Thing, _TYPE, OWL.Class), (OWL.Nothing, _TYPE, OWL.Class)))
+
+REGIMES: dict[str, Regime] = {"simple": SIMPLE, "rdfs": RDFS, "owl2rl": OWL2RL}
 
 
 def custom(name: str, rules: tuple[Rule, ...] | list[Rule], axioms: tuple[Triple, ...] = (),
@@ -197,5 +344,6 @@ def custom(name: str, rules: tuple[Rule, ...] | list[Rule], axioms: tuple[Triple
 
 __all__ = [
     "Var", "Rule", "Regime", "Pattern", "Term", "parse_rule", "custom",
-    "RDFS_RULES", "RDFS_AXIOMS", "SIMPLE", "RDFS", "REGIMES", "URIRef",
+    "RDFS_RULES", "RDFS_AXIOMS", "LITERAL_RULES", "OWL2RL_RULES", "OWL2RL_OMITTED",
+    "SIMPLE", "RDFS", "OWL2RL", "REGIMES", "URIRef",
 ]

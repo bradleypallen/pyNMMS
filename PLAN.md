@@ -195,10 +195,13 @@ unnecessary), `GraphView`, `GraphBackend` protocol with `MemoryBackend` and
 `SPARQLBackend`, `Rule`/`Regime`/`parse_rule` with `SIMPLE` and `RDFS`, the
 semi-naive `ClosureEngine` (both full closure and per-node extras), `RDFBase`
 and `RegimeBase`, `pynmms rdf ask`, the owlrl oracle test for Theorem 35, and
-`bench/rdf_scale.py`. Remaining for slice 2: OWL 2 RL regime (item 3), blank
-nodes in the consequent via `PatternAtom` (item 6), `pynmms rdf tell` and REPL
-`load` (item 9), converters (item 8), Oxigraph backend and a SPARQL backend
-test against a live endpoint (item 5), rdfs1/rdfD1 literal typing.
+`bench/rdf_scale.py`. Slice 2 (same day) added: `OWL2RL` regime (fixed-arity rules of Tables
+4–9 with an owlrl oracle test; list-valued families and datatype rules
+omitted and listed in `OWL2RL_OMITTED`), rule guards and rdfs1,
+`PatternAtom` for blank-node consequents with polarity-aware Skolemization
+of antecedent blank nodes, `pynmms rdf tell` and `pynmms rdf repl`,
+`rdf/convert.py`, and `OxigraphBackend`. Still open: a live-endpoint test
+for `SPARQLBackend`, the omitted OWL 2 RL rules, rdfD1.
 
 Goal: `Γ ⇒ Δ` where Γ is an RDF graph and the base is a regime of
 Definition 9, at a scale set by the graph store rather than by Python. rdflib

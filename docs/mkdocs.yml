@@ -46,6 +46,7 @@ nav:
       - RDF Rules and Regimes: api/rdf-rules.md
       - RDF Closure: api/rdf-closure.md
       - RDF Backends: api/rdf-backends.md
+      - RDF Converters: api/rdf-convert.md
       - Ontology Material Base: api/onto-base.md
       - Ontology Syntax: api/onto-syntax.md
   - Theory:

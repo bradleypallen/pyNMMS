@@ -66,6 +66,8 @@ class GraphBackend(Protocol):
 
 
 from pynmms.rdf.backends.memory import MemoryBackend  # noqa: E402
+from pynmms.rdf.backends.oxigraph import OxigraphBackend  # noqa: E402
 from pynmms.rdf.backends.sparql import SPARQLBackend  # noqa: E402
 
-__all__ = ["GraphBackend", "MemoryBackend", "SPARQLBackend", "Triple", "Pattern"]
+__all__ = ["GraphBackend", "MemoryBackend", "OxigraphBackend", "SPARQLBackend", "Triple",
+           "Pattern"]

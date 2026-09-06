@@ -15,37 +15,62 @@ backend's materialised closure of G extended by the per-node extras.
 from __future__ import annotations
 
 import logging
-from collections.abc import Iterable
+from collections.abc import Iterable, Iterator
+
+from rdflib import BNode
+from rdflib.term import Node
 
 from pynmms.base import MaterialBase
 from pynmms.base import Sequent as BasePair
-from pynmms.rdf.atoms import Resolver, Triple, TripleAtom
+from pynmms.rdf.atoms import PatternAtom, Resolver, Triple, TripleAtom, skolemize_triple
 from pynmms.rdf.backends import GraphBackend, MemoryBackend
-from pynmms.rdf.closure import ClosureEngine
-from pynmms.rdf.rules import SIMPLE, Regime
+from pynmms.rdf.closure import ClosureEngine, _TripleIndex, match_patterns
+from pynmms.rdf.rules import SIMPLE, Regime, Var
 from pynmms.rdf.view import GraphView
 from pynmms.robustness import Robustness
 from pynmms.sequent import AtomSet, AtomsView, Sequent, _partition
-from pynmms.syntax import ATOM, Sentence
+from pynmms.syntax import ATOM, IMPL, NEG, Sentence
 
 logger = logging.getLogger(__name__)
 
 
-def _canonicalize(s: Sentence, resolver: Resolver | None) -> Sentence:
-    """Rewrite every quoted atom in *s* to its canonical TripleAtom name."""
+def _coerce_atom(name: str, resolver: Resolver | None, *, antecedent: bool) -> str:
+    """Canonical atom for *name*: a TripleAtom (Skolemized on the left) or a PatternAtom."""
+    pat = PatternAtom.coerce(name, resolver)
+    if pat is not None:
+        if antecedent:
+            raise ValueError(
+                f"Pattern atom {name!r} cannot occur in an antecedent; Skolemize its "
+                f"blank nodes and list its triples instead"
+            )
+        return pat
+    t = TripleAtom.coerce(name, resolver)
+    if t is None:
+        raise ValueError(f"{name!r} is not a triple atom <s p o> or a pattern atom <{{ ... }}>")
+    if antecedent and any(isinstance(n, BNode) for n in t.triple):
+        return TripleAtom(*skolemize_triple(t.triple))
+    return t
+
+
+def _canonicalize(s: Sentence, resolver: Resolver | None, *, antecedent: bool) -> Sentence:
+    """Rewrite every quoted atom in *s* to its canonical name.
+
+    Polarity is tracked so that blank nodes are Skolemized exactly in
+    antecedent position: the left operand of an implication and the operand
+    of a negation flip polarity.
+    """
     if s.type == ATOM:
         assert s.name is not None
-        t = TripleAtom.coerce(s.name, resolver)
-        if t is None:
-            raise ValueError(f"{s.name!r} is not a triple atom <s p o>")
-        return Sentence(type=ATOM, name=t)
-    if s.sub is not None:
-        return Sentence(type=s.type, sub=_canonicalize(s.sub, resolver))
+        return Sentence(type=ATOM, name=_coerce_atom(s.name, resolver, antecedent=antecedent))
+    if s.type == NEG:
+        assert s.sub is not None
+        return Sentence(type=NEG, sub=_canonicalize(s.sub, resolver, antecedent=not antecedent))
     assert s.left is not None and s.right is not None
+    left_pol = not antecedent if s.type == IMPL else antecedent
     return Sentence(
         type=s.type,
-        left=_canonicalize(s.left, resolver),
-        right=_canonicalize(s.right, resolver),
+        left=_canonicalize(s.left, resolver, antecedent=left_pol),
+        right=_canonicalize(s.right, resolver, antecedent=antecedent),
     )
 
 
@@ -72,7 +97,7 @@ class RDFBase(MaterialBase):
         t = TripleAtom.coerce(s, self.resolver)
         if t is None:
             raise ValueError(f"{context}: {s!r} is not a triple atom <s p o>")
-        return t
+        return TripleAtom(*skolemize_triple(t.triple))
 
     @property
     def generation(self) -> int:
@@ -84,11 +109,11 @@ class RDFBase(MaterialBase):
         """Γ = G: the stored graph as an antecedent."""
         return GraphView(self.backend)
 
-    def parse(self, text: str) -> Sentence:
+    def parse(self, text: str, *, antecedent: bool = False) -> Sentence:
         """Parse a sentence whose atoms are ``<s p o>`` (prefixes resolved)."""
         from pynmms.syntax import parse_sentence
 
-        return _canonicalize(parse_sentence(text), self.resolver)
+        return _canonicalize(parse_sentence(text), self.resolver, antecedent=antecedent)
 
     def sequent(
         self,
@@ -98,26 +123,21 @@ class RDFBase(MaterialBase):
         include_graph: bool = True,
     ) -> Sequent:
         """Build ``G, antecedent ⇒ consequent`` (or just ``antecedent ⇒ consequent``)."""
-        ga, gc = _partition_canonical(antecedent, self.resolver)
-        da, dc = _partition_canonical(consequent, self.resolver)
+        ga, gc = _partition_canonical(antecedent, self.resolver, antecedent=True)
+        da, dc = _partition_canonical(consequent, self.resolver, antecedent=False)
         if include_graph:
             return Sequent(self.view().with_added_all(ga), gc, AtomSet(da), dc)
         return Sequent(AtomSet(ga), gc, AtomSet(da), dc)
 
 
-def _coerce_atom(name: str, resolver: Resolver | None) -> str:
-    t = TripleAtom.coerce(name, resolver)
-    if t is None:
-        raise ValueError(f"{name!r} is not a triple atom <s p o>")
-    return t
-
-
 def _partition_canonical(
-    sentences: Iterable[str], resolver: Resolver | None
+    sentences: Iterable[str], resolver: Resolver | None, *, antecedent: bool
 ) -> tuple[frozenset[str], frozenset[Sentence]]:
     atoms, complex_ = _partition(sentences)
-    canon_atoms = frozenset(_coerce_atom(a, resolver) for a in atoms)
-    canon_complex = frozenset(_canonicalize(c, resolver) for c in complex_)
+    canon_atoms = frozenset(_coerce_atom(a, resolver, antecedent=antecedent) for a in atoms)
+    canon_complex = frozenset(
+        _canonicalize(c, resolver, antecedent=antecedent) for c in complex_
+    )
     return canon_atoms, canon_complex
 
 
@@ -165,14 +185,42 @@ class RegimeBase(RDFBase):
         if store_inconsistent or bottom:
             logger.debug("regime %s: Γ is inconsistent", self.regime)
             return True
+
+        def in_closure(t: Triple) -> bool:
+            return t in derived or (over_graph and self.backend.closure_contains(t))
+
         for d in delta:
             t = TripleAtom.coerce(d)
-            if t is None:
+            if t is not None:
+                if in_closure(t.triple):
+                    logger.debug("regime %s: %s in cl(Γ)", self.regime, t)
+                    return True
                 continue
-            if t.triple in derived or (over_graph and self.backend.closure_contains(t.triple)):
-                logger.debug("regime %s: %s in cl(Γ)", self.regime, t)
+            pat = PatternAtom.coerce(d)
+            if pat is not None and self._matches(pat, derived, over_graph):
+                logger.debug("regime %s: pattern %s has a witness in cl(Γ)", self.regime, pat)
                 return True
         return False
+
+    def _matches(self, pat: PatternAtom, derived: set[Triple], over_graph: bool) -> bool:
+        """Lemma 33 witness search for a succedent pattern (blank nodes as variables)."""
+        index = _TripleIndex()
+        for t in derived:
+            index.add(t)
+
+        def lookup(pattern: tuple[Node | None, Node | None, Node | None]) -> Iterator[Triple]:
+            if over_graph:
+                yield from self.backend.closure_triples(pattern)
+            yield from index.match(pattern)
+
+        bnode_vars: dict[BNode, Var] = {
+            b: Var(f"_b{i}") for i, b in enumerate(sorted(pat.bnodes))
+        }
+        def var(n: Node) -> Node | Var:
+            return bnode_vars[n] if isinstance(n, BNode) else n
+
+        patterns = [(var(s), var(p), var(o)) for s, p, o in pat.triples]
+        return match_patterns(patterns, lookup) is not None
 
     def _closure_of_extras(
         self, extras: frozenset[str], over_graph: bool

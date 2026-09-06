@@ -117,7 +117,7 @@ pynmms repl --onto
 
 ## Reasoning over RDF
 
-The `rdf` extra (`pip install "pyNMMS[rdf]"`) adds `pynmms.rdf`: NMMS over an RDF graph, following the implication-space semantics for RDF (Allen, TGDK). Triples are the atoms, an entailment regime (simple or RDFS, plus your own Horn rules) specifies the base by closure, and the NMMS connectives give negation and conditionals over the graph:
+The `rdf` extra (`pip install "pyNMMS[rdf]"`) adds `pynmms.rdf`: NMMS over an RDF graph, following the implication-space semantics for RDF (Allen, TGDK). Triples are the atoms, an entailment regime (simple, RDFS, or OWL 2 RL, plus your own Horn rules) specifies the base by closure, and the NMMS connectives give negation and conditionals over the graph; blank nodes in a consequent are existential pattern atoms:
 
 ```bash
 pynmms rdf ask -g birds.ttl --regime rdfs "<ex:tweety a ex:Thing>"
@@ -176,11 +176,11 @@ The reasoner uses root-first backward proof search with memoization and backtrac
 
 ### Test suite
 
-633 tests across 22 test files:
+647 tests across 22 test files:
 
 - **Propositional core (381 tests)**: Syntax parsing (including the strict atom grammar and quoted atoms), AtomSet/Sequent proof-node structures, robustness policies (exact/monotone/guarded) on base entries, MaterialBase construction/serialization, individual rule correctness, axiom derivability, structural properties (nonmonotonicity, nontransitivity, supraclassicality, DD/II/AA/SS), soundness audit, CLI integration, logging/tracing, Ch. 3 worked examples, Hypothesis property-based tests, cross-validation against ROLE.jl ground truth
 - **Ontology extension (225 tests)**: Ontology sentence parsing, OntoMaterialBase construction/validation, seven ontology schema types (subClassOf, range, domain, subPropertyOf, disjointWith, disjointProperties, jointCommitment), nonmonotonicity and non-transitivity of schemas, schema robustness policies and indexing, lazy evaluation, NMMSReasoner integration, CommitmentStore, CLI `--onto` integration, JSON output/exit codes, batch mode, annotations, legacy equivalence, logging
-- **RDF extension (27 tests)**: TripleAtom canonical names and escaping, GraphView diffs and invalidation, closure engine (RDFS, false-concluding rules), RegimeBase (closure entailment, extras closure, negation as incoherence, explosion), Skolemization, agreement with owlrl on random RDFS graphs (Theorem 35 oracle), `pynmms rdf ask` CLI
+- **RDF extension (41 tests)**: TripleAtom canonical names and escaping, GraphView diffs and invalidation, closure engine (RDFS, OWL 2 RL, false-concluding rules), RegimeBase (closure entailment, extras closure, negation as incoherence, explosion), pattern atoms for blank-node consequents, Skolemization, agreement with owlrl on random RDFS and OWL 2 RL graphs (Theorem 35 oracle), converters from the ontology extension, `pynmms rdf ask/tell/repl` CLI
 
 ### Benchmarks
 

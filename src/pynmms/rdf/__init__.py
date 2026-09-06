@@ -18,13 +18,15 @@ Semantics for RDF", TGDK) on top of the propositional NMMS core:
 Requires the ``rdf`` extra: ``pip install pyNMMS[rdf]``.
 """
 
-from pynmms.rdf.atoms import Resolver, TripleAtom
+from pynmms.rdf.atoms import PatternAtom, Resolver, TripleAtom
 from pynmms.rdf.base import RDFBase, RegimeBase
-from pynmms.rdf.rules import RDFS, SIMPLE, Regime, Rule, Var, parse_rule
+from pynmms.rdf.convert import onto_to_graph, onto_to_rules
+from pynmms.rdf.rules import OWL2RL, RDFS, SIMPLE, Regime, Rule, Var, parse_rule
 from pynmms.rdf.view import GraphView
 
 __all__ = [
     "TripleAtom",
+    "PatternAtom",
     "Resolver",
     "GraphView",
     "RDFBase",
@@ -33,6 +35,9 @@ __all__ = [
     "Rule",
     "Var",
     "RDFS",
+    "OWL2RL",
     "SIMPLE",
+    "onto_to_graph",
+    "onto_to_rules",
     "parse_rule",
 ]

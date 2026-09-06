@@ -26,15 +26,25 @@ Right rules:
 The multi-premise rules include a third top sequent containing all active formulae
 from the other premises on the same sides. This compensates for the absence of
 structural contraction while preserving idempotency (see Ch. 3, Section 3.2).
+
+Completeness. Every rule replaces one connective occurrence by premises with
+strictly fewer connectives, so proof depth is bounded by the number of
+connective occurrences in the queried sequent and a sequent can never recur on
+its own search path. The search is therefore complete when ``max_depth`` is
+``None`` (the default). A caller-supplied ``max_depth`` can make the search
+give up; ``ProofResult.depth_limited`` reports when that happened, and results
+that depended on a cut-off branch are not memoized.
 """
 
 from __future__ import annotations
 
 import logging
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 
 from pynmms.base import MaterialBase
-from pynmms.syntax import CONJ, DISJ, IMPL, NEG, parse_sentence
+from pynmms.sequent import RULE_LABELS, Sequent, TraceEntry
+from pynmms.syntax import CONJ, DISJ, IMPL, NEG, Sentence
 
 logger = logging.getLogger(__name__)
 
@@ -45,67 +55,109 @@ class ProofResult:
 
     Attributes:
         derivable: Whether the sequent is derivable.
-        trace: Human-readable proof trace.
+        entries: Structured proof trace; ``str(entry)`` gives the display line.
         depth_reached: Maximum proof depth reached.
         cache_hits: Number of memoization cache hits.
+        depth_limited: True if the search gave up on some branch because of
+            ``max_depth``. When True, ``derivable == False`` does not mean the
+            sequent is underivable.
+        connectives: Number of connective occurrences in the queried sequent,
+            which bounds the proof depth.
+        nodes: Number of distinct proof nodes examined (axiom checks), i.e.
+            ``_prove`` calls not served from the cache or cut off by depth.
     """
 
     derivable: bool
-    trace: list[str] = field(default_factory=list)
+    entries: list[TraceEntry] = field(default_factory=list)
     depth_reached: int = 0
     cache_hits: int = 0
+    depth_limited: bool = False
+    connectives: int = 0
+    nodes: int = 0
 
-
-def _fmt(fs: frozenset[str]) -> str:
-    """Format a frozenset for display."""
-    if not fs:
-        return "\u2205"
-    return ", ".join(sorted(fs))
+    @property
+    def trace(self) -> list[str]:
+        """Human-readable proof trace, formatted on access."""
+        return [str(e) for e in self.entries]
 
 
 class NMMSReasoner:
     """Proof search for propositional NMMS sequent calculus.
 
-    Performs backward (root-first) proof search with memoization and
-    depth-limited search. A sequent Gamma => Delta is derivable iff
-    all leaves of its proof tree are axioms of the material base.
+    Performs backward (root-first) proof search with memoization. A sequent
+    Gamma => Delta is derivable iff all leaves of its proof tree are axioms of
+    the material base.
 
     Parameters:
         base: The material base providing axioms.
-        max_depth: Maximum proof depth (default 25).
+        max_depth: Optional cap on proof depth. ``None`` (default) means no
+            cap; depth is then bounded by the query's connective count.
+        persistent_cache: Keep the memo cache across ``derives`` calls. It is
+            cleared automatically whenever the base's ``generation`` changes,
+            so it is only worth enabling for many queries against a fixed base.
     """
 
-    def __init__(self, base: MaterialBase, *, max_depth: int = 25) -> None:
+    def __init__(
+        self,
+        base: MaterialBase,
+        *,
+        max_depth: int | None = None,
+        persistent_cache: bool = False,
+    ) -> None:
         self.base = base
         self.max_depth = max_depth
-        self._trace: list[str] = []
-        self._cache: dict[tuple[frozenset[str], frozenset[str]], bool] = {}
+        self.persistent_cache = persistent_cache
+        self._trace: list[TraceEntry] = []
+        self._cache: dict[Sequent, bool] = {}
+        self._cache_generation: int = -1
         self._depth_reached: int = 0
         self._cache_hits: int = 0
+        self._limit_hits: int = 0
+        self._nodes: int = 0
 
-    def derives(self, antecedent: frozenset[str], consequent: frozenset[str]) -> ProofResult:
+    def derives(self, antecedent: Iterable[str], consequent: Iterable[str]) -> ProofResult:
         """Check if ``antecedent => consequent`` is derivable in NMMS_B.
 
+        Sentences are parsed once here; a malformed sentence raises ValueError.
         Returns a ``ProofResult`` with derivability, proof trace, and statistics.
         """
+        sequent = Sequent.from_strings(antecedent, consequent)
+        return self.derives_sequent(sequent)
+
+    def derives_sequent(self, sequent: Sequent) -> ProofResult:
+        """Run proof search on an already-parsed :class:`Sequent`."""
         self._trace = []
-        self._cache = {}
         self._depth_reached = 0
         self._cache_hits = 0
+        self._limit_hits = 0
+        self._nodes = 0
+        generation = self.base.generation
+        if not self.persistent_cache or self._cache_generation != generation:
+            self._cache = {}
+            self._cache_generation = generation
 
-        logger.debug("Proof search: %s => %s", _fmt(antecedent), _fmt(consequent))
-        result = self._prove(antecedent, consequent, depth=0)
-        logger.debug("Result: %s (depth %d, cache hits %d)",
-                      result, self._depth_reached, self._cache_hits)
+        logger.debug("Proof search: %s", sequent)
+        result = self._prove(sequent, depth=0)
+        depth_limited = self._limit_hits > 0
+        logger.debug(
+            "Result: %s (nodes %d, depth %d, cache hits %d, depth limited %s)",
+            result, self._nodes, self._depth_reached, self._cache_hits, depth_limited,
+        )
+        if depth_limited and self.persistent_cache:
+            # Never carry results from a truncated search into later queries.
+            self._cache = {}
 
         return ProofResult(
             derivable=result,
-            trace=list(self._trace),
+            entries=list(self._trace),
             depth_reached=self._depth_reached,
             cache_hits=self._cache_hits,
+            depth_limited=depth_limited,
+            connectives=sequent.connectives(),
+            nodes=self._nodes,
         )
 
-    def query(self, antecedent: frozenset[str], consequent: frozenset[str]) -> bool:
+    def query(self, antecedent: Iterable[str], consequent: Iterable[str]) -> bool:
         """Convenience method: return only the derivability boolean."""
         return self.derives(antecedent, consequent).derivable
 
@@ -113,107 +165,94 @@ class NMMSReasoner:
     # Internal proof search
     # ------------------------------------------------------------------
 
-    def _prove(self, gamma: frozenset[str], delta: frozenset[str], depth: int) -> bool:
+    def _record(self, entry: TraceEntry) -> None:
+        self._trace.append(entry)
+        logger.debug("%s", entry)
+
+    def _is_axiom(self, seq: Sequent) -> bool:
+        """Axiom check: Containment on either partition, then the base."""
+        if seq.gamma_complex and seq.delta_complex and not seq.gamma_complex.isdisjoint(
+            seq.delta_complex
+        ):
+            return True
+        if seq.gamma_atoms.intersects(seq.delta_atoms):
+            return True
+        if seq.is_atomic:
+            return self.base.is_axiom(seq.gamma_atoms, seq.delta_atoms)
+        return False
+
+    def _prove(self, seq: Sequent, depth: int) -> bool:
         """Backward proof search with memoization."""
-        indent = "  " * depth
         self._depth_reached = max(self._depth_reached, depth)
 
-        if depth > self.max_depth:
-            msg = f"{indent}DEPTH LIMIT"
-            self._trace.append(msg)
-            logger.debug(msg)
+        if self.max_depth is not None and depth > self.max_depth:
+            self._limit_hits += 1
+            self._record(TraceEntry("DEPTH LIMIT", depth))
             return False
 
-        # Memoization
-        key = (gamma, delta)
-        if key in self._cache:
+        cached = self._cache.get(seq)
+        if cached is not None:
             self._cache_hits += 1
-            return self._cache[key]
+            return cached
 
-        # Check axiom
-        if self.base.is_axiom(gamma, delta):
-            msg = f"{indent}AXIOM: {_fmt(gamma)} => {_fmt(delta)}"
-            self._trace.append(msg)
-            logger.debug(msg)
-            self._cache[key] = True
+        self._nodes += 1
+        if self._is_axiom(seq):
+            self._record(TraceEntry("AXIOM", depth, seq))
+            self._cache[seq] = True
             return True
 
-        # Mark as False initially to detect cycles
-        self._cache[key] = False
+        limit_hits_before = self._limit_hits
+        result = self._try_left_rules(seq, depth) or self._try_right_rules(seq, depth)
 
-        result = self._try_left_rules(gamma, delta, depth) or self._try_right_rules(
-            gamma, delta, depth
-        )
-
-        self._cache[key] = result
+        if result or self._limit_hits == limit_hits_before:
+            self._cache[seq] = result
+        # else: a failure that depended on a cut-off branch is not a real result.
         if not result:
-            msg = f"{indent}FAIL: {_fmt(gamma)} => {_fmt(delta)}"
-            self._trace.append(msg)
-            logger.debug(msg)
+            self._record(TraceEntry("FAIL", depth, seq))
         return result
 
     # ------------------------------------------------------------------
     # LEFT RULES
     # ------------------------------------------------------------------
 
-    def _try_left_rules(
-        self, gamma: frozenset[str], delta: frozenset[str], depth: int
-    ) -> bool:
-        indent = "  " * depth
-
-        for s in sorted(gamma):  # sorted for determinism
-            parsed = parse_sentence(s)
-            rest = gamma - {s}
+    def _try_left_rules(self, seq: Sequent, depth: int) -> bool:
+        for s in sorted(seq.gamma_complex, key=str):  # sorted for determinism
+            rest = seq.without_left(s)
+            self._record(TraceEntry("RULE", depth, seq, RULE_LABELS[("L", s.type)], s))
 
             # [L~]: Gamma, ~A => Delta  <-  Gamma => Delta, A
-            if parsed.type == NEG:
-                assert parsed.sub is not None
-                a = str(parsed.sub)
-                msg = f"{indent}[L\u00ac] on {s}"
-                self._trace.append(msg)
-                logger.debug(msg)
-                if self._prove(rest, delta | {a}, depth + 1):
+            if s.type == NEG:
+                a = _sub(s)
+                if self._prove(rest.with_right(a), depth + 1):
                     return True
 
             # [L->]: Gamma, A->B => Delta  <-  (1) Gamma => Delta, A
             #                                   (2) Gamma, B => Delta
             #                                   (3) Gamma, B => Delta, A
-            elif parsed.type == IMPL:
-                assert parsed.left is not None and parsed.right is not None
-                a, b = str(parsed.left), str(parsed.right)
-                msg = f"{indent}[L\u2192] on {s}"
-                self._trace.append(msg)
-                logger.debug(msg)
+            elif s.type == IMPL:
+                a, b = _operands(s)
                 if (
-                    self._prove(rest, delta | {a}, depth + 1)
-                    and self._prove(rest | {b}, delta, depth + 1)
-                    and self._prove(rest | {b}, delta | {a}, depth + 1)
+                    self._prove(rest.with_right(a), depth + 1)
+                    and self._prove(rest.with_left(b), depth + 1)
+                    and self._prove(rest.with_left(b).with_right(a), depth + 1)
                 ):
                     return True
 
             # [L&]: Gamma, A & B => Delta  <-  Gamma, A, B => Delta
-            elif parsed.type == CONJ:
-                assert parsed.left is not None and parsed.right is not None
-                a, b = str(parsed.left), str(parsed.right)
-                msg = f"{indent}[L\u2227] on {s}"
-                self._trace.append(msg)
-                logger.debug(msg)
-                if self._prove(rest | {a, b}, delta, depth + 1):
+            elif s.type == CONJ:
+                a, b = _operands(s)
+                if self._prove(rest.with_left(a, b), depth + 1):
                     return True
 
             # [L|]: Gamma, A | B => Delta  <-  (1) Gamma, A => Delta
             #                                   (2) Gamma, B => Delta
             #                                   (3) Gamma, A, B => Delta
-            elif parsed.type == DISJ:
-                assert parsed.left is not None and parsed.right is not None
-                a, b = str(parsed.left), str(parsed.right)
-                msg = f"{indent}[L\u2228] on {s}"
-                self._trace.append(msg)
-                logger.debug(msg)
+            elif s.type == DISJ:
+                a, b = _operands(s)
                 if (
-                    self._prove(rest | {a}, delta, depth + 1)
-                    and self._prove(rest | {b}, delta, depth + 1)
-                    and self._prove(rest | {a, b}, delta, depth + 1)
+                    self._prove(rest.with_left(a), depth + 1)
+                    and self._prove(rest.with_left(b), depth + 1)
+                    and self._prove(rest.with_left(a, b), depth + 1)
                 ):
                     return True
 
@@ -223,59 +262,49 @@ class NMMSReasoner:
     # RIGHT RULES
     # ------------------------------------------------------------------
 
-    def _try_right_rules(
-        self, gamma: frozenset[str], delta: frozenset[str], depth: int
-    ) -> bool:
-        indent = "  " * depth
-
-        for s in sorted(delta):
-            parsed = parse_sentence(s)
-            rest = delta - {s}
+    def _try_right_rules(self, seq: Sequent, depth: int) -> bool:
+        for s in sorted(seq.delta_complex, key=str):
+            rest = seq.without_right(s)
+            self._record(TraceEntry("RULE", depth, seq, RULE_LABELS[("R", s.type)], s))
 
             # [R~]: Gamma => Delta, ~A  <-  Gamma, A => Delta
-            if parsed.type == NEG:
-                assert parsed.sub is not None
-                a = str(parsed.sub)
-                msg = f"{indent}[R\u00ac] on {s}"
-                self._trace.append(msg)
-                logger.debug(msg)
-                if self._prove(gamma | {a}, rest, depth + 1):
+            if s.type == NEG:
+                a = _sub(s)
+                if self._prove(rest.with_left(a), depth + 1):
                     return True
 
             # [R->]: Gamma => Delta, A->B  <-  Gamma, A => Delta, B
-            elif parsed.type == IMPL:
-                assert parsed.left is not None and parsed.right is not None
-                a, b = str(parsed.left), str(parsed.right)
-                msg = f"{indent}[R\u2192] on {s}"
-                self._trace.append(msg)
-                logger.debug(msg)
-                if self._prove(gamma | {a}, rest | {b}, depth + 1):
+            elif s.type == IMPL:
+                a, b = _operands(s)
+                if self._prove(rest.with_left(a).with_right(b), depth + 1):
                     return True
 
             # [R&]: Gamma => Delta, A & B  <-  (1) Gamma => Delta, A
             #                                   (2) Gamma => Delta, B
             #                                   (3) Gamma => Delta, A, B
-            elif parsed.type == CONJ:
-                assert parsed.left is not None and parsed.right is not None
-                a, b = str(parsed.left), str(parsed.right)
-                msg = f"{indent}[R\u2227] on {s}"
-                self._trace.append(msg)
-                logger.debug(msg)
+            elif s.type == CONJ:
+                a, b = _operands(s)
                 if (
-                    self._prove(gamma, rest | {a}, depth + 1)
-                    and self._prove(gamma, rest | {b}, depth + 1)
-                    and self._prove(gamma, rest | {a, b}, depth + 1)
+                    self._prove(rest.with_right(a), depth + 1)
+                    and self._prove(rest.with_right(b), depth + 1)
+                    and self._prove(rest.with_right(a, b), depth + 1)
                 ):
                     return True
 
             # [R|]: Gamma => Delta, A | B  <-  Gamma => Delta, A, B
-            elif parsed.type == DISJ:
-                assert parsed.left is not None and parsed.right is not None
-                a, b = str(parsed.left), str(parsed.right)
-                msg = f"{indent}[R\u2228] on {s}"
-                self._trace.append(msg)
-                logger.debug(msg)
-                if self._prove(gamma, rest | {a, b}, depth + 1):
+            elif s.type == DISJ:
+                a, b = _operands(s)
+                if self._prove(rest.with_right(a, b), depth + 1):
                     return True
 
         return False
+
+
+def _sub(s: Sentence) -> Sentence:
+    assert s.sub is not None
+    return s.sub
+
+
+def _operands(s: Sentence) -> tuple[Sentence, Sentence]:
+    assert s.left is not None and s.right is not None
+    return s.left, s.right

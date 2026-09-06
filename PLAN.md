@@ -84,7 +84,7 @@ docs should state the bound.
 
 ## 3. Phases
 
-### Phase 0: hygiene and measurement (v0.6.2, small)
+### Phase 0: hygiene and measurement (v0.6.2, small) — DONE 2026-09-06
 
 Goal: a regression harness before touching the hot paths.
 
@@ -103,7 +103,9 @@ Goal: a regression harness before touching the hot paths.
 
 Deliverable: baseline numbers checked in, 512 tests green, atom grammar tests.
 
-### Phase 1: reasoner performance and observability (v0.7.0, medium)
+### Phase 1: reasoner performance and observability (v0.7.0, medium) — DONE 2026-09-06
+
+Implemented as `pynmms.sequent` (`AtomSet` with diffs, `Sequent`, `TraceEntry`) plus the reasoner rewrite. Measured: antecedent-size cost flat at ~5 µs from 501 to 8001 atoms (was 507 ms at 8001); tautology k=8 from 23 ms to 9 ms; underivable k=8 from 1.6 ms to 0.06 ms. The hashable-atom-payload generalisation of `Sentence` is deferred to Phase 3, where `TripleAtom` is its first consumer.
 
 Goal: query cost independent of |Γ| for atomic and shallow queries.
 

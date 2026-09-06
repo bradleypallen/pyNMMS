@@ -71,6 +71,7 @@ def _ask_one(
             depth_reached=result.depth_reached,
             cache_hits=result.cache_hits,
             trace=result.trace if trace else None,
+            depth_limited=result.depth_limited,
         )
         emit_json(resp)
     elif not quiet:
@@ -78,6 +79,8 @@ def _ask_one(
             print("DERIVABLE")
         else:
             print("NOT DERIVABLE")
+            if result.depth_limited:
+                print("(search gave up at --max-depth; the sequent may still be derivable)")
 
         if trace:
             print("\nProof trace:")

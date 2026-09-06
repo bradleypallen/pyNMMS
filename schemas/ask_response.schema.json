@@ -34,6 +34,10 @@
       "type": "integer",
       "description": "Number of memoization cache hits during proof search."
     },
+    "depth_limited": {
+      "type": "boolean",
+      "description": "True if the search gave up on some branch because of --max-depth; NOT_DERIVABLE is then inconclusive."
+    },
     "trace": {
       "type": "array",
       "description": "Proof trace (only present with --trace flag).",

@@ -58,7 +58,9 @@ def main(argv: list[str] | None = None) -> int:
     ask_parser.add_argument("-b", "--base", required=True, help="Path to JSON base file")
     ask_parser.add_argument("--trace", action="store_true", help="Print proof trace")
     ask_parser.add_argument(
-        "--max-depth", type=int, default=25, help="Max proof depth (default: 25)",
+        "--max-depth", type=int, default=None,
+        help="Cap proof depth (default: none; depth is bounded by the query's "
+             "connective count, so the search is complete without a cap)",
     )
     ask_parser.add_argument(
         "sequent", nargs="?", default=None,

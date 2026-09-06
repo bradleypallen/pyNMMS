@@ -96,3 +96,72 @@ class TestLoggingOutput:
 
         assert len(caplog.records) > 0
         assert any("MaterialBase created" in rec.message for rec in caplog.records)
+
+
+class TestCompletenessFlags:
+    def _base(self):
+        return MaterialBase(language={"A", "B"},
+                            consequences={(frozenset({"A"}), frozenset({"B"}))})
+
+    def test_unbounded_by_default(self):
+        r = NMMSReasoner(self._base())
+        assert r.max_depth is None
+        result = r.derives(frozenset({"A"}), frozenset({"(B | ~B) & (A -> B)"}))
+        assert result.derivable
+        assert not result.depth_limited
+        assert result.connectives == 4
+        assert result.depth_reached <= result.connectives
+
+    def test_depth_limited_flag(self):
+        r = NMMSReasoner(self._base(), max_depth=0)
+        result = r.derives(frozenset({"A"}), frozenset({"A -> B"}))
+        assert not result.derivable
+        assert result.depth_limited
+        assert any("DEPTH LIMIT" in line for line in result.trace)
+
+    def test_cut_off_failures_are_not_memoized(self):
+        r = NMMSReasoner(self._base(), max_depth=0)
+        r.derives(frozenset({"A"}), frozenset({"A -> B"}))
+        assert not r._cache  # nothing reliable to keep
+
+    def test_trace_is_lazy_structured(self):
+        r = NMMSReasoner(self._base())
+        result = r.derives(frozenset({"A"}), frozenset({"~~B"}))
+        assert result.entries and all(hasattr(e, "kind") for e in result.entries)
+        assert result.trace == [str(e) for e in result.entries]
+        assert any("AXIOM" in line for line in result.trace)
+
+
+class TestPersistentCache:
+    def test_off_by_default(self):
+        base = MaterialBase(language={"A", "B"},
+                            consequences={(frozenset({"A"}), frozenset({"B"}))})
+        r = NMMSReasoner(base)
+        r.derives(frozenset({"A"}), frozenset({"~~B"}))
+        r.derives(frozenset({"A"}), frozenset({"~~B"}))
+        assert r.derives(frozenset({"A"}), frozenset({"~~B"})).cache_hits == 0
+
+    def test_hits_across_queries(self):
+        base = MaterialBase(language={"A", "B"},
+                            consequences={(frozenset({"A"}), frozenset({"B"}))})
+        r = NMMSReasoner(base, persistent_cache=True)
+        first = r.derives(frozenset({"A"}), frozenset({"~~B"}))
+        second = r.derives(frozenset({"A"}), frozenset({"~~B"}))
+        assert first.derivable and second.derivable
+        assert second.cache_hits == 1  # root sequent served from cache
+
+    def test_invalidated_on_mutation(self):
+        base = MaterialBase(language={"A", "B", "C"})
+        r = NMMSReasoner(base, persistent_cache=True)
+        assert not r.derives(frozenset({"A"}), frozenset({"~~B"})).derivable
+        gen = base.generation
+        base.add_consequence(frozenset({"A"}), frozenset({"B"}))
+        assert base.generation > gen
+        assert r.derives(frozenset({"A"}), frozenset({"~~B"})).derivable
+
+    def test_generation_bumps_on_onto_schema(self):
+        from pynmms.onto.base import OntoMaterialBase
+        base = OntoMaterialBase()
+        gen = base.generation
+        base.register_subclass("Man", "Mortal")
+        assert base.generation > gen

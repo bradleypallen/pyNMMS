@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import logging
+from collections.abc import Set as AbstractSet
 from pathlib import Path
 
 from pynmms.base import MaterialBase, Sequent
@@ -61,6 +62,9 @@ class OntoMaterialBase(MaterialBase):
         self._concepts: set[str] = set()
         self._roles: set[str] = set()
         self._onto_schemas: list[tuple[str, str, str, str | None]] = []
+        # Antecedent sizes of registered jointCommitment schemas; lets the
+        # joint-commitment check reject a large Γ without parsing it.
+        self._joint_sizes: set[int] = set()
         # Temporarily bypass parent validation -- we override _validate
         self._onto_language: set[str] = set(language) if language else set()
         self._onto_consequences: set[Sequent] = set()
@@ -81,6 +85,7 @@ class OntoMaterialBase(MaterialBase):
         super().__init__(annotations=annotations)
         self._language = self._onto_language
         self._consequences = self._onto_consequences
+        self._reindex()
 
         logger.debug(
             "OntoMaterialBase created: %d atoms, %d consequences, "
@@ -133,6 +138,7 @@ class OntoMaterialBase(MaterialBase):
         _validate_onto_atomic(s, "add_atom")
         self._language.add(s)
         self._extract_vocab(s)
+        self._touch()
         logger.debug("Added atom: %s", s)
 
     def add_consequence(
@@ -143,7 +149,10 @@ class OntoMaterialBase(MaterialBase):
             _validate_onto_atomic(s, "add_consequence")
             self._language.add(s)
             self._extract_vocab(s)
-        self._consequences.add((antecedent, consequent))
+        if (antecedent, consequent) not in self._consequences:
+            self._consequences.add((antecedent, consequent))
+            self._index_consequence(antecedent, consequent)
+        self._touch()
         logger.debug("Added consequence: %s |~ %s", set(antecedent), set(consequent))
 
     def add_individual(self, role: str, subject: str, obj: str) -> None:
@@ -151,6 +160,7 @@ class OntoMaterialBase(MaterialBase):
         role_assertion = make_role_assertion(role, subject, obj)
         self._language.add(role_assertion)
         self._extract_vocab(role_assertion)
+        self._touch()
         logger.debug("Added individual: %s", role_assertion)
 
     # --- Ontology schema registration ---
@@ -166,6 +176,7 @@ class OntoMaterialBase(MaterialBase):
         Stored lazily -- not grounded over known individuals.
         """
         self._onto_schemas.append(("subClassOf", sub_concept, super_concept, annotation))
+        self._touch()
         logger.debug(
             "Registered subClassOf schema: %s ⊑ %s", sub_concept, super_concept
         )
@@ -181,6 +192,7 @@ class OntoMaterialBase(MaterialBase):
         Stored lazily -- not grounded over known individuals.
         """
         self._onto_schemas.append(("range", role, concept, annotation))
+        self._touch()
         logger.debug("Registered range schema: range(%s) = %s", role, concept)
 
     def register_domain(
@@ -194,6 +206,7 @@ class OntoMaterialBase(MaterialBase):
         Stored lazily -- not grounded over known individuals.
         """
         self._onto_schemas.append(("domain", role, concept, annotation))
+        self._touch()
         logger.debug("Registered domain schema: domain(%s) = %s", role, concept)
 
     def register_subproperty(
@@ -207,6 +220,7 @@ class OntoMaterialBase(MaterialBase):
         Stored lazily -- not grounded over known individuals.
         """
         self._onto_schemas.append(("subPropertyOf", sub_role, super_role, annotation))
+        self._touch()
         logger.debug(
             "Registered subPropertyOf schema: %s ⊑ %s", sub_role, super_role
         )
@@ -222,6 +236,7 @@ class OntoMaterialBase(MaterialBase):
         Material incompatibility between two concepts. Stored lazily.
         """
         self._onto_schemas.append(("disjointWith", concept1, concept2, annotation))
+        self._touch()
         logger.debug(
             "Registered disjointWith schema: %s ⊥ %s", concept1, concept2
         )
@@ -237,6 +252,7 @@ class OntoMaterialBase(MaterialBase):
         Material incompatibility between two roles. Stored lazily.
         """
         self._onto_schemas.append(("disjointProperties", role1, role2, annotation))
+        self._touch()
         logger.debug(
             "Registered disjointProperties schema: %s ⊥ %s", role1, role2
         )
@@ -260,6 +276,8 @@ class OntoMaterialBase(MaterialBase):
             )
         arg1 = ",".join(antecedent_concepts)
         self._onto_schemas.append(("jointCommitment", arg1, consequent_concept, annotation))
+        self._joint_sizes.add(len(arg1.split(",")))
+        self._touch()
         logger.debug(
             "Registered jointCommitment schema: {%s} |~ {%s}",
             ", ".join(f"{c}(x)" for c in antecedent_concepts),
@@ -268,18 +286,15 @@ class OntoMaterialBase(MaterialBase):
 
     # --- Axiom check (overrides parent) ---
 
-    def is_axiom(self, gamma: frozenset[str], delta: frozenset[str]) -> bool:
+    def is_axiom(self, gamma: AbstractSet[str], delta: AbstractSet[str]) -> bool:
         """Check if Gamma => Delta is an axiom.
 
         Ax1 (Containment): Gamma & Delta != empty.
         Ax2 (Base consequence): (Gamma, Delta) in |~_B exactly.
         Ax3 (Ontology schema consequence): matches a lazy ontology schema.
         """
-        # Ax1: Containment
-        if gamma & delta:
-            return True
-        # Ax2: Explicit base consequence (exact match)
-        if (gamma, delta) in self._consequences:
+        # Ax1 and Ax2
+        if super().is_axiom(gamma, delta):
             return True
         # Ax3: Ontology schema evaluation
         if self._onto_schemas and self._check_onto_schemas(gamma, delta):
@@ -287,7 +302,7 @@ class OntoMaterialBase(MaterialBase):
         return False
 
     def _check_onto_schemas(
-        self, gamma: frozenset[str], delta: frozenset[str]
+        self, gamma: AbstractSet[str], delta: AbstractSet[str]
     ) -> bool:
         """Check if any ontology schema makes gamma |~ delta hold.
 
@@ -400,6 +415,8 @@ class OntoMaterialBase(MaterialBase):
 
         # --- Joint commitment schemas: multi-element antecedent, singleton consequent ---
         if len(gamma) >= 2 and len(delta) == 1:
+            if len(gamma) not in self._joint_sizes:
+                return False
             delta_str = next(iter(delta))
 
             try:
@@ -489,6 +506,9 @@ class OntoMaterialBase(MaterialBase):
                 schema["arg2"],
                 schema.get("annotation"),
             ))
+            if schema["type"] == "jointCommitment":
+                base._joint_sizes.add(len(arg1.split(",")))
+            base._touch()
 
         return base
 

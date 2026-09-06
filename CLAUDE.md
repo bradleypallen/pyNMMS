@@ -85,9 +85,11 @@ These biconditionals are what make logical vocabulary "make explicit" reason rel
 
 2. **`base.py`** — `MaterialBase` class implementing the material base B = <L_B, |~_B>. Stores atomic language, consequence relation, and optional atom annotations. Exact syntactic match (no weakening). JSON serialization via `to_file()`/`from_file()`.
 
-3. **`reasoner.py`** — `NMMSReasoner` class with backward proof search implementing 8 Ketonen-style propositional rules (L¬, L→, L∧, L∨, R¬, R→, R∧, R∨). Returns `ProofResult` with derivability, trace, depth, and cache stats.
+3. **`sequent.py`** — Proof-search data structures. `AtomSet` is a persistent set of atom names (shared base `frozenset` plus small added/removed diffs) with structural hash/equality, so derived proof nodes cost O(|diff|) rather than O(|Γ|). `Sequent` is a proof node with each side partitioned into an `AtomSet` and a `frozenset[Sentence]` of complex sentences; strings are parsed once at the API boundary (with a small cache keyed on the input frozenset). `TraceEntry` is a structured trace record formatted only on `str()`.
 
-4. **`cli/`** — Tell/Ask CLI with REPL mode (`--onto` flag enables ontology mode):
+4. **`reasoner.py`** — `NMMSReasoner` class with backward proof search implementing 8 Ketonen-style propositional rules (L¬, L→, L∧, L∨, R¬, R→, R∧, R∨) over `Sequent` nodes; rules iterate only the complex part of a side and the base's `is_axiom` receives the atom part (any `collections.abc.Set[str]`). Returns `ProofResult` with derivability, `entries`/`trace`, `depth_reached`, `cache_hits`, `nodes`, `connectives`, and `depth_limited`. `max_depth` defaults to `None` (search is complete; depth is bounded by connective count); `persistent_cache=True` keeps the memo across queries and is invalidated by `MaterialBase.generation`.
+
+5. **`cli/`** — Tell/Ask CLI with REPL mode (`--onto` flag enables ontology mode):
    - `pynmms tell` — add atoms/consequences to a JSON base file; supports annotations, empty sides, `--json`, `-q`, `--batch`, stdin (`-`)
    - `pynmms ask` — query derivability with optional trace; semantic exit codes (0=derivable, 1=error, 2=not derivable), `--json`, `-q`, `--batch`, stdin (`-`)
    - `pynmms repl` — interactive session with tell/ask/show/save/load
@@ -121,10 +123,11 @@ The `pynmms.onto` subpackage extends propositional NMMS with ontology axiom sche
 
 ## Test Suite
 
-538 tests across 20 test files:
+566 tests across 21 test files:
 
-**Propositional core (331 tests, 13 files):**
+**Propositional core (359 tests, 14 files):**
 - `test_syntax.py` — parser unit tests, strict atom grammar, quoted atoms, split helpers
+- `test_sequent.py` — AtomSet persistence/normalisation, Sequent partitioning, TraceEntry formatting
 - `test_base.py` — MaterialBase construction, validation, axiom checks, serialization
 - `test_reasoner_axioms.py` — axiom-level derivability (Demo 1 equivalence)
 - `test_reasoner_rules.py` — individual rule correctness
@@ -135,7 +138,7 @@ The `pynmms.onto` subpackage extends propositional NMMS with ontology axiom sche
 - `test_cross_validation_role.py` — cross-validation against ROLE.jl ground truth
 - `test_cli.py` — CLI integration tests
 - `test_cli_json.py` — JSON output, quiet mode, stdin, batch, exit codes, empty sides, annotations, Toy Base T integration
-- `test_logging.py` — proof trace and logging output
+- `test_logging.py` — proof trace and logging output, completeness flags, persistent cache
 
 **Ontology extension (207 tests, 7 files):**
 - `test_onto_syntax.py` — ontology sentence parsing (concept/role assertions), atomicity checks

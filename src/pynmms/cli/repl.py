@@ -378,7 +378,7 @@ def run_repl(args: argparse.Namespace) -> int:
                 rest = line[4:]
                 try:
                     antecedent, consequent = _parse_repl_ask(rest)
-                    r = NMMSReasoner(base, max_depth=25)
+                    r = NMMSReasoner(base)
                     result = r.derives(antecedent, consequent)
 
                     if result.derivable:

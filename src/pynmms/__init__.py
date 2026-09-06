@@ -6,11 +6,13 @@ Public API::
 
     from pynmms import MaterialBase, NMMSReasoner, ProofResult
     from pynmms import parse_sentence, is_atomic, all_atomic, Sentence
+    from pynmms import AtomSet, Sequent, TraceEntry
 """
 
 from pynmms._version import __version__
 from pynmms.base import MaterialBase
 from pynmms.reasoner import NMMSReasoner, ProofResult
+from pynmms.sequent import AtomSet, Sequent, TraceEntry
 from pynmms.syntax import Sentence, all_atomic, is_atomic, parse_sentence
 
 __all__ = [
@@ -18,6 +20,9 @@ __all__ = [
     "MaterialBase",
     "NMMSReasoner",
     "ProofResult",
+    "AtomSet",
+    "Sequent",
+    "TraceEntry",
     "Sentence",
     "parse_sentence",
     "is_atomic",

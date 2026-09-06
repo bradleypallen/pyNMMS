@@ -8,8 +8,9 @@ Two curves, neither of which any base-side indexing can change:
     underivable   (C0(a) & C1(a) & ... & Ck(a)) => C999999(a) against a
                   10k-schema chain. Not derivable, so every branch fails.
 
-Axiom checks are counted by a subclass that wraps ``is_axiom``; cost should
-grow roughly as 2.17^k (memoization shares subgoals below the naive 3^k).
+Axiom checks are the distinct proof nodes examined (``ProofResult.nodes``);
+cost should grow roughly as 2.17^k (memoization shares subgoals below the
+naive 3^k).
 """
 
 from __future__ import annotations
@@ -22,18 +23,6 @@ from .schema_scaling import make_chain_base
 
 KS_FULL = (1, 2, 3, 4, 5, 6, 7, 8)
 KS_QUICK = (1, 2, 3, 4, 5)
-
-
-class CountingBase(MaterialBase):
-    """MaterialBase that counts axiom checks."""
-
-    def __init__(self) -> None:
-        super().__init__()
-        self.checks = 0
-
-    def is_axiom(self, gamma: frozenset[str], delta: frozenset[str]) -> bool:
-        self.checks += 1
-        return super().is_axiom(gamma, delta)
 
 
 def tautology(k: int) -> str:
@@ -57,10 +46,9 @@ def run(quick: bool = False) -> list[Section]:
     taut = Section("query_complexity_tautology", ["k", "axiom_checks", "ms"])
     for k in ks:
         q = frozenset({tautology(k)})
-        counting = CountingBase()
-        NMMSReasoner(counting).derives(frozenset(), q)
+        nodes = NMMSReasoner(MaterialBase()).derives(frozenset(), q).nodes
         ms = timeit(lambda: NMMSReasoner(MaterialBase()).derives(frozenset(), q), reps)
-        taut.add(k, counting.checks, ms)
+        taut.add(k, nodes, ms)
 
     chain = make_chain_base(1_000 if quick else 10_000)
     under = Section("query_complexity_underivable", ["k", "ms"],

@@ -15,9 +15,11 @@ from __future__ import annotations
 import json
 import logging
 import re
+from collections.abc import Set as AbstractSet
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from pynmms.sequent import intersects
 from pynmms.syntax import is_atomic
 
 logger = logging.getLogger(__name__)
@@ -72,6 +74,12 @@ class MaterialBase:
         self._language: set[str] = set(language) if language else set()
         self._consequences: set[Sequent] = set()
         self._annotations: dict[str, str] = dict(annotations) if annotations else {}
+        # Exact-match index keyed by (|Gamma|, |Delta|) so that is_axiom never
+        # hashes or copies a large antecedent (see is_axiom).
+        self._by_size: dict[tuple[int, int], list[Sequent]] = {}
+        # Bumped on every mutation that can change derivability; reasoners use
+        # it to invalidate a persistent cache.
+        self._generation: int = 0
 
         # Validate all language atoms
         for s in self._language:
@@ -83,6 +91,7 @@ class MaterialBase:
                 for s in gamma | delta:
                     _validate_atomic(s, "Material base consequence")
                 self._consequences.add((gamma, delta))
+        self._reindex()
 
         logger.debug(
             "MaterialBase created: %d atoms, %d consequences",
@@ -107,12 +116,30 @@ class MaterialBase:
         """Atom annotations (read-only view)."""
         return dict(self._annotations)
 
+    @property
+    def generation(self) -> int:
+        """Counter incremented on every derivability-affecting mutation."""
+        return self._generation
+
+    def _touch(self) -> None:
+        self._generation += 1
+
+    def _reindex(self) -> None:
+        """Rebuild the exact-match size index from ``_consequences``."""
+        self._by_size = {}
+        for gamma, delta in self._consequences:
+            self._by_size.setdefault((len(gamma), len(delta)), []).append((gamma, delta))
+
+    def _index_consequence(self, gamma: frozenset[str], delta: frozenset[str]) -> None:
+        self._by_size.setdefault((len(gamma), len(delta)), []).append((gamma, delta))
+
     # --- Mutation ---
 
     def add_atom(self, s: str) -> None:
         """Add an atomic sentence to the language L_B."""
         _validate_atomic(s, "add_atom")
         self._language.add(s)
+        self._touch()
         logger.debug("Added atom: %s", s)
 
     def annotate(self, atom: str, description: str) -> None:
@@ -129,25 +156,35 @@ class MaterialBase:
         for s in antecedent | consequent:
             _validate_atomic(s, "add_consequence")
             self._language.add(s)
-        self._consequences.add((antecedent, consequent))
+        if (antecedent, consequent) not in self._consequences:
+            self._consequences.add((antecedent, consequent))
+            self._index_consequence(antecedent, consequent)
+        self._touch()
         logger.debug("Added consequence: %s |~ %s", set(antecedent), set(consequent))
 
     # --- Axiom check ---
 
-    def is_axiom(self, gamma: frozenset[str], delta: frozenset[str]) -> bool:
+    def is_axiom(self, gamma: AbstractSet[str], delta: AbstractSet[str]) -> bool:
         """Check if Gamma => Delta is an axiom of NMMS_B.
 
         Ax1 (Containment): Gamma ∩ Delta ≠ ∅.
         Ax2 (Base consequence): (Gamma, Delta) ∈ |~_B exactly.
 
         No Weakening: the base relation uses exact syntactic match.
+
+        *gamma* and *delta* may be any ``collections.abc.Set`` of atom names
+        (the reasoner passes :class:`~pynmms.sequent.AtomSet` views). The
+        exact-match check is driven from the size index, so a large antecedent
+        is never hashed or copied unless a base consequence of the same size
+        exists.
         """
         # Ax1: Containment
-        if gamma & delta:
+        if intersects(gamma, delta):
             return True
         # Ax2: Explicit base consequence (exact match)
-        if (gamma, delta) in self._consequences:
-            return True
+        for g, d in self._by_size.get((len(gamma), len(delta)), ()):
+            if all(x in gamma for x in g) and all(x in delta for x in d):
+                return True
         return False
 
     # --- Serialization ---

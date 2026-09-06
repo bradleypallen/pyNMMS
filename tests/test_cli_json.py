@@ -404,3 +404,26 @@ class TestToyBaseT:
 
         # Annotations visible in show
         assert "Tara is human" in out
+
+
+class TestDepthLimitedField:
+    def test_json_reports_depth_limited(self):
+        with tempfile.NamedTemporaryFile(suffix=".json", delete=False, mode="w") as f:
+            json.dump({"language": ["A", "B"], "consequences": [
+                {"antecedent": ["A"], "consequent": ["B"]}
+            ]}, f)
+            path = f.name
+
+        with patch("sys.stdout", new_callable=StringIO) as out:
+            rc = main(["ask", "-b", path, "--json", "A => A -> B"])
+        data = json.loads(out.getvalue())
+        assert rc == 0
+        assert data["depth_limited"] is False
+
+        with patch("sys.stdout", new_callable=StringIO) as out:
+            rc = main(["ask", "-b", path, "--json", "--max-depth", "0", "A => A -> B"])
+        data = json.loads(out.getvalue())
+        assert rc == 2
+        assert data["depth_limited"] is True
+
+        Path(path).unlink()

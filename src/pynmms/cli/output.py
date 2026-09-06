@@ -21,6 +21,7 @@ def ask_response(
     depth_reached: int,
     cache_hits: int,
     trace: list[str] | None = None,
+    depth_limited: bool = False,
 ) -> dict:
     """Build an ask response dict."""
     d: dict = {
@@ -31,6 +32,7 @@ def ask_response(
         },
         "depth_reached": depth_reached,
         "cache_hits": cache_hits,
+        "depth_limited": depth_limited,
     }
     if trace is not None:
         d["trace"] = trace

@@ -6,6 +6,7 @@
       members:
         - __init__
         - derives
+        - derives_sequent
         - query
 
 ::: pynmms.reasoner.ProofResult

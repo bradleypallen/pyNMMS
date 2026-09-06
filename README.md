@@ -145,18 +145,18 @@ The reasoner uses root-first backward proof search with memoization and backtrac
 
 ### Known limitations
 
-- Depth limit can cause false negatives for deeply nested valid sequents
-- No incremental/persistent cache between queries
+- `max_depth`, if set, can cause false negatives; the search is complete when it is left unset (the default), since depth is bounded by the query's connective count, and `ProofResult.depth_limited` reports when a cap was hit
+- The persistent cache (`persistent_cache=True`) is invalidated wholesale on any base mutation; there is no incremental cache maintenance
 - Multi-premise rules ([L→], [L∨], [R∧]) each generate 3 subgoals, giving worst-case exponential branching
-- Flat proof trace only — no structured proof tree or proof certificates
-- Formula strings re-parsed at each proof step (no pre-compilation)
+- Flat proof trace (a list of `TraceEntry` records) — no proof tree or proof certificates
+- Ontology schemas are matched by a linear scan of the registered schemas (indexing is planned)
 - Does not implement NMMS\\ctr (contraction-free variant, Section 3.2.3), Monotonicity Box (□, Section 3.3.1), or classicality operator (⌈cl⌉, Section 3.3.2)
 
 ### Test suite
 
-538 tests across 20 test files:
+566 tests across 21 test files:
 
-- **Propositional core (331 tests)**: Syntax parsing (including the strict atom grammar and quoted atoms), MaterialBase construction/serialization, individual rule correctness, axiom derivability, structural properties (nonmonotonicity, nontransitivity, supraclassicality, DD/II/AA/SS), soundness audit, CLI integration, logging/tracing, Ch. 3 worked examples, Hypothesis property-based tests, cross-validation against ROLE.jl ground truth
+- **Propositional core (359 tests)**: Syntax parsing (including the strict atom grammar and quoted atoms), AtomSet/Sequent proof-node structures, MaterialBase construction/serialization, individual rule correctness, axiom derivability, structural properties (nonmonotonicity, nontransitivity, supraclassicality, DD/II/AA/SS), soundness audit, CLI integration, logging/tracing, Ch. 3 worked examples, Hypothesis property-based tests, cross-validation against ROLE.jl ground truth
 - **Ontology extension (207 tests)**: Ontology sentence parsing, OntoMaterialBase construction/validation, seven ontology schema types (subClassOf, range, domain, subPropertyOf, disjointWith, disjointProperties, jointCommitment), nonmonotonicity and non-transitivity of schemas, lazy evaluation, NMMSReasoner integration, CommitmentStore, CLI `--onto` integration, JSON output/exit codes, batch mode, annotations, legacy equivalence, logging
 
 ### Benchmarks

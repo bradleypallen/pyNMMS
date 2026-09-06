@@ -14,9 +14,9 @@ from __future__ import annotations
 import logging
 import time
 from collections.abc import Iterable, Iterator
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
-from rdflib import Graph
+from rdflib import BNode, Graph
 from rdflib.graph import DATASET_DEFAULT_GRAPH_ID
 from rdflib.plugins.stores.sparqlstore import SPARQLStore, SPARQLUpdateStore
 from rdflib.term import Node
@@ -136,23 +136,63 @@ class SPARQLBackend:
     def is_inconsistent(self) -> bool:
         return False
 
+    def join(self, patterns: list[Any], bindings: dict[Any, Node]) -> Iterator[dict[Any, Node]]:
+        """One ``SELECT`` for the whole conjunction, bound terms inlined."""
+        from pynmms.rdf.rules import Var
+
+        names: dict[Any, str] = {}
+        free: list[Any] = []
+
+        def term(x: Any) -> str:
+            if isinstance(x, Var):
+                if x in bindings:
+                    return bindings[x].n3()
+                if x not in names:
+                    names[x] = f"?v{len(names)}"
+                    free.append(x)
+                return names[x]
+            return x.n3()  # type: ignore[no-any-return]
+
+        bgp = " . ".join(f"{term(s)} {term(p)} {term(o)}" for s, p, o in patterns)
+        select = " ".join(names[v] for v in free) or "*"
+        query = f"SELECT DISTINCT {select} WHERE {{ {bgp} }}"
+        with self._timed(f"join {len(patterns)}"):
+            rows = list(self._graph.query(query))
+        out: list[dict[Any, Node]] = []
+        for row in rows:
+            b = dict(bindings)
+            for v, val in zip(free, row):  # type: ignore[arg-type]
+                b[v] = val
+            out.append(b)
+        return iter(out)
+
+    BULK_CHUNK = 500
+
     def add(self, triples: Iterable[Triple]) -> int:
-        """Insert triples through the update endpoint (one ``INSERT DATA`` per batch).
+        """Insert triples through the update endpoint in chunked ``INSERT DATA`` updates.
 
         The store is expected to maintain its own materialisation; the
-        generation is bumped once per batch so views and caches invalidate.
+        generation is bumped once per call so views and caches invalidate.
         """
         if self.update_endpoint is None:
             raise ValueError("SPARQLBackend.add needs an update_endpoint")
         batch = list(triples)
         if not batch:
             return 0
-        with self._timed(f"insert {len(batch)}"):
-            for t in batch:
-                self._graph.add(t)
+        for t in batch:
+            if any(isinstance(n, BNode) for n in t):
+                raise ValueError("SPARQLBackend.add cannot insert blank nodes; Skolemize first")
+        for start in range(0, len(batch), self.BULK_CHUNK):
+            chunk = batch[start:start + self.BULK_CHUNK]
+            data = " ".join(f"{s.n3()} {p.n3()} {o.n3()} ." for s, p, o in chunk)
+            with self._timed(f"insert {len(chunk)}"):
+                # Call the store directly: Graph.update() would wrap the update
+                # in the graph's identifier, which single-graph endpoints reject.
+                self._store.update(f"INSERT DATA {{ {data} }}")
         self._generation += 1
-        logger.info("Inserted %d triples into %s; generation %d",
-                    len(batch), self.update_endpoint, self._generation)
+        logger.info("Inserted %d triples into %s in %d update(s); generation %d",
+                    len(batch), self.update_endpoint,
+                    -(-len(batch) // self.BULK_CHUNK), self._generation)
         return len(batch)
 
     def __repr__(self) -> str:

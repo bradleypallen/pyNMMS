@@ -323,7 +323,7 @@ The two layers differ in exactly the way Section 8.2 describes. A regime base `B
 
 - Giordano, L., Gliozzi, V., Olivetti, N., & Pozzato, G. L. (2013). A Non-Monotonic Description Logic for Reasoning About Typicality. *Artificial Intelligence*, 195, 165--202.
 
-- Allen, B. P. (2026). Implication-Space Semantics for RDF. *Transactions on Graph Data and Knowledge*.
+- Allen, B. P. (2026). Implication-Space Semantics for RDF. Unpublished manuscript.
 
 - Hlobil, U. (2026). First-order implication-space semantics. *Journal of Philosophical Logic*, 55(3), 529--554.
 

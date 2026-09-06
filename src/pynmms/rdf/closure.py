@@ -21,7 +21,7 @@ import logging
 from collections.abc import Callable, Iterable, Iterator
 from typing import TYPE_CHECKING
 
-from pynmms.rdf.rules import AnyRule, Pattern, ProceduralRule, Regime, Var
+from pynmms.rdf.rules import AnyRule, Pattern, ProceduralRule, Regime, Rule, Var
 
 if TYPE_CHECKING:
     from rdflib.term import Node
@@ -32,6 +32,10 @@ logger = logging.getLogger(__name__)
 
 Lookup = Callable[[tuple["Node | None", "Node | None", "Node | None"]], Iterable["Triple"]]
 Bindings = dict[Var, "Node"]
+Join = Callable[[list[Pattern], Bindings], Iterable[Bindings]]
+"""Answer several patterns at once against the store: all extensions of the
+given bindings that make every pattern a store triple. One round trip on a
+remote backend."""
 
 
 class _TripleIndex:
@@ -142,7 +146,51 @@ class ClosureEngine:
                 if b2 is not None:
                     yield from join(k + 1, b2)
 
-        for b in join(0, b0):
+        yield from self._conclude(rule, join(0, b0))
+
+    def _fire_batched(
+        self, rule: Rule, i: int, t: Triple, new: _TripleIndex, store_join: Join
+    ) -> Iterator[Triple | None]:
+        """Like ``_fire`` but with the store-resident premises answered in one query.
+
+        The remaining premises are split into those matched against the
+        in-process ``new`` set and those handed to the store. Every subset is
+        tried; the ``new`` positions are bound first (they are few) and the
+        store is then asked for all extensions over the other positions at
+        once. ``new`` and the store are disjoint, so the subsets partition the
+        space and nothing is derived twice.
+        """
+        b0 = _unify(rule.premises[i], t, {})
+        if b0 is None:
+            return
+        rest = [p for j, p in enumerate(rule.premises) if j != i]
+        n = len(rest)
+
+        def bindings() -> Iterator[Bindings]:
+            for mask in range(1 << n):
+                from_new = [j for j in range(n) if mask >> j & 1]
+                from_store = [rest[j] for j in range(n) if not mask >> j & 1]
+
+                def go(idx: int, b: Bindings) -> Iterator[Bindings]:
+                    if idx == len(from_new):
+                        if from_store:
+                            yield from store_join(from_store, b)
+                        else:
+                            yield b
+                        return
+                    pat = rest[from_new[idx]]
+                    for cand in new.match(_instantiate(pat, b)):
+                        b2 = _unify(pat, cand, b)
+                        if b2 is not None:
+                            yield from go(idx + 1, b2)
+
+                yield from go(0, b0)
+
+        yield from self._conclude(rule, bindings())
+
+    @staticmethod
+    def _conclude(rule: Rule, bindings: Iterable[Bindings]) -> Iterator[Triple | None]:
+        for b in bindings:
             if rule.guard is not None and not rule.guard(b):
                 continue
             yield None if rule.conclusion is None else _ground(rule.conclusion, b)
@@ -152,11 +200,14 @@ class ClosureEngine:
         extras: Iterable[Triple],
         store_lookup: Lookup | None,
         store_contains: Callable[[Triple], bool] | None,
+        store_join: Join | None = None,
     ) -> tuple[_TripleIndex, bool]:
         """Close ``store ∪ extras`` incrementally.
 
         Returns the set of triples in the closure that are *not* in the store
-        (the extras themselves included) and whether ⊥ was derived.
+        (the extras themselves included) and whether ⊥ was derived. With
+        *store_join* the pattern rules batch their store-side premises into
+        one query per firing (procedural rules still use *store_lookup*).
         """
         new = _TripleIndex()
         frontier: list[Triple] = []
@@ -178,7 +229,11 @@ class ClosureEngine:
             next_frontier: list[Triple] = []
             for t in frontier:
                 for rule, i in self._candidates(t):
-                    for concl in self._fire(rule, i, t, lookup):
+                    if store_join is not None and isinstance(rule, Rule):
+                        conclusions = self._fire_batched(rule, i, t, new, store_join)
+                    else:
+                        conclusions = self._fire(rule, i, t, lookup)
+                    for concl in conclusions:
                         if concl is None:
                             if not bottom:
                                 logger.debug("closure: rule %s derives false", rule.name)
@@ -200,6 +255,23 @@ class ClosureEngine:
             (*self.regime.axioms, *triples), store_lookup=None, store_contains=None
         )
         return new.triples, bottom
+
+
+def join_patterns(
+    patterns: list[Pattern], bindings: Bindings, lookup: Lookup
+) -> Iterator[Bindings]:
+    """All extensions of *bindings* making every pattern a triple of *lookup*."""
+
+    def go(k: int, b: Bindings) -> Iterator[Bindings]:
+        if k == len(patterns):
+            yield b
+            return
+        for cand in lookup(_instantiate(patterns[k], b)):
+            b2 = _unify(patterns[k], cand, b)
+            if b2 is not None:
+                yield from go(k + 1, b2)
+
+    return go(0, bindings)
 
 
 def match_patterns(patterns: Iterable[Pattern], lookup: Lookup) -> Bindings | None:

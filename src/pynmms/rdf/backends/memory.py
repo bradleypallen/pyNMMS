@@ -6,7 +6,7 @@ import logging
 import time
 from collections.abc import Iterable, Iterator
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from rdflib import BNode, Graph
 from rdflib.term import Node
@@ -102,6 +102,12 @@ class MemoryBackend:
 
     def is_inconsistent(self) -> bool:
         return self._inconsistent
+
+    def join(self, patterns: list[Any], bindings: dict[Any, Node]) -> Iterator[dict[Any, Node]]:
+        """Nested-loop join over the closure graph (no batching to be had locally)."""
+        from pynmms.rdf.closure import join_patterns
+
+        return join_patterns(patterns, bindings, self.closure_triples)
 
     def closure_size(self) -> int:
         return len(self.closure)

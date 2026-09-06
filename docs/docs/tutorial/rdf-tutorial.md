@@ -2,7 +2,7 @@
 
 `pynmms.rdf` runs NMMS proof search with an RDF graph as the antecedent. It
 implements the implication-space semantics for RDF (Allen, *Implication-Space
-Semantics for RDF*, TGDK): triples are the atomic bearers, an entailment regime
+Semantics for RDF*, unpublished manuscript): triples are the atomic bearers, an entailment regime
 specifies a base by closure, and the NMMS connectives give you negation,
 conditionals, and incoherence over that base. Install the extra first:
 
@@ -169,12 +169,18 @@ semi-naive step that fires only rules with a premise matching a new triple
 and joins the rest against the store. Python work per node is proportional
 to the extras, never to `|G|`.
 
+On a remote store the join is batched: for each rule firing, the premises
+that must come from the store are sent as one `SELECT` through
+`backend.join()`, so a firing costs one round trip rather than one per
+premise per candidate. `RegimeBase.batched = False` restores per-lookup
+firing, which is what procedural (list-walking) rules always use.
+
 ## Backends
 
 | Backend | Use | Closure |
 |---------|-----|---------|
 | `MemoryBackend(graph, regime=...)` | files, tests, development | computed in-process at load |
-| `SPARQLBackend(url, regime=..., prefixes={...}, update_endpoint=...)` | a running store | whatever the store materialises; pass `probe=` to verify; `add()` inserts through the update endpoint |
+| `SPARQLBackend(url, regime=..., prefixes={...}, update_endpoint=...)` | a running store | whatever the store materialises; pass `probe=` to verify; `add()` inserts in chunked `INSERT DATA` updates; `join()` batches rule premises into one query |
 | `OxigraphBackend(path, regime=...)` | fast local store (needs `oxrdflib`) | computed in-process at load |
 
 Blank nodes in the loaded graph are Skolemized (sound in the antecedent,

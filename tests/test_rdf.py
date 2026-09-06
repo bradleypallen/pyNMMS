@@ -667,3 +667,50 @@ class TestOwl2RLListRules:
                     t = (i, RDF.type, c)
                     ours = r.derives_sequent(base.sequent([], [TripleAtom(*t)])).derivable
                     assert ours == (t in oracle), (g.serialize(format="nt"), t)
+
+
+class TestBatchedJoin:
+    """Batched firing must derive exactly what per-lookup firing derives."""
+
+    def _graph(self) -> Graph:
+        g = tweety_graph()
+        g.add((EX.hasChild, RDFS.subPropertyOf, EX.hasRelative))
+        g.add((EX.hasRelative, RDFS.domain, EX.Kin))
+        g.add((EX.Person, RDFS.subClassOf, EX.Agent))
+        return g
+
+    def test_same_derivations_with_and_without_join(self):
+        be = MemoryBackend(self._graph(), regime=OWL2RL)
+        engine = ClosureEngine(OWL2RL)
+        extras = [(EX.bob, EX.hasChild, EX.kim), (EX.kim, RDF.type, EX.Alive)]
+        plain, b1 = engine.extend(extras, be.closure_triples, be.closure_contains)
+        batched, b2 = engine.extend(extras, be.closure_triples, be.closure_contains,
+                                    store_join=be.join)
+        assert plain.triples == batched.triples and b1 == b2
+        assert (EX.bob, EX.hasRelative, EX.kim) in batched
+        assert (EX.bob, RDF.type, EX.Kin) in batched
+        assert (EX.kim, RDF.type, EX.Agent) in batched
+
+    def test_mixed_new_and_store_premises(self):
+        # cax-sco needs (C1 subClassOf C2) from the store and (x type C1) from
+        # new, and also the reverse split when the subclass triple is new.
+        be = MemoryBackend(tweety_graph(), regime=RDFS_REGIME)
+        engine = ClosureEngine(RDFS_REGIME)
+        new, _ = engine.extend([(EX.x, RDF.type, EX.Bird)], be.closure_triples,
+                               be.closure_contains, store_join=be.join)
+        assert (EX.x, RDF.type, EX.Thing) in new
+        new, _ = engine.extend([(EX.Thing, RDFS.subClassOf, EX.Entity)], be.closure_triples,
+                               be.closure_contains, store_join=be.join)
+        assert (EX.tweety, RDF.type, EX.Entity) in new
+        new, _ = engine.extend([(EX.y, RDF.type, EX.Q), (EX.Q, RDFS.subClassOf, EX.R)],
+                               be.closure_triples, be.closure_contains, store_join=be.join)
+        assert (EX.y, RDF.type, EX.R) in new  # both premises new
+
+    def test_regime_base_uses_join_by_default(self, regime_base):
+        assert regime_base.batched
+        r = NMMSReasoner(regime_base)
+        seq = regime_base.sequent(["<ex:bob ex:hasChild ex:kim>"], ["<ex:kim a ex:Person>"])
+        assert r.derives_sequent(seq).derivable
+        regime_base.batched = False
+        regime_base._extras_cache.clear()
+        assert r.derives_sequent(seq).derivable

@@ -1,7 +1,7 @@
 # Implication-Space Semantics for RDF
 
 This page states the results of Allen, *Implication-Space Semantics for RDF*
-(Transactions on Graph Data and Knowledge, 2026) that `pynmms.rdf` implements,
+(unpublished manuscript, 2026) that `pynmms.rdf` implements,
 and maps each to the class or method that realises it. Numbering follows the
 paper. The propositional core is described in [NMMS Calculus](nmms-calculus.md);
 the ontology extension, which the RDF layer generalises, in
@@ -233,8 +233,7 @@ applies to the whole.
 
 ## References
 
-- Bradley P. Allen. *Implication-Space Semantics for RDF*. Transactions on
-  Graph Data and Knowledge, 2026.
+- Bradley P. Allen. *Implication-Space Semantics for RDF*. Unpublished manuscript, 2026.
 - Ulf Hlobil and Robert B. Brandom. *Reasons for Logic, Logic for Reasons:
   Pragmatics, Semantics, and Conceptual Roles*. Routledge, 2025.
 - Ulf Hlobil. First-order implication-space semantics. *Journal of

@@ -1,7 +1,7 @@
 """pynmms.rdf -- NMMS reasoning over RDF graphs.
 
 Implements the implication-space semantics for RDF (Allen, "Implication-Space
-Semantics for RDF", TGDK) on top of the propositional NMMS core:
+Semantics for RDF", unpublished manuscript) on top of the propositional NMMS core:
 
 * :class:`TripleAtom` -- an RDF triple as an atomic sentence (a ``str``
   subclass whose value is the canonical quoted-atom name ``<s p o>``).

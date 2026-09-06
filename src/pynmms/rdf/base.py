@@ -161,6 +161,10 @@ class RegimeBase(RDFBase):
             )
         self._engine = ClosureEngine(self.regime)
         self._extras_cache: dict[tuple[int, int, frozenset[str]], tuple[set[Triple], bool]] = {}
+        # Hand store-side premises to the backend's join() in one call per
+        # rule firing (one round trip on a remote store) rather than one
+        # lookup per premise per candidate.
+        self.batched: bool = True
 
     # --- Axiom check ---
 
@@ -232,7 +236,8 @@ class RegimeBase(RDFBase):
         triples = [t.triple for t in (TripleAtom.coerce(a) for a in extras) if t is not None]
         if over_graph:
             new, bottom = self._engine.extend(
-                triples, self.backend.closure_triples, self.backend.closure_contains
+                triples, self.backend.closure_triples, self.backend.closure_contains,
+                store_join=self.backend.join if self.batched else None,
             )
             result = (new.triples, bottom)
         else:

@@ -104,3 +104,57 @@ def test_add_through_update_endpoint(endpoint):
     base = RegimeBase(backend)
     r = NMMSReasoner(base)
     assert r.derives_sequent(base.sequent([], [TripleAtom(EX.kim, RDF.type, EX.Fish)])).derivable
+
+
+def test_join_batches_round_trips(endpoint):
+    """A firing with several store-side premises is one query when batched."""
+    from pynmms.rdf import Resolver, parse_rule
+    from pynmms.rdf.rules import custom
+
+    url, g = endpoint
+    # bob -> kim -> pat0..pat5 (all Persons): the grandparent rule has two
+    # remaining premises to answer from the store once (bob hasChild kim) is new.
+    g.add((EX.kim, RDF.type, EX.Person))
+    for i in range(6):
+        g.add((EX.kim, EX.hasChild, EX[f"pat{i}"]))
+        g.add((EX[f"pat{i}"], RDF.type, EX.Person))
+    rule = parse_rule(
+        "?x ex:hasChild ?y, ?y ex:hasChild ?z, ?z a ex:Person -> ?x a ex:Grandparent",
+        Resolver(g),
+    )
+    regime = custom("gp", [rule])
+    engine = ClosureEngine(regime)
+    extras = [(EX.bob, EX.hasChild, EX.kim)]
+
+    plain_backend = SPARQLBackend(url, regime=regime, prefixes={"ex": str(EX)})
+    plain, _ = engine.extend(extras, plain_backend.closure_triples,
+                             plain_backend.closure_contains)
+    calls_plain = plain_backend.stats["calls"]
+
+    batched_backend = SPARQLBackend(url, regime=regime, prefixes={"ex": str(EX)})
+    batched, _ = engine.extend(extras, batched_backend.closure_triples,
+                               batched_backend.closure_contains,
+                               store_join=batched_backend.join)
+    calls_batched = batched_backend.stats["calls"]
+
+    assert plain.triples == batched.triples
+    assert (EX.bob, RDF.type, EX.Grandparent) in batched
+    # plain: one lookup for ?z, then one per pat_i for the Person check;
+    # batched: a single SELECT for the conjunction (plus the contains checks).
+    assert calls_batched < calls_plain, (calls_batched, calls_plain)
+
+
+def test_bulk_insert_in_chunks(endpoint):
+    url, g = endpoint
+    backend = SPARQLBackend(url, regime=RDFS_REGIME, update_endpoint=url,
+                            prefixes={"ex": str(EX)})
+    backend.BULK_CHUNK = 7
+    before = backend.stats["calls"]
+    triples = [(EX[f"n{i}"], EX.p, EX[f"m{i}"]) for i in range(20)]
+    assert backend.add(triples) == 20
+    assert backend.stats["calls"] - before == 3  # ceil(20 / 7) updates
+    assert all(t in g for t in triples)
+    with pytest.raises(ValueError, match="blank"):
+        from rdflib import BNode
+
+        backend.add([(BNode(), EX.p, EX.x)])

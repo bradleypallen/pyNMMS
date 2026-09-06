@@ -9,7 +9,7 @@ proof search; it asks for membership of a handful of triples per node.
 from __future__ import annotations
 
 from collections.abc import Iterator
-from typing import TYPE_CHECKING, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
 
 from rdflib.term import Node
 
@@ -62,6 +62,14 @@ class GraphBackend(Protocol):
 
     def is_inconsistent(self) -> bool:
         """Does the regime derive ⊥ from G alone?"""
+        ...
+
+    def join(self, patterns: list[Any], bindings: dict[Any, Node]) -> Iterator[dict[Any, Node]]:
+        """All extensions of *bindings* making every pattern a closure triple.
+
+        Patterns contain :class:`~pynmms.rdf.rules.Var` terms. One round trip
+        on a remote store; the in-memory backend joins locally.
+        """
         ...
 
 

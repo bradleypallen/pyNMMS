@@ -1,6 +1,6 @@
 # pyNMMS: plan for v0.7 through v0.9
 
-**Inputs.** Allen, "Implication-Space Semantics for RDF" (TGDK, in press);
+**Inputs.** Allen, "Implication-Space Semantics for RDF" (unpublished manuscript, 2026);
 `pynmms-issues.md` (performance and API review against 0.6.1, 2026-08-29);
 prototypes `nmms_scaling_bench.py` and `rsrlib.py`.
 **Target.** Reason directly over RDF graphs, with rdflib as a component, on
@@ -342,7 +342,7 @@ apart from its cache.
 
 ### Phase 5: later (v0.9+) — IN PROGRESS (slice 1 done 2026-09-06)
 
-Slice 1: general RSR as conjunctive exclusion pairs (`guarded(exclusions=...)`, `unless X & Y` syntax, JSON `unless.pairs`, schema guards on the same individual; the guard is O(defeaters), so the general case indexes as cleanly as singletons); the list-valued OWL 2 RL rule families and rdfD1 as `ProceduralRule`s with an owlrl oracle over list constructs; `SPARQLBackend.add()` via SPARQL UPDATE, `prefixes=`, default-graph identifier, and a live test against an in-process rdflib-endpoint server; unbound short prefixes are now errors. Remaining: native RDFox/GraphDB adapters and closure push-down, batched/async store calls, bulk TELL against a store, reimplementing `OntoMaterialBase` over `RDFBase`, the first-order existential, `owl:sameAs` as substitution commitments.
+Slice 1: general RSR as conjunctive exclusion pairs (`guarded(exclusions=...)`, `unless X & Y` syntax, JSON `unless.pairs`, schema guards on the same individual; the guard is O(defeaters), so the general case indexes as cleanly as singletons); the list-valued OWL 2 RL rule families and rdfD1 as `ProceduralRule`s with an owlrl oracle over list constructs; `SPARQLBackend.add()` via SPARQL UPDATE, `prefixes=`, default-graph identifier, and a live test against an in-process rdflib-endpoint server; unbound short prefixes are now errors. Slice 2 (same day): batched store calls (`GraphBackend.join()`; `ClosureEngine.extend(store_join=)` splits each firing's remaining premises into in-process and store positions and sends the store positions as one query; round trips measured against the in-process endpoint) and bulk TELL (`SPARQLBackend.add()` in chunked `INSERT DATA` updates, one generation bump per call). Remaining: native RDFox/GraphDB adapters and closure push-down (need a store), reimplementing `OntoMaterialBase` over `RDFBase`, the first-order existential, `owl:sameAs` as substitution commitments.
 
 - Native backend adapters for RDFox and GraphDB, pushing the extras-closure
   step down into the store's own rule engine (RDFox Datalog, GraphDB

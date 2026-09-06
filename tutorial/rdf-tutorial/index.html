@@ -1479,7 +1479,7 @@
 <h1 id="reasoning-over-rdf">Reasoning over RDF<a class="headerlink" href="#reasoning-over-rdf" title="Permanent link">&para;</a></h1>
 <p><code>pynmms.rdf</code> runs NMMS proof search with an RDF graph as the antecedent. It
 implements the implication-space semantics for RDF (Allen, <em>Implication-Space
-Semantics for RDF</em>, TGDK): triples are the atomic bearers, an entailment regime
+Semantics for RDF</em>, unpublished manuscript): triples are the atomic bearers, an entailment regime
 specifies a base by closure, and the NMMS connectives give you negation,
 conditionals, and incoherence over that base. Install the extra first:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;pyNMMS[rdf]&quot;</span>
@@ -1604,6 +1604,11 @@ handful of triples a proof rule moved into Γ) are closed by an in-process
 semi-naive step that fires only rules with a premise matching a new triple
 and joins the rest against the store. Python work per node is proportional
 to the extras, never to <code>|G|</code>.</p>
+<p>On a remote store the join is batched: for each rule firing, the premises
+that must come from the store are sent as one <code>SELECT</code> through
+<code>backend.join()</code>, so a firing costs one round trip rather than one per
+premise per candidate. <code>RegimeBase.batched = False</code> restores per-lookup
+firing, which is what procedural (list-walking) rules always use.</p>
 <h2 id="backends">Backends<a class="headerlink" href="#backends" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -1622,7 +1627,7 @@ to the extras, never to <code>|G|</code>.</p>
 <tr>
 <td><code>SPARQLBackend(url, regime=..., prefixes={...}, update_endpoint=...)</code></td>
 <td>a running store</td>
-<td>whatever the store materialises; pass <code>probe=</code> to verify; <code>add()</code> inserts through the update endpoint</td>
+<td>whatever the store materialises; pass <code>probe=</code> to verify; <code>add()</code> inserts in chunked <code>INSERT DATA</code> updates; <code>join()</code> batches rule premises into one query</td>
 </tr>
 <tr>
 <td><code>OxigraphBackend(path, regime=...)</code></td>

@@ -145,9 +145,9 @@ Implements Allen, "Implication-Space Semantics for RDF" (unpublished manuscript)
 
 ## Test Suite
 
-667 tests across 23 test files:
+671 tests across 25 test files:
 
-**Propositional core (388 tests, 14 files):**
+**Propositional core (390 tests, 15 files):**
 - `test_syntax.py` — parser unit tests, strict atom grammar, quoted atoms, split helpers
 - `test_sequent.py` — AtomSet persistence/normalisation, Sequent partitioning, TraceEntry formatting
 - `test_robustness.py` — Robustness policies, clause parsing, robust entries in MaterialBase
@@ -159,6 +159,7 @@ Implements Allen, "Implication-Space Semantics for RDF" (unpublished manuscript)
 - `test_reasoner_soundness.py` — containment-leak soundness audit (Demo 9 equivalence)
 - `test_chapter3_examples.py` — every worked example from Ch. 3
 - `test_cross_validation_role.py` — cross-validation against ROLE.jl ground truth
+- `test_differential_v062.py` — Hypothesis differential test of the current reasoner and bases against a frozen v0.6.2 copy in `tests/legacy_v062/` (propositional, and ontology with EXACT schemas); the strongest check on the Phase 1/2 rewrite
 - `test_cli.py` — CLI integration tests
 - `test_cli_json.py` — JSON output, quiet mode, stdin, batch, exit codes, empty sides, annotations, Toy Base T integration
 - `test_logging.py` — proof trace and logging output, completeness flags, persistent cache
@@ -172,9 +173,10 @@ Implements Allen, "Implication-Space Semantics for RDF" (unpublished manuscript)
 - `test_onto_legacy_equivalence.py` — propositional backward compat, medical concept/role, ontology schema equivalence
 - `test_onto_logging.py` — ontology schema registration logging, proof traces
 
-**RDF extension (54 tests, 2 files):**
+**RDF extension (56 tests, 3 files):**
 - `test_rdf.py` — TripleAtom/PatternAtom, GraphView, ClosureEngine, RegimeBase (RDFS and OWL 2 RL incl. list rules), Skolemization, owlrl oracles (Theorem 35), converters, `pynmms rdf ask/tell/repl` CLI; skipped entirely if rdflib is absent
 - `test_rdf_sparql.py` — SPARQLBackend against an in-process rdflib-endpoint server (membership, probe, extras closure, batched `join()` round-trip count, chunked `add()` via UPDATE); skipped if `rdflib-endpoint`/`uvicorn` are absent
+- `test_rdf_extras_oracle.py` — Hypothesis oracle: `cl_R(G) ∪ extend(G, extras) == close(G ∪ extras)` (same ⊥ verdict) under RDFS and OWL 2 RL with an incompatibility rule and list constructs, batched and per-lookup; the check that the semi-naive extras step is right
 
 ## Benchmarks
 

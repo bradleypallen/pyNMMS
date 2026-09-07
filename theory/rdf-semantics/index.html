@@ -1246,6 +1246,56 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#9-status-against-the-papers-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Status against the paper's objectives
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. Status against the paper&#39;s objectives">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#91-the-papers-results-now-executable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.1 The paper's results, now executable
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#92-what-the-paper-points-toward-now-running" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.2 What the paper points toward, now running
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#93-what-remains-open-from-the-papers-own-list" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.3 What remains open, from the paper's own list
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#references" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1411,6 +1461,56 @@
       
     </span>
   </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-status-against-the-papers-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Status against the paper's objectives
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. Status against the paper&#39;s objectives">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#91-the-papers-results-now-executable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.1 The paper's results, now executable
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#92-what-the-paper-points-toward-now-running" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.2 What the paper points toward, now running
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#93-what-remains-open-from-the-papers-own-list" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.3 What remains open, from the paper's own list
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1635,6 +1735,112 @@ applies to the whole.</p>
   it with a probe query. Push-down of the extras step into the store's own
   rule engine is future work.</li>
 </ul>
+<h2 id="9-status-against-the-papers-objectives">9. Status against the paper's objectives<a class="headerlink" href="#9-status-against-the-papers-objectives" title="Permanent link">&para;</a></h2>
+<p>A snapshot as of pyNMMS 0.10.0 (September 2026), in three parts: what the
+paper states and the code now does, what the paper points toward and the
+code adds, and what the paper leaves open and the code does too.</p>
+<h3 id="91-the-papers-results-now-executable">9.1 The paper's results, now executable<a class="headerlink" href="#91-the-papers-results-now-executable" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Paper</th>
+<th>Implementation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Definition 19, triples as bearers of one ternary property</td>
+<td><code>TripleAtom</code>: a triple as an atomic sentence that flows through the NMMS core unchanged</td>
+</tr>
+<tr>
+<td>Definition 9, regimes as range-restricted uniform Horn rules with ⊥</td>
+<td><code>Rule</code>, <code>Regime</code>, <code>parse_rule</code>; the <code>SIMPLE</code>, <code>RDFS</code>, and <code>OWL2RL</code> regimes; custom false-concluding rules</td>
+</tr>
+<tr>
+<td>Definition 25, the base <code>𝔅_R</code> specified by closure</td>
+<td><code>RegimeBase</code>: Γ inconsistent or Δ meets <code>cl_R(Γ)</code>, the graph's closure in a backend, the extras closed semi-naively in process</td>
+</tr>
+<tr>
+<td>Definition 14 and Proposition 16, positions as pairs of sets of graphs</td>
+<td><code>RDFBase.position(accept, reject)</code> and <code>pynmms rdf position</code></td>
+</tr>
+<tr>
+<td>Lemma 24, a graph denied severally and in every joint combination</td>
+<td>rejected ground graphs as conjunctions under the Ketonen <code>R∧</code> rule</td>
+</tr>
+<tr>
+<td>Lemma 30 and Remark 31, Skolemization sound only in the antecedent</td>
+<td>polarity-aware Skolemization through negation and implication</td>
+</tr>
+<tr>
+<td>Lemma 33, the witness characterisation for blank nodes</td>
+<td><code>PatternAtom</code> and the basic-graph-pattern witness search</td>
+</tr>
+<tr>
+<td>Proposition 34, incoherence recovery</td>
+<td><code>is_inconsistent</code>, empty-consequent queries, explosion of <code>𝔅_R</code></td>
+</tr>
+<tr>
+<td>Theorem 35 and Corollaries 36 to 38</td>
+<td>oracle tests against owlrl on random RDFS and OWL 2 RL graphs, list constructs included</td>
+</tr>
+</tbody>
+</table>
+<p>The paper's closing conjecture, that NMMS over <code>𝔅_R</code> is a sound and complete
+calculus for regime entailment, is what the oracle tests exercise. They are
+evidence for ground graphs on the implemented fragment. They are not a
+proof, and the paper still owes one.</p>
+<h3 id="92-what-the-paper-points-toward-now-running">9.2 What the paper points toward, now running<a class="headerlink" href="#92-what-the-paper-points-toward-now-running" title="Permanent link">&para;</a></h3>
+<p>The introduction asks for a semantics able to handle negation and default
+reasoning, which RDF omits and practice works around with <code>NOT EXISTS</code>,
+<code>MINUS</code>, and SHACL. Section 4 claims that the false-concluding rules a
+community publishes become incoherent positions, and that the substructural
+machinery is idle on the regimes but not on the domain knowledge they leave
+out. Both claims are now running code with measurements attached.</p>
+<ul>
+<li><strong>Negation over RDF</strong> comes from published incompatibilities through the
+  II condition: <code>Γ, A ⇒ ¬B</code> iff <code>Γ, A, B</code> is incoherent under the regime's
+  rules. It costs about 50 µs in memory and one to a few round trips over a
+  store.</li>
+<li><strong>The domain knowledge regimes leave out has a home.</strong> Section 3.3's
+  observation that a rule base taken without closing "corresponds to no
+  regime" diagnosed the pre-existing ontology extension exactly. The
+  response was to make Definition 13's range of subjunctive robustness a
+  per-entry policy, <code>exact</code>, <code>monotone</code>, or <code>guarded</code> by singleton and
+  conjunctive defeaters, so that <code>Penguin</code> defeats <code>Bird |~ Flies</code> and
+  <code>Tall</code> does not. Containment holds for the union of the regime layer and
+  the material layer, so the metatheory of Chapter 3 applies to the whole.</li>
+<li><strong>The two layers sit in one base</strong>, which is the paper's picture of a base
+  over <code>N</code> that need not be monotone, alongside the austere corner the
+  regimes occupy.</li>
+</ul>
+<p>Around this sits what the paper does not discuss but a reasoner needs: a
+store-resident graph with no per-query dependence on its size, batched
+joins against the store, a differential test against the pre-rewrite
+reasoner, this page, and a measured performance profile
+(<code>bench/PERFORMANCE.md</code>) framed for comparison with classical reasoners.</p>
+<h3 id="93-what-remains-open-from-the-papers-own-list">9.3 What remains open, from the paper's own list<a class="headerlink" href="#93-what-remains-open-from-the-papers-own-list" title="Permanent link">&para;</a></h3>
+<ul>
+<li>The first-order existential of Hlobil's extension, which the paper names
+  as the right treatment of blank nodes in the succedent. Pattern atoms
+  implement Lemma 33's witness search instead; they are opaque to the
+  logical rules and cannot occur in antecedent position.</li>
+<li><code>owl:sameAs</code> as symmetric substitution commitments (Remark 11). It runs
+  only monotonically today, through the OWL 2 RL equality rules.</li>
+<li>RDF 1.2 triple terms, which the paper defers.</li>
+<li>The datatype rules of OWL 2 RL and the axiomatic-only rules.</li>
+<li>The comparison with SHACL that Section 4 invites: constraints as
+  incoherence, checked against a shapes graph's own violation report.
+  Planned as a Phase 6 evaluation in <code>PLAN.md</code>; not done.</li>
+<li>Any evaluation on real data. Every number so far is synthetic, and the
+  paper's larger objective, understanding the Semantic Web as logical
+  expressivism in the wild, needs the wild.</li>
+</ul>
+<p>In short: the manuscript's technical content is implemented, tested against
+independent oracles where oracles exist, and extended with the defeasible
+layer it says the regimes lack. Its conjecture is tested rather than proved,
+its future-work items remain future work, and its empirical ambition is the
+next phase.</p>
 <h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Bradley P. Allen. <em>Implication-Space Semantics for RDF</em>. Unpublished manuscript, 2026.</li>

@@ -224,6 +224,13 @@ class RegimeBase(RDFBase):
             return bnode_vars[n] if isinstance(n, BNode) else n
 
         patterns = [(var(s), var(p), var(o)) for s, p, o in pat.triples]
+        if over_graph and self.batched:
+            # A witness entirely inside the store's closure is the common case
+            # and costs one query; only otherwise search store ∪ extras.
+            if next(iter(self.backend.join(patterns, {})), None) is not None:
+                return True
+            if not derived:
+                return False
         return match_patterns(patterns, lookup) is not None
 
     def _closure_of_extras(

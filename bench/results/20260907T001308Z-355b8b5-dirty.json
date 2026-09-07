@@ -1,0 +1,52 @@
+{
+  "timestamp": "2026-09-07T00:13:08+00:00",
+  "git_sha": "355b8b5-dirty",
+  "quick": false,
+  "env": {
+    "pynmms": "0.9.2",
+    "python": "3.11.11",
+    "implementation": "CPython",
+    "platform": "macOS-26.6.2-arm64-arm-64bit",
+    "machine": "arm64"
+  },
+  "sections": [
+    {
+      "name": "rdf_scale",
+      "columns": [
+        "triples",
+        "closure",
+        "load_ms",
+        "atomic_ms",
+        "negation_ms",
+        "k4_ms"
+      ],
+      "rows": [
+        [
+          20003,
+          80166,
+          3613.9789159642532,
+          0.04175002686679363,
+          0.06074993871152401,
+          0.11420808732509613
+        ],
+        [
+          100003,
+          400166,
+          18932.881209068,
+          0.03041699528694153,
+          0.05112495273351669,
+          0.12354203499853611
+        ],
+        [
+          200003,
+          800166,
+          51644.13804200012,
+          0.049083027988672256,
+          0.08195801638066769,
+          0.19262509886175394
+        ]
+      ],
+      "notes": "in-memory backend, RDFS regime plus an Alive/Dead incompatibility rule"
+    }
+  ]
+}

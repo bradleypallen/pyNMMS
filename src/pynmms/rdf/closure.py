@@ -21,6 +21,9 @@ import logging
 from collections.abc import Callable, Iterable, Iterator
 from typing import TYPE_CHECKING
 
+from rdflib import Literal
+from rdflib.namespace import RDF
+
 from pynmms.rdf.rules import AnyRule, Pattern, ProceduralRule, Regime, Rule, Var
 
 if TYPE_CHECKING:
@@ -39,15 +42,24 @@ remote backend."""
 
 
 class _TripleIndex:
-    """Small in-memory triple set with s/p/o indexes for joins."""
+    """In-memory triple set with single and composite indexes for joins.
 
-    __slots__ = ("triples", "_by_s", "_by_p", "_by_o")
+    Lookups pick the most selective index available: ``(s, p)``, ``(p, o)``,
+    ``s``, ``o``, then ``p``. The composite ones matter: a premise such as
+    ``?x owl:hasValue C`` with only the object bound must not scan every
+    triple whose object is ``C`` (all the type assertions of a class), or
+    the class-restriction rules become quadratic in the graph.
+    """
+
+    __slots__ = ("triples", "_by_s", "_by_p", "_by_o", "_by_sp", "_by_po")
 
     def __init__(self) -> None:
         self.triples: set[Triple] = set()
         self._by_s: dict[Node, list[Triple]] = {}
         self._by_p: dict[Node, list[Triple]] = {}
         self._by_o: dict[Node, list[Triple]] = {}
+        self._by_sp: dict[tuple[Node, Node], list[Triple]] = {}
+        self._by_po: dict[tuple[Node, Node], list[Triple]] = {}
 
     def add(self, t: Triple) -> bool:
         if t in self.triples:
@@ -56,6 +68,8 @@ class _TripleIndex:
         self._by_s.setdefault(t[0], []).append(t)
         self._by_p.setdefault(t[1], []).append(t)
         self._by_o.setdefault(t[2], []).append(t)
+        self._by_sp.setdefault((t[0], t[1]), []).append(t)
+        self._by_po.setdefault((t[1], t[2]), []).append(t)
         return True
 
     def __contains__(self, t: object) -> bool:
@@ -66,7 +80,16 @@ class _TripleIndex:
 
     def match(self, pattern: tuple[Node | None, Node | None, Node | None]) -> Iterator[Triple]:
         s, p, o = pattern
-        if s is not None:
+        if s is not None and p is not None and o is not None:
+            if (s, p, o) in self.triples:
+                yield (s, p, o)
+            return
+        cands: Iterable[Triple]
+        if s is not None and p is not None:
+            cands = self._by_sp.get((s, p), ())
+        elif p is not None and o is not None:
+            cands = self._by_po.get((p, o), ())
+        elif s is not None:
             cands = self._by_s.get(s, ())
         elif o is not None:
             cands = self._by_o.get(o, ())
@@ -257,10 +280,44 @@ class ClosureEngine:
         return new.triples, bottom
 
 
+def _selectivity(pattern: Pattern, bound: set[Var]) -> tuple[int, int, int, int]:
+    """Higher sorts first, without any cardinality statistics.
+
+    In order: more bound terms; a bound literal object (a literal value is
+    usually unique); not an ``rdf:type`` pattern (a class has many members);
+    a bound subject over a bound object.
+    """
+    fixed = sum(1 for t in pattern if not isinstance(t, Var) or t in bound)
+    subj, pred, obj = pattern
+    obj_bound = not isinstance(obj, Var) or obj in bound
+    literal_obj = 1 if isinstance(obj, Literal) else 0
+    not_type = 0 if pred == RDF.type else 1
+    subj_bound = 1 if (not isinstance(subj, Var) or subj in bound) else 0
+    return (fixed, literal_obj, not_type, subj_bound if not obj_bound else 0)
+
+
+def order_patterns(patterns: list[Pattern], bindings: Bindings) -> list[Pattern]:
+    """Greedy join order: at each step the pattern with the most bound terms.
+
+    A pattern query such as ``?b a C . ?b name "x"`` must start from the
+    name, which matches once, not from the class, which matches every member.
+    """
+    remaining = list(patterns)
+    bound = set(bindings)
+    ordered: list[Pattern] = []
+    while remaining:
+        best = max(remaining, key=lambda p: _selectivity(p, bound))
+        remaining.remove(best)
+        ordered.append(best)
+        bound |= {t for t in best if isinstance(t, Var)}
+    return ordered
+
+
 def join_patterns(
     patterns: list[Pattern], bindings: Bindings, lookup: Lookup
 ) -> Iterator[Bindings]:
     """All extensions of *bindings* making every pattern a triple of *lookup*."""
+    patterns = order_patterns(patterns, bindings)
 
     def go(k: int, b: Bindings) -> Iterator[Bindings]:
         if k == len(patterns):
@@ -281,7 +338,7 @@ def match_patterns(patterns: Iterable[Pattern], lookup: Lookup) -> Bindings | No
     succedent graph H as variables, ``H`` is entailed iff some binding puts
     all of ``μ(H)`` in the closure. Returns the binding or ``None``.
     """
-    pats = list(patterns)
+    pats = order_patterns(list(patterns), {})
 
     def go(k: int, b: Bindings) -> Bindings | None:
         if k == len(pats):

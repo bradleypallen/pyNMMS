@@ -72,6 +72,13 @@ class SPARQLBackend:
         self._generation = 1
         self._calls = 0
         self._latency = 0.0
+        # Per-generation memo: proof search asks the same memberships and
+        # joins many times (every firing checks its conclusions; every query
+        # re-derives the same schema-level triples). Cleared on bump().
+        self._size: int | None = None
+        self._contains_memo: dict[Triple, bool] = {}
+        self._join_memo: dict[tuple[tuple[Any, ...], tuple[tuple[Any, Any], ...]], list] = {}
+        self.memo_limit = 100_000
         if probe is not None:
             for t in probe:
                 if not self.closure_contains(t):
@@ -100,6 +107,9 @@ class SPARQLBackend:
     def bump(self) -> None:
         """Signal that the remote graph changed (invalidates views and caches)."""
         self._generation += 1
+        self._size = None
+        self._contains_memo.clear()
+        self._join_memo.clear()
 
     def _timed(self, what: str):  # type: ignore[no-untyped-def]
         backend = self
@@ -117,13 +127,21 @@ class SPARQLBackend:
         return _T()
 
     def size(self) -> int:
-        with self._timed("count"):
-            rows = list(self._graph.query("SELECT (COUNT(*) AS ?n) WHERE { ?s ?p ?o }"))
-        return int(str(rows[0][0]))  # type: ignore[index]
+        if self._size is None:
+            with self._timed("count"):
+                rows = list(self._graph.query("SELECT (COUNT(*) AS ?n) WHERE { ?s ?p ?o }"))
+            self._size = int(str(rows[0][0]))  # type: ignore[index]
+        return self._size
 
     def contains(self, t: Triple) -> bool:
+        hit = self._contains_memo.get(t)
+        if hit is not None:
+            return hit
         with self._timed("ask"):
-            return t in self._graph
+            found = t in self._graph
+        if len(self._contains_memo) < self.memo_limit:
+            self._contains_memo[t] = found
+        return found
 
     def triples(self, pattern: Pattern) -> Iterator[Triple]:
         with self._timed("triples"):
@@ -156,8 +174,13 @@ class SPARQLBackend:
         bgp = " . ".join(f"{term(s)} {term(p)} {term(o)}" for s, p, o in patterns)
         select = " ".join(names[v] for v in free) or "*"
         query = f"SELECT DISTINCT {select} WHERE {{ {bgp} }}"
-        with self._timed(f"join {len(patterns)}"):
-            rows = list(self._graph.query(query))
+        key = (tuple(patterns), tuple(sorted(bindings.items(), key=lambda kv: str(kv[0]))))
+        rows = self._join_memo.get(key)
+        if rows is None:
+            with self._timed(f"join {len(patterns)}"):
+                rows = list(self._graph.query(query))
+            if len(self._join_memo) < self.memo_limit:
+                self._join_memo[key] = rows
         out: list[dict[Any, Node]] = []
         for row in rows:
             b = dict(bindings)
@@ -189,7 +212,7 @@ class SPARQLBackend:
                 # Call the store directly: Graph.update() would wrap the update
                 # in the graph's identifier, which single-graph endpoints reject.
                 self._store.update(f"INSERT DATA {{ {data} }}")
-        self._generation += 1
+        self.bump()
         logger.info("Inserted %d triples into %s in %d update(s); generation %d",
                     len(batch), self.update_endpoint,
                     -(-len(batch) // self.BULK_CHUNK), self._generation)

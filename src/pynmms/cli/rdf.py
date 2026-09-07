@@ -4,6 +4,7 @@
     pynmms rdf ask  --store http://localhost:7200/repositories/x --regime rdfs "..."
     pynmms rdf tell -g graph.ttl "<ex:tweety a ex:Bird>, <ex:tweety ex:name \\"Tweety\\"@en>"
     pynmms rdf repl -g graph.ttl --regime rdfs
+    pynmms rdf position -g graph.ttl --regime rdfs --accept a.ttl --reject r1.ttl --reject r2.ttl
 
 A query is ``antecedent => consequent`` or just a consequent; the stored graph
 is always part of the antecedent. Atoms are quoted triples ``<s p o>`` with
@@ -91,6 +92,24 @@ def add_rdf_parser(subparsers: argparse._SubParsersAction) -> None:  # type: ign
 
     repl = sub.add_parser("repl", help="Interactive session over a graph")
     common(repl, store=False)
+
+    pos = sub.add_parser(
+        "position",
+        help="Is a position (accepted graphs, rejected graphs) out of bounds?",
+        description="The stored graph and every --accept file are accepted; each --reject "
+        "file is a graph denied as a whole. Exit 0 if the position is out of bounds "
+        "(the accepted graphs entail one of the rejected ones, or are incoherent when "
+        "nothing is rejected), 2 if it is in bounds.",
+    )
+    common(pos)
+    pos.add_argument("--accept", action="append", default=[], metavar="FILE",
+                     help="RDF file whose graph is accepted (repeatable)")
+    pos.add_argument("--reject", action="append", default=[], metavar="FILE",
+                     help="RDF file whose graph is rejected (repeatable)")
+    pos.add_argument("--trace", action="store_true", help="Print the proof trace")
+    pos.add_argument("--json", action="store_true", help="JSON output")
+    pos.add_argument("-q", "--quiet", action="store_true", help="Exit code only")
+    pos.add_argument("--max-depth", type=int, default=None, help="Cap proof depth")
 
 
 # ---------------------------------------------------------------------------
@@ -220,8 +239,49 @@ def run_rdf(args: argparse.Namespace) -> int:
         return _run_tell(args)
     if cmd == "repl":
         return _run_repl(args)
-    emit_error("Usage: pynmms rdf {ask,tell,repl} ...")
+    if cmd == "position":
+        return _run_position(args)
+    emit_error("Usage: pynmms rdf {ask,tell,repl,position} ...")
     return EXIT_ERROR
+
+
+def _run_position(args: argparse.Namespace) -> int:
+    from pynmms.rdf import RegimeBase
+
+    json_mode, quiet, trace = args.json, args.quiet, args.trace
+    try:
+        backend, regime = _build_backend(args)
+        base = RegimeBase(backend, regime=regime)
+        seq = base.position(accept=args.accept, reject=args.reject)
+    except (OSError, ValueError) as e:
+        emit_error(str(e), json_mode=json_mode, quiet=quiet)
+        return EXIT_ERROR
+    reasoner = NMMSReasoner(base, max_depth=args.max_depth, persistent_cache=True)
+    result = reasoner.derives_sequent(seq)
+    verdict = "OUT OF BOUNDS" if result.derivable else "IN BOUNDS"
+    if json_mode:
+        emit_json({
+            "status": verdict.replace(" ", "_"),
+            "accepted": list(args.accept),
+            "rejected": list(args.reject),
+            "graph_triples": base.backend.size(),
+            "regime": str(base.regime),
+            "depth_reached": result.depth_reached,
+            "cache_hits": result.cache_hits,
+            "depth_limited": result.depth_limited,
+            **({"trace": result.trace} if trace else {}),
+        })
+    elif not quiet:
+        what = ("the accepted graphs are incoherent" if not args.reject else
+                "the accepted graphs entail a rejected one")
+        print(f"{verdict}" + (f" ({what})" if result.derivable else ""))
+        if trace:
+            print("\nProof trace:")
+            for line in result.trace:
+                print(f"  {line}")
+    logger.info("rdf position accept=%s reject=%s: %s (nodes %d)",
+                args.accept, args.reject, verdict, result.nodes)
+    return EXIT_SUCCESS if result.derivable else EXIT_NOT_DERIVABLE
 
 
 def _run_ask(args: argparse.Namespace) -> int:

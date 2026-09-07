@@ -160,6 +160,37 @@ Endpoints do not expose their prefix declarations, so give `SPARQLBackend`
 the prefixes your queries use (`prefixes={"ex": "http://ex.org/"}`). A name
 such as `ex:tweety` with no bound prefix is an error, not the IRI `ex:tweety`.
 
+## Positions: accepted graphs and rejected graphs
+
+The paper's basic object is a *position* ⟨𝔊, 𝔇⟩: a set of graphs accepted
+and a set of graphs rejected. The position is out of bounds when the
+accepted graphs entail one of the rejected ones, and that is a sequent:
+the accepted graphs are read conjunctively and unioned into the antecedent
+(blank nodes Skolemized per graph), and each rejected ground graph becomes
+the conjunction of its triples in the succedent, which is what the Ketonen
+`R∧` rule with its third premise checks "severally and in every joint
+combination" (Lemma 24). A rejected graph with blank nodes becomes a pattern
+atom. Several rejected graphs are alternatives. With nothing rejected, the
+question is whether the accepted graphs are incoherent.
+
+```bash
+pynmms rdf position -g birds.ttl --regime rdfs --reject claims.ttl
+pynmms rdf position -g birds.ttl --rules rules.txt --accept observation.ttl
+pynmms rdf position -g birds.ttl --regime rdfs --accept a.ttl --reject r1.ttl --reject r2.ttl --json
+```
+
+Exit code 0 means out of bounds, 2 means in bounds. From Python:
+
+```python
+seq = base.position(accept=[graph_or_path_or_triples], reject=[another_graph])
+reasoner.derives_sequent(seq).derivable   # True: the position is out of bounds
+```
+
+Under a monotone regime a rejected ground graph is entailed iff each of its
+triples is in the closure; under exact or guarded entries the conjunction
+form is what keeps the joint combinations honest, which is why
+`position()` expands ground graphs rather than using a pattern atom.
+
 ## How the closure is split
 
 The regime base checks `Γ |~ Δ` as "Γ is inconsistent or Δ meets `cl_R(Γ)`".

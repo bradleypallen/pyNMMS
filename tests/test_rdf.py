@@ -714,3 +714,103 @@ class TestBatchedJoin:
         regime_base.batched = False
         regime_base._extras_cache.clear()
         assert r.derives_sequent(seq).derivable
+
+
+class TestPosition:
+    """Positions ⟨accepted graphs, rejected graphs⟩ as sequents (Definition 14, Prop. 16)."""
+
+    def _base(self):
+        g = tweety_graph()
+        rule = parse_rule("?x a ex:Alive, ?x a ex:Dead -> false", Resolver(g))
+        return RegimeBase(MemoryBackend(g, regime=custom("r", [rule], extends=RDFS_REGIME)))
+
+    def test_rejected_ground_graph_is_a_conjunction(self):
+        base = self._base()
+        r = NMMSReasoner(base)
+        h = Graph()
+        h.add((EX.tweety, RDF.type, EX.Animal))
+        h.add((EX.tweety, RDF.type, EX.Thing))
+        seq = base.position(reject=[h])
+        assert len(seq.delta_complex) == 1 and not seq.delta_atoms
+        assert r.derives_sequent(seq).derivable          # both entailed: out of bounds
+        h.add((EX.tweety, RDF.type, EX.Fish))
+        assert not r.derives_sequent(base.position(reject=[h])).derivable  # one missing
+
+    def test_several_rejected_graphs_are_a_disjunction(self):
+        base = self._base()
+        r = NMMSReasoner(base)
+        fish, thing = Graph(), Graph()
+        fish.add((EX.tweety, RDF.type, EX.Fish))
+        thing.add((EX.tweety, RDF.type, EX.Thing))
+        assert r.derives_sequent(base.position(reject=[fish, thing])).derivable
+        assert not r.derives_sequent(base.position(reject=[fish])).derivable
+
+    def test_accepted_graphs_are_unioned_and_skolemized(self):
+        base = self._base()
+        r = NMMSReasoner(base)
+        a = Graph()
+        b = BNode("child")
+        a.add((EX.bob, EX.hasChild, b))
+        rej = Graph()
+        rej.add((BNode("x"), RDF.type, EX.Person))  # some Person: a pattern atom
+        seq = base.position(accept=[a], reject=[rej])
+        assert all("genid" in atom for atom in seq.gamma_atoms.added)
+        assert r.derives_sequent(seq).derivable       # range gives the child Person
+        # two accepted graphs sharing a blank-node label are kept apart
+        c = Graph()
+        c.add((b, RDF.type, EX.Fish))
+        seq = base.position(accept=[a, c])
+        assert len(seq.gamma_atoms.added) == 2
+        assert len({t.s for t in (TripleAtom.coerce(x) for x in seq.gamma_atoms.added)
+                    if str(t.p) == str(EX.hasChild)}) == 1
+
+    def test_no_rejected_graph_asks_incoherence(self):
+        base = self._base()
+        r = NMMSReasoner(base)
+        a = Graph()
+        a.add((EX.tweety, RDF.type, EX.Alive))
+        a.add((EX.tweety, RDF.type, EX.Dead))
+        assert r.derives_sequent(base.position(accept=[a])).derivable
+        assert not r.derives_sequent(base.position()).derivable
+
+    def test_accepts_files_and_triple_iterables(self):
+        base = self._base()
+        with tempfile.TemporaryDirectory() as d:
+            p = Path(d) / "r.ttl"
+            h = Graph()
+            h.add((EX.tweety, RDF.type, EX.Animal))
+            h.serialize(destination=str(p), format="turtle")
+            seq = base.position(accept=[[(EX.z, RDF.type, EX.Bird)]], reject=[str(p)])
+            assert NMMSReasoner(base).derives_sequent(seq).derivable
+
+    def test_empty_rejected_graph_rejected(self):
+        with pytest.raises(ValueError, match="at least one triple"):
+            self._base().position(reject=[Graph()])
+
+    def test_cli_position(self, capsys):
+        with tempfile.TemporaryDirectory() as d:
+            g = Path(d) / "g.ttl"
+            tweety_graph().serialize(destination=str(g), format="turtle")
+            rej = Path(d) / "rej.ttl"
+            h = Graph()
+            h.bind("ex", EX)
+            h.add((EX.tweety, RDF.type, EX.Thing))
+            h.serialize(destination=str(rej), format="turtle")
+            acc = Path(d) / "acc.ttl"
+            a = Graph()
+            a.bind("ex", EX)
+            a.add((EX.tweety, RDF.type, EX.Alive))
+            a.add((EX.tweety, RDF.type, EX.Dead))
+            a.serialize(destination=str(acc), format="turtle")
+            rules = Path(d) / "rules.txt"
+            rules.write_text("?x a ex:Alive, ?x a ex:Dead -> false\n")
+
+            assert main(["rdf", "position", "-g", str(g), "--regime", "rdfs",
+                         "--reject", str(rej)]) == 0
+            assert "OUT OF BOUNDS" in capsys.readouterr().out
+            assert main(["rdf", "position", "-g", str(g), "--reject", str(rej)]) == 2
+            assert "IN BOUNDS" in capsys.readouterr().out
+            assert main(["rdf", "position", "-g", str(g), "--rules", str(rules),
+                         "--accept", str(acc), "--json"]) == 0
+            data = json.loads(capsys.readouterr().out.strip().splitlines()[-1])
+            assert data["status"] == "OUT_OF_BOUNDS" and data["accepted"] == [str(acc)]

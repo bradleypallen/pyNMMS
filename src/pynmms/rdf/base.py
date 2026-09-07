@@ -16,8 +16,10 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Iterable, Iterator
+from pathlib import Path
+from typing import Union
 
-from rdflib import BNode
+from rdflib import BNode, Graph
 from rdflib.term import Node
 
 from pynmms.base import MaterialBase
@@ -128,6 +130,88 @@ class RDFBase(MaterialBase):
         if include_graph:
             return Sequent(self.view().with_added_all(ga), gc, AtomSet(da), dc)
         return Sequent(AtomSet(ga), gc, AtomSet(da), dc)
+
+    def position(
+        self,
+        accept: Iterable[GraphLike] = (),
+        reject: Iterable[GraphLike] = (),
+        *,
+        include_graph: bool = True,
+    ) -> Sequent:
+        """The sequent whose derivability says a position is out of bounds.
+
+        A position ⟨𝔊, 𝔇⟩ is a set of accepted graphs and a set of rejected
+        graphs (Definition 14 of the paper); it is out of bounds iff 𝔊
+        entails 𝔇, which by Proposition 16 is ``Γ ⇒ Δ`` over the bearers:
+
+        * the accepted graphs are read conjunctively and their positive
+          roles adjoin to that of their union, so they become antecedent
+          atoms (blank nodes Skolemized per graph, Lemma 30);
+        * each rejected ground graph is denied "severally and in every
+          joint combination" (Lemma 24), which is the conjunction of its
+          triples under the Ketonen ``R∧`` rule, so it becomes one
+          conjunctive sentence in the succedent;
+        * a rejected graph with blank nodes becomes a pattern atom (the
+          witness search of Lemma 33).
+
+        Several rejected graphs are several succedent sentences (their
+        disjunction). No rejected graph asks whether the accepted graphs
+        are incoherent (Proposition 34). Each element may be an rdflib
+        ``Graph``, a path to an RDF file, or an iterable of triples.
+        """
+        antecedent: set[str] = set()
+        for g in accept:
+            for t in _load_graph(g, skolemize=True):
+                antecedent.add(TripleAtom(*t))
+        consequent: list[str] = []
+        for g in reject:
+            triples = list(_load_graph(g, skolemize=False))
+            if not triples:
+                raise ValueError("A rejected graph must contain at least one triple")
+            if any(isinstance(n, BNode) for t in triples for n in t):
+                consequent.append(PatternAtom(triples))
+            else:
+                consequent.append(_conjunction(triples))
+        return self.sequent(antecedent, consequent, include_graph=include_graph)
+
+
+GraphLike = Union[Graph, str, Path, Iterable[Triple]]
+"""An accepted or rejected graph: an rdflib Graph, an RDF file path, or triples."""
+
+
+def _load_graph(g: GraphLike, *, skolemize: bool) -> list[Triple]:
+    """Triples of *g*: an rdflib Graph, a file path, or an iterable of triples."""
+    if isinstance(g, (str, Path)):
+        graph = Graph()
+        graph.parse(str(g))
+    elif isinstance(g, Graph):
+        graph = g
+    else:
+        triples = [(s, p, o) for s, p, o in g]
+        if skolemize:
+            tag = f"g{id(triples)}"
+            return [
+                (_skolem_bnode(s, tag), _skolem_bnode(p, tag), _skolem_bnode(o, tag))
+                for s, p, o in triples
+            ]
+        return triples
+    if skolemize:
+        from pynmms.rdf.backends.memory import _skolemized
+
+        graph = _skolemized(graph)
+    return [(s, p, o) for s, p, o in graph]
+
+
+def _skolem_bnode(n: Node, tag: str) -> Node:
+    from pynmms.rdf.atoms import skolem
+
+    return skolem(f"{tag}-{n}") if isinstance(n, BNode) else n
+
+
+def _conjunction(triples: list[Triple]) -> str:
+    """``<t1> & <t2> & ...`` as text, one atom when there is a single triple."""
+    atoms = sorted(TripleAtom(*t) for t in triples)
+    return " & ".join(atoms) if len(atoms) > 1 else atoms[0]
 
 
 def _partition_canonical(

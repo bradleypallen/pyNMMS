@@ -349,7 +349,33 @@ Slice 1: general RSR as conjunctive exclusion pairs (`guarded(exclusions=...)`, 
   rulesets) so no rule firing happens in Python at all.
 - Batched and asynchronous store calls: the proof search issues membership
   checks for a whole rule's premises in one round trip, and sibling branches
-  of multi-premise rules run concurrently.
+  of multi-premise rules run concurrently. (Slice 2 did the join batching;
+  membership checks are still one round trip each, and nothing runs
+  concurrently.)
+- **Projection-then-bulk-check.** Today the search consults the base once
+  per proof node, so over a store the latency of a query is one round trip
+  per node, up to ~2.17^k of them for k connectives. Theorem 7 of Ch. 3
+  (Projection) says every sequent decomposes uniquely into a set of atomic
+  base sequents, AtomicImp, and is derivable iff AtomicImp ⊆ |~_B; by
+  invertibility (Prop. 27) that decomposition never depends on the base.
+  So reorganise `NMMSReasoner` for store-backed bases into two passes:
+  (1) apply the logical rules only, in memory, producing the atomic leaves
+  as a DAG with memo sharing (the same 2.17^k nodes, no store calls);
+  (2) check every leaf against the base in one batched request: for a
+  `RegimeBase` that is one closure step over the union of all leaves'
+  extras and one `VALUES`-batched membership query for all leaf consequents,
+  plus the indexed guarded-entry checks in memory. Latency becomes
+  O(1) round trips per query instead of O(nodes); CPU cost is unchanged
+  except that short-circuit pruning is lost (every leaf is computed even
+  when an early failure would have ended the search), which only matters
+  for deep queries. Keep the node-at-a-time search for in-memory backends
+  and as the fallback; expose the choice as `NMMSReasoner(strategy=
+  "projection")`. Tests: the projection pass must agree with the current
+  search on random sequents (reuse the differential harness), and the
+  round-trip count over the in-process endpoint must be constant in k.
+  This is the change to make before any compiled-language rewrite: it
+  turns the store-backed profile from latency-per-node into
+  latency-per-query, which is what industrial use needs.
 - Bulk TELL against a store-backed base: streaming inserts with a generation
   bump per batch rather than per triple, and a closure-maintenance hook so
   the store's materialization is kept current by the store, not by pyNMMS.

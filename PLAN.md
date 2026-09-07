@@ -389,6 +389,218 @@ Slice 1: general RSR as conjunctive exclusion pairs (`guarded(exclusions=...)`, 
 
 ---
 
+### Phase 6: the production-store target (v0.10 to v1.0, large)
+
+**Target.** A reasoner that adds negation, conditionals, incoherence
+checking, and defeasible material inference on top of a production
+triplestore holding a full-size biomedical or heritage knowledge base, with
+query latency in the tens of milliseconds and no size limit of its own.
+
+Everything below is measured against that sentence. "Full-size" means the
+published dataset, not a module: GO, HPO, or MONDO whole (about a million
+triples each), a CIDOC-CRM collection export (10⁶ to 10⁷), a Wikidata class
+slice (10⁶ to 10⁸). "Tens of milliseconds" means a cold query with up to
+four connectives, p50 under 20 ms and p95 under 100 ms, over a LAN to a store
+holding 10⁷ triples, with repeated queries served from memo at under 1 ms.
+"No size limit of its own" means pyNMMS holds no copy of the graph and no
+per-query cost grows with it, which Phases 1 to 3 already established and
+which this phase must preserve under every new feature.
+
+What is already in place: the calculus and its bases, the `GraphBackend`
+protocol with in-memory and SPARQL implementations, the semi-naive extras
+step with batched joins, per-generation memos, robustness policies over
+ground triples, and oracle tests against ROLE.jl and owlrl. What follows is
+the gap between that and the target, as seven workstreams.
+
+#### A. Store adapters with four capabilities
+
+The `GraphBackend` protocol grows four operations, each declared by a
+capability flag so the reasoner can choose the fast path when it exists and
+an emulation when it does not:
+
+1. **Materialised regime with incremental maintenance.** The store owns
+   `cl_R(G)` and keeps it current on insert. The adapter declares which
+   regime the store's ruleset implements (GraphDB `rdfs`, `owl-horst`,
+   `owl2-rl`; RDFox user Datalog) and probes it at construction.
+2. **Batched membership.** `contains_many(triples) -> set` and
+   `closure_contains_many` as one `VALUES` query, replacing the one-ASK-per-
+   conclusion pattern that dominates the extras step's round trips today.
+3. **Hypothetical closure.** `closure_of(extras) -> (derived, bottom)` as a
+   transaction: add the extras, let the store reason incrementally, read
+   the derived triples and the incoherence marker, roll back. RDFox supports
+   this over its REST transactions. GraphDB exposes RDF4J transactions;
+   whether inferred statements are visible inside an uncommitted
+   transaction must be probed, and if not the adapter falls back to the
+   in-process `ClosureEngine.extend` against the store's closure.
+4. **Explanation.** `explain(triple) -> premises` from the store's proof
+   API (RDFox `EXPLAIN`, GraphDB's explain plugin), used for traces now and
+   for the SMT-style learning later.
+
+Deliverables: `backends/graphdb.py` and `backends/rdfox.py` (REST clients
+with auth, timeouts, retries, and per-call stats), `--store graphdb://host/
+repo` and `rdfox://host/datastore` in the CLI, and Docker-based integration
+tests. GraphDB Free runs in a container and can be a CI service; RDFox needs
+a licence (an academic one is available) and its tests are skipped without
+it. Build against GraphDB first because the test infrastructure is free,
+and against RDFox first for hypothetical closure, which is the capability
+that makes negation and conditional queries one round trip.
+
+#### B. Latency: one or two round trips per query
+
+- **Projection-then-bulk-check** (Phase 5 item): apply the logical rules in
+  memory to produce the atomic leaves as a memo DAG, then check all leaves
+  in one batched call: one hypothetical-closure transaction over the union
+  of the leaves' extras (or one in-process extend), one `contains_many` for
+  all leaf consequents, and the guarded-entry checks in memory. Selectable
+  as `NMMSReasoner(strategy="projection")`; the node-at-a-time search stays
+  as the in-memory default.
+- **Asynchronous store calls** for the node-at-a-time strategy so sibling
+  branches overlap their round trips; a thread-safe memo.
+- **Warm-start**: persist the per-generation memo keyed by the store's
+  generation token across sessions, so a research session does not pay
+  cold costs after every restart.
+
+Acceptance: round trips per query constant in the number of connectives
+(measured with the in-process endpoint), and the p50/p95 targets above on
+the LUBM benchmark in section F.
+
+#### C. Regimes and rules that live in the store
+
+- A translation from our `Rule` format to RDFox Datalog and to GraphDB
+  `.pie` rulesets, so custom rules, including false-concluding ones, run in
+  the store. ⊥ becomes a designated triple (`pynmms:incoherent`) that the
+  store derives and pyNMMS reads as inconsistency; Proposition 34 is then
+  one `ASK`.
+- Literal comparisons (dates, quantities) in store rules, using the store's
+  built-ins; the same rules run in-process through `Rule.guard` predicates
+  so the two paths can be cross-checked on samples.
+- A regime descriptor per store ruleset, so that when hypothetical closure
+  is emulated in process, the in-process rules match what the store
+  materialises. Oracle: closure of random extras store-side versus
+  in-process must agree (the extras-oracle test, pointed at a store).
+
+#### D. Defeasible material inference over triple patterns
+
+Today guarded entries are ground triples and the schema-level defeasible
+inferences exist only in the ontology extension's string atoms. A heritage
+or biomedical base needs defeasible *rules* over patterns:
+
+    ?x a ex:Bird -> ?x a ex:Flies unless ?x a ex:Penguin, ?x ex:injured true
+
+`DefeasibleRule(premises, conclusion, robustness)` on `RDFBase`, indexed by
+conclusion predicate. Matching a leaf `P ⇒ N`: unify a consequent atom with
+the conclusion, bind the variables, require the premises in Γ (one join
+against store plus extras), require every defeater pattern to have no match
+(one join each, expecting empty), apply EXACT/MONOTONE/GUARDED semantics as
+for ground entries. This is the "reimplement `OntoMaterialBase` over
+`RDFBase`" item done properly: the ontology extension becomes a surface
+syntax compiling to `DefeasibleRule`s over `rdf:type` triples, and its
+parallel matcher can be retired once the differential test confirms
+agreement. Conjunctive exclusions carry over as multi-pattern defeaters.
+Store round trips: two to three per candidate rule per leaf, batched with
+the leaf checks in strategy B.
+
+#### E. Data-model gaps that real datasets hit first
+
+- **Named graphs and provenance.** Adapter-level scoping: a backend bound
+  to a set of graphs (`FROM`/`GRAPH` clauses), so a query can be restricted
+  to a source or an evidence level. `TripleAtom` stays a triple; a
+  `graphs=` argument on the backend and on `sequent()` selects the scope.
+- **Datatypes.** rdfD1 typing exists; comparisons come from workstream C.
+  The remaining OWL 2 RL datatype rules stay omitted unless a dataset
+  needs them.
+- **Wikidata's model.** No RDFS: a custom regime for `wdt:P31`/`wdt:P279`
+  and part-of transitivity; a compiler from `P2302` property-constraint
+  statements to false-concluding rules with the listed exceptions as
+  defeaters. Truthy statements first; statement nodes only for constraints
+  that need qualifiers.
+
+#### F. Evaluation on real data, with oracles
+
+- **LUBM** at scales 10, 100, and 1,000 (about 1.3M, 13M, 130M triples) in
+  GraphDB and RDFox, for latency distributions per query class (atomic,
+  negation, conditional, pattern, four-connective) and throughput in
+  queries per second, single-threaded and with async. This is the benchmark
+  classical reasoners publish on, so the numbers are comparable.
+- **GO or HPO** under OWL 2 RL in the store: disjointness incoherence,
+  absent-versus-present phenotype conflicts, defeasible associations.
+  Oracle: owlrl on a sample of query results.
+- **A CIDOC-CRM export or a Wikidata slice**: incoherence versus the
+  dataset's own validation reports (Wikidata constraint-violation reports;
+  a SHACL shapes graph run by the store, whose violation report is an
+  oracle for the incoherence check); defeat by exceptions and ranks.
+- Every evaluation logs per-query latency, round trips, nodes, and depth to
+  `bench/results/` as the existing records do.
+
+#### G. Operations and tooling
+
+Connection configuration in a file, authentication for both stores, read-
+only mode, timeouts and retries with logging, thread-safe memos, and a
+`pynmms rdf` session that can be pointed at a store with one flag. The CLI
+and REPL stay research-grade; a service wrapper is out of scope for this
+phase and would be a thin layer over `RegimeBase` when wanted.
+
+#### Sequencing and releases
+
+| Release | Content | Depends on |
+|---|---|---|
+| v0.10 | A (GraphDB adapter, protocol, batched membership, Docker tests), G basics | a GraphDB container |
+| v0.11 | B (projection strategy, async, warm-start), F LUBM latency numbers | v0.10 |
+| v0.12 | A (RDFox adapter with hypothetical closure), C (rule translation, comparisons), E (graph scoping) | RDFox licence |
+| v0.13 | D (defeasible rules over patterns; onto layer as surface syntax) | v0.11 |
+| v1.0 | F (GO/HPO, heritage or Wikidata evaluations), Wikidata constraint compiler, API freeze, docs | all of the above |
+
+Rough effort with one developer and Claude: A two to three weeks, B one to
+two, C one, D two, E one, F two to three, G one; about three months
+end to end, of which the real-data evaluations are the part most likely
+to change the plan.
+
+#### Acceptance criteria for the target
+
+- A GO or HPO release, or a heritage export of at least 10⁶ triples, loaded
+  into GraphDB or RDFox with its regime materialised by the store, and
+  pyNMMS holding none of it.
+- Cold queries with up to four connectives at p50 under 20 ms and p95 under
+  100 ms over a LAN at 10⁷ triples; repeated queries under 1 ms.
+- Negation, conditional, incoherence, and defeasible-rule queries all
+  answered through the store path, with traces, and cross-checked against
+  the in-process path on samples.
+- The extras-oracle and differential tests passing against the store
+  adapters as well as in memory.
+- Round trips per query independent of the number of connectives.
+
+#### Decisions needed
+
+1. **Which store first.** Recommendation: GraphDB Free for the adapter,
+   protocol, and CI, then RDFox for hypothetical closure once a licence is
+   in hand. If a licence arrives early, reverse them: RDFox gives the full
+   target sooner.
+2. **Docker in CI.** GraphDB as a GitHub Actions service container adds a
+   minute per run and about a gigabyte of image pulls. Recommendation:
+   yes, on a separate job so the core suite stays fast.
+3. **Fate of the ontology extension.** Workstream D makes it a surface
+   syntax over `RDFBase`. Recommendation: keep its API and CLI unchanged,
+   route the implementation through `DefeasibleRule`, and retire the string
+   matcher only after the differential test says the two agree.
+4. **Named graphs.** Adapter-level scoping (recommended) versus a quad atom
+   type. Scoping covers provenance filtering without touching the calculus;
+   a quad atom would be needed only to reason *about* provenance.
+
+#### Risks specific to this phase
+
+- **Hypothetical closure semantics in GraphDB** may not be available inside
+  a transaction; the fallback is emulation, which keeps the extras step in
+  Python and costs round trips. Probe early.
+- **Rule translation fidelity.** Store rule languages differ in built-ins
+  and in how they treat literals; the in-process versus store-side closure
+  oracle must run on every dataset before its numbers are believed.
+- **Memo growth.** Per-generation memos are unbounded within a generation;
+  the `memo_limit` needs a real eviction policy under sustained use.
+- **Network variance.** The latency targets assume a LAN; over a WAN the
+  projection strategy is the only thing that keeps queries interactive.
+- **Licensing.** RDFox is commercial; the academic licence covers research
+  use but not distribution, so the RDFox adapter must remain optional.
+
 ## 4. Sequencing and dependencies
 
 ```

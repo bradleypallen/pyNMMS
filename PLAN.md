@@ -584,14 +584,62 @@ once the variables are bound.
 
 #### F. Evaluation on real data, with oracles
 
+- **F0. NMMS versus RDFS over one persisted materialisation.** The first
+  evaluation needs no external store: an on-disk Oxigraph store holding a
+  graph and its RDFS closure serves as both reasoners. The classical RDFS
+  answer to a ground triple is one `ASK` against the closure graph
+  (`thm:closure`, ter Horst); the NMMS answer is proof search over
+  `RegimeBase` on the same store. The harness, `bench/compare_rdfs.py`,
+  takes a store directory and a query file and writes one record per
+  query to `bench/results/`:
+    1. *Atomic hits and misses*: the raw `ASK` latency, the NMMS verdict
+       and latency, and agreement, which must be total (NMMS is a
+       conservative extension of its base). This is `thm:closure` checked
+       at 10⁷ triples, beyond owlrl's reach, and the measured overhead of
+       the sequent machinery over a lookup.
+    2. *Negation, conditional, disjunctive, and pattern-atom queries*:
+       NMMS verdict, latency, nodes, round trips; the RDFS column is marked
+       "not expressible", since the closure alone answers none of them.
+    3. *Material entries*: a base file of guarded entries over the same
+       vocabulary (`Bird ⊢ Flies unless Penguin`), the NMMS verdict for
+       instances that the closure makes birds, penguins, or both, and
+       again "not expressible" for RDFS.
+    4. *Session amortisation*: reopen time and the first ten queries cold
+       (RocksDB block cache empty) against warm, so the cost of a new
+       session over a persisted store is on record.
+  The closure itself is our translation of the RDFS rules, so agreement
+  between the store-side closure and the Python engine is a self-check;
+  for independent evidence at scale the same N-Triples file goes through
+  GraphDB's `rdfs` ruleset or Jena's RDFS reasoner and the two closures
+  are diffed triple for triple (owlrl remains the oracle at small sizes).
+  Synthetic data first, using the 10⁷ store of 2026-09-07. The real
+  dataset for F0 is the **Gene Ontology with the human GAF annotations**:
+  `go.owl` (about 1.5M triples; real subclass chains, the three root
+  branches declared disjoint, restriction axioms full of blank nodes for
+  the Skolemizer to work on) plus the human gene-association file
+  converted to triples by a short GAF-to-RDF script in `bench/` (each
+  annotation a gene product typed by a GO class, with evidence code and
+  reference kept as annotation triples). The GAF's `NOT` qualifier is the
+  reason for the choice: curators publish explicit negative assertions,
+  which are the incompatibilities `prop:incoherence` recovers, so "is this
+  gene product annotated to a function it is also annotated NOT to have,
+  after closure" is a query a biologist recognises and the closure can
+  answer only with NMMS. The `NOT` annotations become false-concluding
+  rules or rejected graphs in a position; the `contributes_to` and
+  `colocalizes_with` qualifiers become guarded material entries. Under
+  RDFS first, then OWL 2 RL, where the `owl:someValuesFrom` axioms show
+  what the regime leaves behind. The closure of a few million annotation
+  triples under GO's depth may pass 10⁷, so the on-disk materialisation
+  path and its timing are part of the record.
 - **LUBM** at scales 10, 100, and 1,000 (about 1.3M, 13M, 130M triples) in
   GraphDB and RDFox, for latency distributions per query class (atomic,
   negation, conditional, pattern, four-connective) and throughput in
   queries per second, single-threaded and with async. This is the benchmark
   classical reasoners publish on, so the numbers are comparable.
-- **GO or HPO** under OWL 2 RL in the store: disjointness incoherence,
-  absent-versus-present phenotype conflicts, defeasible associations.
-  Oracle: owlrl on a sample of query results.
+- **HPO with HPOA** under OWL 2 RL in the store, after GO in F0:
+  absent-versus-present phenotype conflicts (`NOT` annotations again),
+  frequency and onset modifiers as defeasibility. Oracle: owlrl on a
+  sample of query results.
 - **A CIDOC-CRM export or a Wikidata slice**: incoherence versus the
   dataset's own validation reports (Wikidata constraint-violation reports;
   a SHACL shapes graph run by the store, whose violation report is an
@@ -612,7 +660,7 @@ phase and would be a thin layer over `RegimeBase` when wanted.
 | Release | Content | Depends on |
 |---|---|---|
 | v0.11 | A (Oxigraph adapter: closure in the store via C's rule translation, on-disk persistence, `--oxigraph`), D0 over Oxigraph | pyoxigraph — DONE 2026-09-07 |
-| v0.12 | B (projection strategy, async, warm-start), A.3 hypothetical closure as a scratch graph in Oxigraph, F LUBM latency numbers | v0.11 |
+| v0.12 | F0 (NMMS versus RDFS over one persisted Oxigraph store), B (projection strategy, async, warm-start), A.3 hypothetical closure as a scratch graph in Oxigraph, F LUBM latency numbers | v0.11 |
 | v0.13 | A (GraphDB and RDFox adapters, batched membership, Docker tests), C (literal comparisons), E (graph scoping) | a GraphDB container; RDFox licence |
 | v0.14 | D (defeasible rules over patterns; onto layer as surface syntax) | v0.12 |
 | v1.0 | F (GO/HPO, heritage or Wikidata evaluations), Wikidata constraint compiler, API freeze, docs | all of the above |

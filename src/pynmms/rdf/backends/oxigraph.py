@@ -56,6 +56,11 @@ _INCONSISTENT = "urn:pynmms:inconsistent"
 #: Rules whose conclusions have a literal subject; Oxigraph cannot store those.
 UNSTORABLE_RULES = frozenset({"rdfs1", "rdfD1"})
 
+#: Above this many asserted triples an on-disk store materialises directly on
+#: disk rather than in a temporary in-memory store (about 600 bytes per
+#: closure triple in memory; 2M asserted with a 4x closure is about 5 GB).
+IN_MEMORY_LIMIT = 2_000_000
+
 _FORMATS = {".ttl": "text/turtle", ".nt": "application/n-triples", ".n3": "text/n3",
             ".rdf": "application/rdf+xml", ".xml": "application/rdf+xml",
             ".jsonld": "application/ld+json", ".nq": "application/n-quads",
@@ -140,6 +145,12 @@ class OxigraphBackend:
         materialize: Materialise on construction when the store's recorded
             regime differs from *regime* (default). Pass ``False`` to load
             several files first and call :meth:`materialize` once.
+        in_memory: For an on-disk store, compute the closure in a temporary
+            in-memory store and bulk-load the result (fast, but about 600
+            bytes of memory per closure triple) rather than by rule updates
+            against the disk store (RocksDB-write-bound, no memory cost).
+            ``None`` chooses in memory below :data:`IN_MEMORY_LIMIT`
+            asserted triples.
     """
 
     def __init__(
@@ -150,8 +161,10 @@ class OxigraphBackend:
         skolemize: bool = True,
         prefixes: dict[str, str] | None = None,
         materialize: bool = True,
+        in_memory: bool | None = None,
     ) -> None:
         self._ox = _ox()
+        self.in_memory = in_memory
         ox = self._ox
         self._store = ox.Store(str(path)) if path is not None else ox.Store()
         self._path = Path(path) if path is not None else None
@@ -310,25 +323,33 @@ class OxigraphBackend:
         if not self._materialising:
             self._generation += 1
             return
-        if self._path is None:
+        in_memory = self.in_memory
+        if in_memory is None:
+            in_memory = self._path is None or self.size() <= IN_MEMORY_LIMIT
+        if self._path is None or not in_memory:
             self._reset_closure()
             self._materialize()
             return
+        import tempfile
+
         ox = self._ox
         disk = self._store
         t0 = time.perf_counter()
-        scratch = ox.Store()
-        scratch.bulk_load(disk.dump(format=ox.RdfFormat.N_TRIPLES, from_graph=self._asserted),
-                          format=ox.RdfFormat.N_TRIPLES)
-        self._store = scratch
-        try:
-            self._asserted, asserted_on_disk = self._default, self._asserted
-            self._materialize()
-        finally:
-            self._store, self._asserted = disk, asserted_on_disk
-        self._update("DROP SILENT DEFAULT")
-        disk.bulk_load(scratch.dump(format=ox.RdfFormat.N_TRIPLES, from_graph=self._default),
-                       format=ox.RdfFormat.N_TRIPLES)
+        with tempfile.TemporaryDirectory() as tmp:
+            dump = Path(tmp) / "graph.nt"
+            disk.dump(str(dump), format=ox.RdfFormat.N_TRIPLES, from_graph=self._asserted)
+            scratch = ox.Store()
+            scratch.bulk_load(path=str(dump), format=ox.RdfFormat.N_TRIPLES)
+            self._store = scratch
+            try:
+                self._asserted, asserted_on_disk = self._default, self._asserted
+                self._materialize(asserted=self._count(self._default))
+            finally:
+                self._store, self._asserted = disk, asserted_on_disk
+            scratch.dump(str(dump), format=ox.RdfFormat.N_TRIPLES, from_graph=self._default)
+            del scratch
+            self._update("DROP SILENT DEFAULT")
+            disk.bulk_load(path=str(dump), format=ox.RdfFormat.N_TRIPLES)
         self._record_meta()
         logger.info("Closure written to %s in %.1f ms total", self._path,
                     (time.perf_counter() - t0) * 1000)
@@ -372,7 +393,7 @@ class OxigraphBackend:
         return len(added)
 
     # --- Materialisation in the store ---
-    def _materialize(self) -> None:
+    def _materialize(self, asserted: int | None = None) -> None:
         """Run the regime to a fixpoint inside the store.
 
         Pattern rules run as SPARQL updates; guarded and procedural rules run
@@ -399,7 +420,7 @@ class OxigraphBackend:
         logger.info(
             "Materialised %s closure in the store: %d asserted -> %d triples%s in %d round(s), "
             "%.1f ms (%d store-side rules, %d in process%s)",
-            self._regime.name, self.size(), self.closure_size(),
+            self._regime.name, self.size() if asserted is None else asserted, self.closure_size(),
             " (INCONSISTENT)" if bottom else "", rounds, (time.perf_counter() - t0) * 1000,
             rules.store_side, len(rules.in_process),
             f", skipped {', '.join(rules.skipped)}" if rules.skipped else "",

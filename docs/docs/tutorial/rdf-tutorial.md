@@ -241,7 +241,12 @@ pynmms rdf ask --oxigraph ./kb --regime rdfs --prefix ex=http://ex.org/ "<ex:twe
 pynmms rdf tell --oxigraph ./kb --regime rdfs --prefix ex=http://ex.org/ "<ex:polly a ex:Sparrow>"
 ```
 
-`tell` extends the closure incrementally and persists it. In Python:
+`tell` extends the closure incrementally and persists it. An on-disk store
+below two million asserted triples computes the closure in a temporary
+in-memory store and bulk-loads the result, which costs about 600 bytes of
+memory per closure triple; above that it runs the rule updates directly on
+disk, slower but with no memory cost (`in_memory=` overrides the choice).
+In Python:
 
 ```python
 from pynmms.rdf import RDFS, RegimeBase

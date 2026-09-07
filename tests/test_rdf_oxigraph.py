@@ -237,6 +237,20 @@ class TestPersistence:
         assert owl.closure_contains((EX.b, EX.p, EX.a))
         assert owl.size() == 2
 
+    @pytest.mark.parametrize("in_memory", [True, False])
+    def test_disk_materialisation_paths_agree(self, tmp_path, in_memory):
+        """The scratch-store path and the direct-on-disk path give the same closure."""
+        g = Graph()
+        g.add((EX.C0, RDFS.subClassOf, EX.C1))
+        g.add((EX.p, RDFS.range, EX.C1))
+        g.add((EX.a, RDF.type, EX.C0))
+        g.add((EX.a, EX.p, EX.b))
+        with OxigraphBackend(tmp_path / f"s{in_memory}", regime=RDFS_REGIME,
+                             in_memory=in_memory) as ox:
+            ox.load_graph(g)
+            assert _closure_set(ox) == _memory_closure(g, RDFS_REGIME)
+            assert ox.size() == 4
+
     def test_load_file_skolemizes_and_binds_prefixes(self, tmp_path):
         ttl = tmp_path / "g.ttl"
         ttl.write_text("@prefix ex: <http://ex.org/> .\n"

@@ -1,17 +1,17 @@
 """Entailment regimes as Horn rules over generalized RDF triples.
 
-Definition 9 of the paper: a regime is a set of rules ``<A, c>`` with a finite
+The paper's ``def:entailmentregime``: a regime is a set of rules ``<A, c>`` with a finite
 premise set *A* of triples and a conclusion *c* that is a triple or ⊥,
 range-restricted and uniform under substitution. Here a rule is a schema over
 variables; its instances are the regime's rules.
 
 Shipped regimes:
 
-* ``SIMPLE`` -- the empty regime (simple entailment, Corollary 36).
+* ``SIMPLE`` -- the empty regime (simple entailment, ``cor:simple``).
 * ``RDFS``   -- the RDF and RDFS entailment patterns of RDF 1.1 Semantics
   §9.2.1 (rdf1, rdfs2-13 except the literal-typing rules rdfs1 and rdfD1,
   which need a side condition) with the finite axiomatic triples of §9.2.2
-  (the container-membership family ``rdf:_i`` excluded). See Corollary 37.
+  (the container-membership family ``rdf:_i`` excluded). See ``cor:rdfs``.
 
 Custom regimes are built from :func:`parse_rule` lines such as::
 
@@ -58,7 +58,7 @@ Guard = Callable[[dict["Var", Node]], bool]
 class Rule:
     """A Horn rule schema. ``conclusion is None`` means ⊥ (false-concluding).
 
-    ``guard`` is an optional side condition on the bindings (Definition 9
+    ``guard`` is an optional side condition on the bindings (``def:entailmentregime``
     admits conditions such as "is a literal" that substitution preserves).
     """
 

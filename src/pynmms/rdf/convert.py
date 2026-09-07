@@ -1,7 +1,7 @@
 """Converters between the ontology extension and the RDF layer.
 
 The onto vocabulary is the ``rdf:type`` fragment of the triple encoding
-(Definition 19): ``C(x)`` is ``(x rdf:type C)`` and ``R(x, y)`` is ``(x R y)``.
+(``def:triplebearers``): ``C(x)`` is ``(x rdf:type C)`` and ``R(x, y)`` is ``(x R y)``.
 Schema commitments become schema triples, read by a regime's rules:
 
 | schema                          | triple(s)                              |

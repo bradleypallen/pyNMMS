@@ -84,8 +84,8 @@ pynmms rdf ask -g birds.ttl --regime rdfs '<{ _:b a ex:Bird . _:b ex:name "Tweet
 ```
 
 This asks whether *some* individual is a Bird named Tweety, the witness
-search of Lemma 33 in the paper. Blank nodes in an antecedent are Skolemized
-(Lemma 30); a bare triple atom with a blank node in the consequent denotes
+search of `lem:witnesschar` in the paper. Blank nodes in an antecedent are Skolemized
+(`lem:skolem`); a bare triple atom with a blank node in the consequent denotes
 that specific node and is never entailed, so use the pattern form there. A
 pattern atom is opaque to the logical rules: it can be combined with
 connectives but not decomposed, and it cannot appear in antecedent position.
@@ -93,7 +93,7 @@ connectives but not decomposed, and it cannot appear in antecedent position.
 ### Custom rules and incoherence
 
 Rules are Horn clauses over triple patterns, one per line; a conclusion of
-`false` makes the rule false-concluding (Definition 9 of the paper):
+`false` makes the rule false-concluding (`def:entailmentregime` of the paper):
 
 ```
 # rules.txt
@@ -112,7 +112,7 @@ pynmms rdf ask -g birds.ttl --regime rdfs --rules rules.txt \
 
 The second query is the II condition at work: `Γ |~ ¬A` iff `Γ, A |~ ∅`. RDF
 has no negation; the regime's incompatibilities plus the NMMS rules supply
-one (Proposition 34 and Section 4 of the paper).
+one (`prop:incoherence` and the paper's discussion).
 
 ## Python API
 
@@ -152,6 +152,13 @@ bird, flies, penguin = (TripleAtom.from_name(f"<ex:tweety a ex:{c}>", base.resol
 base.add_consequence(frozenset({bird}), frozenset({flies}), robustness=guarded([penguin]))
 ```
 
+Since 0.10.1 a `RegimeBase` reads material entries *through the regime*: the
+antecedent must be derivable (not merely present), no defeater may be
+derivable, and the consequent is elaborated by the regime's closure. With
+`Sparrow ⊑ Bird` in the graph the entry above makes a sparrow fly, and with
+`EmperorPenguin ⊑ Penguin` it stops an emperor penguin. Material entries do
+not chain with one another. See the theory page, Section 8.
+
 Defeaters can be conjunctive: `guarded(exclusions=[(frozenset({penguin, injured}), frozenset())])`
 is defeated only when both atoms are present. On the command line that is
 `unless <...> & <...>`.
@@ -162,14 +169,14 @@ such as `ex:tweety` with no bound prefix is an error, not the IRI `ex:tweety`.
 
 ## Positions: accepted graphs and rejected graphs
 
-The paper's basic object is a *position* ⟨𝔊, 𝔇⟩: a set of graphs accepted
+The paper's basic object (`def:contententailment`, `prop:positional`) is a *position* ⟨𝔊, 𝔇⟩: a set of graphs accepted
 and a set of graphs rejected. The position is out of bounds when the
 accepted graphs entail one of the rejected ones, and that is a sequent:
 the accepted graphs are read conjunctively and unioned into the antecedent
 (blank nodes Skolemized per graph), and each rejected ground graph becomes
 the conjunction of its triples in the succedent, which is what the Ketonen
 `R∧` rule with its third premise checks "severally and in every joint
-combination" (Lemma 24). A rejected graph with blank nodes becomes a pattern
+combination" (`lem:shapes`). A rejected graph with blank nodes becomes a pattern
 atom. Several rejected graphs are alternatives. With nothing rejected, the
 question is whether the accepted graphs are incoherent.
 
@@ -215,22 +222,22 @@ firing, which is what procedural (list-walking) rules always use.
 | `OxigraphBackend(path, regime=...)` | fast local store (needs `oxrdflib`) | computed in-process at load |
 
 Blank nodes in the loaded graph are Skolemized (sound in the antecedent,
-Lemma 30 of the paper); blank nodes in a consequent go in a pattern atom.
+`lem:skolem`); blank nodes in a consequent go in a pattern atom.
 
 ## Shipped regimes
 
-- `SIMPLE`: no rules, so `Γ |~ Δ` is Containment (simple entailment, Corollary 36).
+- `SIMPLE`: no rules, so `Γ |~ Δ` is Containment (simple entailment, `cor:simple`).
 - `RDFS`: rdf1, rdfs1, rdfD1 (literal typing) and rdfs2 to rdfs13 with the
-  finite RDFS axiomatic triples (Corollary 37).
+  finite RDFS axiomatic triples (`cor:rdfs`).
 - `OWL2RL`: RDFS plus the fixed-arity OWL 2 RL/RDF rules of Tables 4 to 9
-  (Corollary 38): equality (`owl:sameAs`, `differentFrom`), property
+  (`cor:owlrl`): equality (`owl:sameAs`, `differentFrom`), property
   characteristics (functional, inverse-functional, irreflexive, symmetric,
   asymmetric, transitive, inverse, equivalent, disjoint), negative property
   assertions, class restrictions (someValuesFrom/allValuesFrom/hasValue,
   max-cardinality 0 and 1), class axioms (subClassOf, equivalentClass,
   disjointWith, complementOf, `owl:Nothing`), and the schema rules. The
   false-concluding rules among these are exactly the published
-  incompatibilities Proposition 34 recovers. The rule families over
+  incompatibilities `prop:incoherence` recovers. The rule families over
   `rdf:List` arguments (`intersectionOf`, `unionOf`, `oneOf`,
   `AllDisjointClasses`, `AllDisjointProperties`, property chains, `hasKey`,
   `AllDifferent`) are implemented procedurally. Not implemented: the datatype

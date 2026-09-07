@@ -7,10 +7,12 @@ Semantics for RDF", unpublished manuscript) on top of the propositional NMMS cor
   subclass whose value is the canonical quoted-atom name ``<s p o>``).
 * :class:`GraphView` -- an antecedent that is a reference to a graph in a
   backend plus a small diff, so that Γ is never materialised in Python.
-* :class:`RDFBase` -- a material base over ground triples (Definition 25),
+* :class:`RDFBase` -- a material base over ground triples (``def:fitness``),
   with explicit entries and robustness policies from the core.
-* :class:`RegimeBase` -- the base specified by an entailment regime
-  (Definition 9): ``Γ |~ Δ`` iff Γ is R-inconsistent or ``Δ ∩ cl_R(Γ) ≠ ∅``.
+* :class:`RegimeBase` -- the regime-relative material base ``B_{R,I}``: the
+  base a regime specifies (``def:fitness``; ``Γ |~ Δ`` iff Γ is R-inconsistent
+  or ``Δ ∩ cl_R(Γ) ≠ ∅``) with material entries read through the closure
+  (theory page, Section 8).
   Closure of the stored graph lives in the backend; closure of the per-node
   extras is an in-process semi-naive step (:mod:`pynmms.rdf.closure`).
 * Backends (:mod:`pynmms.rdf.backends`): in-memory rdflib, SPARQL endpoint.

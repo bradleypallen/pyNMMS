@@ -243,7 +243,7 @@ class TestSkolemization:
 
 @pytest.mark.skipif(importlib.util.find_spec("owlrl") is None, reason="owlrl not installed")
 class TestOwlrlOracle:
-    """Theorem 35 / Corollary 37: NMMS over B_RDFS agrees with RDFS entailment."""
+    """thm:closure / cor:rdfs: NMMS over the RDFS closure base agrees with RDFS entailment."""
 
     def _owlrl_closure(self, g: Graph) -> Graph:
         import owlrl
@@ -717,7 +717,7 @@ class TestBatchedJoin:
 
 
 class TestPosition:
-    """Positions ⟨accepted graphs, rejected graphs⟩ as sequents (Definition 14, Prop. 16)."""
+    """Positions ⟨accepted, rejected⟩ as sequents (def:contententailment, prop:positional)."""
 
     def _base(self):
         g = tweety_graph()

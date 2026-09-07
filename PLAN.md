@@ -15,7 +15,7 @@ The onto extension was designed before the semantics existed. Four results in
 the paper bear directly on the code.
 
 **(a) The atomic bearers are ground triples, not concept/role assertions.**
-Definition 19 encodes every triple as one ternary property `T(s, p, o)`. The
+`def:triplebearers` encodes every triple as one ternary property `T(s, p, o)`. The
 onto extension's `C(x)` and `R(x,y)` are the special cases `T(x, rdf:type, C)`
 and `T(x, R, y)`. Schema statements such as `subClassOf(C, D)` are themselves
 triples `T(C, rdfs:subClassOf, D)` and belong in the *antecedent*, not at a
@@ -23,27 +23,27 @@ meta level. The RDF layer should therefore be the general case and the onto
 extension a surface syntax over it.
 
 **(b) A regime base is defined by closure, and it is monotone, cut-closed and
-explosive.** Definition 25: `Γ |~_R Δ` iff Γ is R-inconsistent or
-`Δ ∩ cl_R(Γ) ≠ ∅`. Theorem 35 and Corollaries 36 to 38 show this recovers
+explosive.** `def:fitness`: `Γ |~_R Δ` iff Γ is R-inconsistent or
+`Δ ∩ cl_R(Γ) ≠ ∅`. `thm:closure` and Corollaries 36 to 38 show this recovers
 simple entailment, RDFS entailment and OWL 2 RL exactly, inconsistency
-included (Proposition 34). NMMS has no Cut, so chaining cannot be left to the
+included (`prop:incoherence`). NMMS has no Cut, so chaining cannot be left to the
 proof rules: a regime base must compute the closure inside `is_axiom`. The
-paper explicitly conjectures (line 452) that NMMS over `B_R` is a sound and
+paper explicitly conjectures (the discussion) that NMMS over `B_R` is a sound and
 complete calculus for R-entailment. That is the theorem pyNMMS should
 instantiate and test.
 
 **(c) The current exact-match schema semantics "corresponds to no regime."**
-Lines 317 to 323: a base that takes rule *instances* as its pairs without
+The remark after `def:fitness`: a base that takes rule *instances* as its pairs without
 closing validates `{(a,type,C), (C,subClassOf,D)} |~ (a,type,D)` but not its
 weakening by an unrelated triple, and "its failure of monotonicity is by
 omission rather than by defeat." This is issue 9 in the change notes, stated
-formally. Definition 13 (range of subjunctive robustness, RSR) supplies the
+formally. `def:roles` (range of subjunctive robustness, RSR) supplies the
 right replacement: a base entry should carry the set of premise/conclusion
 additions under which it survives. The `rsrlib.py` defeater set is the
 antecedent-side complement of an RSR.
 
-**(d) Blank nodes are asymmetric.** Lemma 30 and Remark 31: Skolemization is
-sound in the antecedent and unsound in the succedent. Lemma 33 gives the
+**(d) Blank nodes are asymmetric.** `lem:skolem` and `rem:skolem`: Skolemization is
+sound in the antecedent and unsound in the succedent. `lem:witnesschar` gives the
 succedent condition as a witness search: some instance mapping μ with
 `μ(H) ⊆ cl_R(G) \ {⊥}`. That is a basic graph pattern match with blank nodes
 as variables, which rdflib's SPARQL engine performs natively.
@@ -194,7 +194,7 @@ name, which made the hashable-payload generalisation of `Sentence`
 unnecessary), `GraphView`, `GraphBackend` protocol with `MemoryBackend` and
 `SPARQLBackend`, `Rule`/`Regime`/`parse_rule` with `SIMPLE` and `RDFS`, the
 semi-naive `ClosureEngine` (both full closure and per-node extras), `RDFBase`
-and `RegimeBase`, `pynmms rdf ask`, the owlrl oracle test for Theorem 35, and
+and `RegimeBase`, `pynmms rdf ask`, the owlrl oracle test for `thm:closure`, and
 `bench/rdf_scale.py`. Slice 2 (same day) added: `OWL2RL` regime (fixed-arity rules of Tables
 4–9 with an owlrl oracle test; list-valued families and datatype rules
 omitted and listed in `OWL2RL_OMITTED`), rule guards and rdfs1,
@@ -204,7 +204,7 @@ of antecedent blank nodes, `pynmms rdf tell` and `pynmms rdf repl`,
 for `SPARQLBackend`, the omitted OWL 2 RL rules, rdfD1.
 
 Goal: `Γ ⇒ Δ` where Γ is an RDF graph and the base is a regime of
-Definition 9, at a scale set by the graph store rather than by Python. rdflib
+`def:entailmentregime`, at a scale set by the graph store rather than by Python. rdflib
 and owlrl are an optional extra: `pip install pyNMMS[rdf]`. The propositional
 core stays dependency-free.
 
@@ -227,7 +227,7 @@ anything but the per-node extras.
    graph. Logical decomposition only ever moves a few atoms, so diffs stay
    small along every branch. The one-time Θ(|G|) load, hash, and partition
    costs from the change notes disappear entirely: G is never loaded.
-3. **`RDFBase`**: a general base over ground triples (Definition 25) with
+3. **`RDFBase`**: a general base over ground triples (`def:fitness`) with
    Containment and an intensional lexicon. The language is "any well-formed
    triple over N", so `add_atom` validation becomes a well-formedness check
    rather than set membership. Explicit entries and robustness policies from
@@ -261,7 +261,7 @@ anything but the per-node extras.
    `ask(pattern)`, `match(pattern, limit)`, `closure_contains(t)`,
    `is_inconsistent()`, `load(source)`, `skolemize()`, and `generation`.
    Backends shipped: `MemoryBackend` (rdflib in-memory plus owlrl; for
-   development, tests, and the Theorem 35 oracle), `SPARQLBackend` (any
+   development, tests, and the `thm:closure` oracle), `SPARQLBackend` (any
    endpoint via rdflib `SPARQLStore`; closure is whatever the endpoint's
    regime provides, declared at construction and checked by a probe query),
    and `OxigraphBackend` via `oxrdflib` for a fast local store without a
@@ -270,15 +270,15 @@ anything but the per-node extras.
    log load counts, Skolemized blank node counts, closure size and time, and
    per-query round-trip counts and latency for post-run analysis.
 6. **Blank nodes.** Antecedent graphs are Skolemized on load (rdflib
-   `Graph.skolemize()`, sound by Lemma 30). A succedent graph with blank nodes
-   is wrapped as a single `PatternAtom(H)` whose axiom check is the Lemma 33
+   `Graph.skolemize()`, sound by `lem:skolem`). A succedent graph with blank nodes
+   is wrapped as a single `PatternAtom(H)` whose axiom check is the `lem:witnesschar`
    witness search, run as a SPARQL `ASK` through the backend with blank
    nodes as variables; on a store that materializes the regime this is one
    round trip regardless of |G|. A ground succedent graph is the conjunction of its
    triple atoms and goes through `R∧` as usual. `PatternAtom` is opaque to the
    logical rules; the paper's existential extension is out of scope.
 7. **Incoherence.** `Γ ⇒ ∅` returns True iff the regime derives `⊥`
-   (Proposition 34). Verify how owlrl surfaces inconsistency for OWL 2 RL
+   (`prop:incoherence`). Verify how owlrl surfaces inconsistency for OWL 2 RL
    (`owl:Nothing` typing versus raised error) before relying on it. With `II`
    this gives `Γ ⇒ ¬t` iff `Γ ∪ {t}` is inconsistent: negation over RDF as
    incoherence, which is the paper's Section 4 payoff and should be the
@@ -296,12 +296,12 @@ anything but the per-node extras.
    `--store oxigraph:PATH` selects `OxigraphBackend`; default is in-memory.
    Loading logs triple counts, Skolemized blank nodes, and closure size and
    time.
-10. **Test oracle from the paper.** Theorem 35 makes rdflib plus owlrl a ground
+10. **Test oracle from the paper.** `thm:closure` makes rdflib plus owlrl a ground
    truth: for random small graphs G, H over a fixed vocabulary, NMMS
    derivability of `G ⇒ H` against `RegimeBase(RDFS)` must equal "owlrl
    closure of G contains an instance of H", and `G ⇒ ∅` must equal owlrl
    inconsistency. This is the same pattern as `test_cross_validation_role.py`
-   and should be a Hypothesis test. Corollary 36 (simple entailment) gives a
+   and should be a Hypothesis test. `cor:simple` (simple entailment) gives a
    second oracle that needs no closure.
 11. **Scale benchmark.** `bench/rdf_scale.py` generates synthetic graphs at
    10⁵, 10⁶, and 10⁷ triples with a fixed schema, loads them into each
@@ -327,7 +327,7 @@ apart from its cache.
 `theory/rdf-semantics.md` written; `onto-extension.md` gained 8.4 (onto vocabulary as the `rdf:type` fragment), revised 8.2, Open Questions 1 and 5, and the new references; landing pages and README updated. Version bumped to 0.8.0.
 
 1. New theory page `theory/rdf-semantics.md`: Definitions 9, 13, 19, 25, 26;
-   Theorem 28 and 35; Proposition 34; each stated once and mapped to the class
+   `thm:recovery` and 35; `prop:incoherence`; each stated once and mapped to the class
    or method that implements it.
 2. Revise `theory/onto-extension.md`: Assumption 2 (exact match) becomes a
    discussion of robustness policies; Open Question 1 (schema interaction)
@@ -385,7 +385,7 @@ Slice 1: general RSR as conjunctive exclusion pairs (`guarded(exclusions=...)`, 
 - Reimplement `OntoMaterialBase` on top of `RDFBase` and retire the parallel
   schema matcher.
 - The paper's existential extension for blank nodes in the succedent.
-- `owl:sameAs` as symmetric substitution commitments (paper, Remark 11).
+- `owl:sameAs` as symmetric substitution commitments (paper, `rem:identity`).
 
 ---
 
@@ -469,7 +469,7 @@ the LUBM benchmark in section F.
 - A translation from our `Rule` format to RDFox Datalog and to GraphDB
   `.pie` rulesets, so custom rules, including false-concluding ones, run in
   the store. ⊥ becomes a designated triple (`pynmms:incoherent`) that the
-  store derives and pyNMMS reads as inconsistency; Proposition 34 is then
+  store derives and pyNMMS reads as inconsistency; `prop:incoherence` is then
   one `ASK`.
 - Literal comparisons (dates, quantities) in store rules, using the store's
   built-ins; the same rules run in-process through `Rule.guard` predicates
@@ -634,7 +634,7 @@ with Phase 4 docs; v0.8.1 flips the schema default to GUARDED.
    alternative (flip immediately) changes the meaning of every existing base
    file.
 3. **Closure engine.** Recommendation: owlrl for the in-memory backend and
-   the Theorem 35 oracle; the store for closure of G at scale; a small
+   the `thm:closure` oracle; the store for closure of G at scale; a small
    in-process semi-naive engine for the per-node extras in Phase 3. The
    earlier version of this plan deferred the engine to Phase 5. That would
    have left every proof node paying a full owlrl closure, which caps the
@@ -665,13 +665,13 @@ with Phase 4 docs; v0.8.1 flips the schema default to GUARDED.
   are a handful of calls.
 - **Extras-closure correctness.** The semi-naive step over `added` must
   agree with a full closure. Test it against owlrl on the in-memory backend
-  for random small `added` sets; the Theorem 35 oracle covers this if the
+  for random small `added` sets; the `thm:closure` oracle covers this if the
   Hypothesis test drives queries with connectives, not only atomic ones.
 - **Endpoint regime mismatch.** A `SPARQLBackend` declared as RDFS against a
   store that does not materialize RDFS silently underreports entailments.
   The construction-time probe query (a known subclass inference) turns this
   into a loud error.
-- **owlrl inconsistency reporting** must be checked before Proposition 34 is
+- **owlrl inconsistency reporting** must be checked before `prop:incoherence` is
   wired to it.
 - **Atom grammar tightening** may break user base files with spaces in atom
   names. Ship a `pynmms migrate` check that reports offending atoms.

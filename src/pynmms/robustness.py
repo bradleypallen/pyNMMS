@@ -9,11 +9,11 @@ which the implication survives. A base entry ``Γ₀ |~ Δ₀`` in pyNMMS carrie
     The entry licenses only ``Γ₀ ⇒ Δ₀`` itself. Any addition to either side
     defeats it. This is the pre-0.7 behaviour of every entry and schema; its
     failure of monotonicity is "by omission rather than by defeat" (Allen,
-    "Implication-Space Semantics for RDF", Sec. 3.3).
+    "Implication-Space Semantics for RDF", remark after ``def:fitness``).
 
 ``MONOTONE``
     The entry licenses every ``Γ ⇒ Δ`` with ``Γ ⊇ Γ₀`` and ``Δ ⊇ Δ₀``. This is
-    the reading of a regime base (Definition 25 of the same paper).
+    the reading of a regime base (``def:fitness`` of the same paper).
 
 ``guarded(left, right, exclusions)``
     MONOTONE except when ``Γ`` meets ``left``, ``Δ`` meets ``right``, or some

@@ -40,7 +40,7 @@ class MemoryBackend:
         graph: Existing graph to wrap (copied by reference, not duplicated).
         regime: Entailment regime to materialise; ``None`` for no closure.
         skolemize: Replace blank nodes by Skolem IRIs on load (sound in the
-            antecedent, Lemma 30 of the paper).
+            antecedent, ``lem:skolem`` of the paper).
     """
 
     def __init__(

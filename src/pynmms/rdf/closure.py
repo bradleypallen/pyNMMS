@@ -12,7 +12,7 @@ Two uses:
   new set. Cost is proportional to the new triples and their joins, never to
   |G|.
 
-Rules are range-restricted (Definition 9), so every conclusion is ground.
+Rules are range-restricted (``def:entailmentregime``), so every conclusion is ground.
 """
 
 from __future__ import annotations
@@ -334,7 +334,7 @@ def join_patterns(
 def match_patterns(patterns: Iterable[Pattern], lookup: Lookup) -> Bindings | None:
     """Find one instance mapping making every pattern a triple in *lookup*.
 
-    This is the witness search of Lemma 33: with the blank nodes of a
+    This is the witness search of ``lem:witnesschar``: with the blank nodes of a
     succedent graph H as variables, ``H`` is entailed iff some binding puts
     all of ``μ(H)`` in the closure. Returns the binding or ``None``.
     """

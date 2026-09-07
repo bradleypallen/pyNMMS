@@ -1,6 +1,6 @@
 """RDF triples as atomic sentences.
 
-Definition 19 of the paper encodes a ground triple ``(s, p, o)`` as the bearer
+The paper's ``def:triplebearers`` encodes a ground triple ``(s, p, o)`` as the bearer
 ``T<s, p, o>`` of a single ternary property. In pyNMMS that bearer is a
 :class:`TripleAtom`: a ``str`` subclass whose value is the *canonical quoted
 atom name* ``<s p o>`` accepted by the propositional parser, and which also
@@ -269,16 +269,16 @@ def skolem(label: str) -> URIRef:
 
 
 def skolemize_triple(t: Triple) -> Triple:
-    """Replace blank nodes in *t* by Skolem IRIs (sound in the antecedent, Lemma 30)."""
+    """Replace blank nodes in *t* by Skolem IRIs (sound in the antecedent, ``lem:skolem``)."""
     return tuple(skolem(str(n)) if isinstance(n, BNode) else n for n in t)  # type: ignore[return-value]
 
 
 class PatternAtom(str):
     """A succedent graph pattern ``<{ s p o . s p o }>`` with blank nodes as variables.
 
-    Lemma 30 makes Skolemization unsound on the succedent side, so a
+    ``lem:skolem`` makes Skolemization unsound on the succedent side, so a
     consequent graph with blank nodes is kept as one atom whose axiom check
-    is the witness search of Lemma 33: it holds iff some instance mapping
+    is the witness search of ``lem:witnesschar``: it holds iff some instance mapping
     sends every triple into the closure of Γ. Ground patterns (no blank
     nodes) simply require all their triples. The atom is opaque to the
     logical rules; it can be combined with connectives but not decomposed.

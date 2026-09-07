@@ -481,9 +481,50 @@ the LUBM benchmark in section F.
 
 #### D. Defeasible material inference over triple patterns
 
-Today guarded entries are ground triples and the schema-level defeasible
-inferences exist only in the ontology extension's string atoms. A heritage
-or biomedical base needs defeasible *rules* over patterns:
+**D0. Material entries through the store (`B_{R,I}` clause 3).** Since
+v0.10.1 a `RegimeBase` reads its ground material entries `⟨A, D; E⟩`
+through the regime: the antecedent must lie in `cl_R(Γ)`, no defeater may,
+and the consequent is elaborated as `Δ ∩ cl_R(Γ ∪ D)` (theory page,
+Section 8). In memory that is three lookups against the per-query closure
+and one semi-naive extension by `D`. Over `SPARQLBackend` the same clause
+is unimplemented in store terms: today the closure of the extras is pulled
+into process rule by rule, and every entry check is a further sequence of
+round trips. The store path for clause 3 is, per candidate entry:
+
+1. **Antecedent**: `A ⊆ cl_R(Γ)`, one `ASK` over the store's materialised
+   closure with the extras added as `VALUES` or, with capability A.3, read
+   from the hypothetical-closure transaction. Entries are indexed by
+   consequent atom, so only entries whose `D` meets `Δ` (or, with
+   elaboration, whose `D` could reach `Δ` through the regime) are
+   candidates; the second set is bounded by the store's own
+   `closure_contains_many` over `D`.
+2. **Defeaters**: `∀ e ∈ E : e ⊄ cl_R(Γ)`, one `ASK` with `FILTER NOT
+   EXISTS` per entry (all defeaters in one query as a `UNION` inside the
+   `NOT EXISTS`), which is exactly the idiom current practice writes by
+   hand.
+3. **Consequent**: `Δ ∩ cl_R(Γ ∪ D) ≠ ∅`, one hypothetical-closure call
+   (A.3) over `extras ∪ D`, or in emulation one in-process `extend` by `D`
+   against the store; with `elaborate_consequent=False` this is `Δ ∩ D`
+   and costs nothing.
+
+So one entry costs two `ASK`s plus one closure extension with capability
+A.3, and the whole material check for a leaf is batchable with the leaf's
+own membership checks in strategy B. Without A.3 the consequent clause is
+the expensive one, and `elaborate_consequent=False` is the documented
+fallback for stores that cannot reason in a transaction. Deliverables:
+`SPARQLBackend.material_check(entries, extras, delta)` (or the three
+primitives `ask_all`, `ask_none`, `closure_of`) behind a capability flag,
+`RegimeBase` routing clause 3 through it when present, the material-base
+tests of `tests/test_rdf_material.py` run against the in-process endpoint
+with a round-trip budget asserted, and a row in `bench/PERFORMANCE.md`
+section 4 for a guarded entry with one and with three defeaters. This is
+the ground-entry case of the pattern rules below and should land first,
+since the rule matcher reduces to it once variables are bound.
+
+The remaining item is the pattern generalisation. Today material entries
+are ground triples and the schema-level defeasible inferences exist only
+in the ontology extension's string atoms. A heritage or biomedical base
+needs defeasible *rules* over patterns:
 
     ?x a ex:Bird -> ?x a ex:Flies unless ?x a ex:Penguin, ?x ex:injured true
 
@@ -498,7 +539,8 @@ syntax compiling to `DefeasibleRule`s over `rdf:type` triples, and its
 parallel matcher can be retired once the differential test confirms
 agreement. Conjunctive exclusions carry over as multi-pattern defeaters.
 Store round trips: two to three per candidate rule per leaf, batched with
-the leaf checks in strategy B.
+the leaf checks in strategy B, and the same three store operations as D0
+once the variables are bound.
 
 #### E. Data-model gaps that real datasets hit first
 
@@ -545,7 +587,7 @@ phase and would be a thin layer over `RegimeBase` when wanted.
 | Release | Content | Depends on |
 |---|---|---|
 | v0.10 | A (GraphDB adapter, protocol, batched membership, Docker tests), G basics | a GraphDB container |
-| v0.11 | B (projection strategy, async, warm-start), F LUBM latency numbers | v0.10 |
+| v0.11 | B (projection strategy, async, warm-start), D0 (material entries through the store), F LUBM latency numbers | v0.10 |
 | v0.12 | A (RDFox adapter with hypothetical closure), C (rule translation, comparisons), E (graph scoping) | RDFox licence |
 | v0.13 | D (defeasible rules over patterns; onto layer as surface syntax) | v0.11 |
 | v1.0 | F (GO/HPO, heritage or Wikidata evaluations), Wikidata constraint compiler, API freeze, docs | all of the above |
@@ -562,9 +604,9 @@ to change the plan.
   pyNMMS holding none of it.
 - Cold queries with up to four connectives at p50 under 20 ms and p95 under
   100 ms over a LAN at 10⁷ triples; repeated queries under 1 ms.
-- Negation, conditional, incoherence, and defeasible-rule queries all
-  answered through the store path, with traces, and cross-checked against
-  the in-process path on samples.
+- Negation, conditional, incoherence, material-entry (`B_{R,I}`), and
+  defeasible-rule queries all answered through the store path, with
+  traces, and cross-checked against the in-process path on samples.
 - The extras-oracle and differential tests passing against the store
   adapters as well as in memory.
 - Round trips per query independent of the number of connectives.

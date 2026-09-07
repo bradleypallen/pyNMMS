@@ -163,3 +163,37 @@ of connectives.
   expressive ontologies (pyNMMS has no counterpart; its regimes are Horn),
   graphs beyond 300,000 asserted triples in memory, any network store other
   than a localhost endpoint, and concurrent clients.
+
+## 7. Oxigraph backend: the closure in the store
+
+Measured 2026-09-07 on the same synthetic graph (RDFS plus one
+incompatibility rule), with an **on-disk** Oxigraph store through
+`OxigraphBackend`. "Load + close" is Oxigraph's own parse of the N-Triples
+file, the Skolemization scan, and the regime materialised by SPARQL rule
+updates in a temporary in-memory store, then bulk-loaded into the disk
+store; "close (py)" is `MemoryBackend`'s in-process closure of the same
+graph, measured in the same run. Query columns are medians after warm-up;
+the negation and extras queries clear the per-query closure cache first,
+so they pay the store round trips every time.
+
+| Individuals | Load + close, on disk | Close (py) | Closure | ASK hit | ASK miss | ASK negation (1 extra closed) | ASK 4 connectives | TELL 2 triples | ASK 100 extras | Reopen from disk |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 30,000 | 2.9 s | 10.9 s | 240,254 | 30 µs | 23 µs | 2.0 ms | 110 µs | 1.4 ms | 67 ms | 0.01 s |
+| 300,000 | 32.7 s | 113 s | 2,400,254 | 24 µs | 23 µs | 2.0 ms | 113 µs | 1.7 ms | 68 ms | 0.01 s |
+
+Three things to read off this. First, membership and connective queries are
+lookup-speed and flat, as with the in-memory backend, and the store holds
+the closure across sessions: reopening a 2.4-million-triple store is
+instantaneous, where the in-memory backend re-parses and re-closes for
+about two minutes. Second, materialisation is three to four times faster
+than the Python engine, and the closure matched it triple for triple at
+every size. Running the rule updates directly against the on-disk store was
+tried first and took 127 s at 300,000 individuals, slower than Python,
+because RocksDB writes dominate; computing in memory and bulk-loading the
+result (29 s of the 32.7 s) is what the backend now does. Third, the
+negation and extras queries cost more than in memory (2.0 ms against 54 µs,
+68 ms against 36 ms) because the extras closure still runs in process and
+calls the store once per rule firing; each call is about 20 µs, so the cost
+is round trips into Rust rather than Python work, and the scratch-graph
+hypothetical closure planned for workstream A.3 removes them.
+

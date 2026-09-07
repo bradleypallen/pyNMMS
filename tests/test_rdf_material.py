@@ -44,10 +44,25 @@ def ontology() -> Graph:
     return g
 
 
-@pytest.fixture
-def base():
-    """RDFS regime over the ontology; material: Bird ⊢ Flies unless Penguin, Flies ⊢ HasWings."""
-    b = RegimeBase(MemoryBackend(ontology(), regime=RDFS_REGIME))
+def _backend(kind: str):
+    if kind == "oxigraph":
+        pytest.importorskip("pyoxigraph")
+        from pynmms.rdf.backends import OxigraphBackend
+
+        ox = OxigraphBackend(regime=RDFS_REGIME)
+        ox.load_graph(ontology())
+        return ox
+    return MemoryBackend(ontology(), regime=RDFS_REGIME)
+
+
+@pytest.fixture(params=["memory", "oxigraph"])
+def base(request):
+    """RDFS regime over the ontology; material: Bird ⊢ Flies unless Penguin, Flies ⊢ HasWings.
+
+    Runs over the in-memory backend and, when pyoxigraph is installed, over
+    an Oxigraph store that materialises the regime itself.
+    """
+    b = RegimeBase(_backend(request.param))
     b.add_consequence(F({typed("tweety", "Bird")}), F({typed("tweety", "Flies")}),
                       robustness=guarded([typed("tweety", "Penguin")]))
     b.add_consequence(F({typed("tweety", "Flies")}), F({typed("tweety", "HasWings")}),

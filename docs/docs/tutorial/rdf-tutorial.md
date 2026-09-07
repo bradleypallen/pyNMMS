@@ -219,10 +219,45 @@ firing, which is what procedural (list-walking) rules always use.
 |---------|-----|---------|
 | `MemoryBackend(graph, regime=...)` | files, tests, development | computed in-process at load |
 | `SPARQLBackend(url, regime=..., prefixes={...}, update_endpoint=...)` | a running store | whatever the store materialises; pass `probe=` to verify; `add()` inserts in chunked `INSERT DATA` updates; `join()` batches rule premises into one query |
-| `OxigraphBackend(path, regime=...)` | fast local store (needs `oxrdflib`) | computed in-process at load |
+| `OxigraphBackend(path, regime=...)` | an embedded store, in memory or on disk (needs `pyoxigraph`, the `oxigraph` extra) | computed *inside the store*: the regime's pattern rules run as SPARQL updates to a fixpoint; kept on disk across sessions |
 
 Blank nodes in the loaded graph are Skolemized (sound in the antecedent,
 `lem:skolem`); blank nodes in a consequent go in a pattern atom.
+
+### Oxigraph: the closure in the store
+
+`OxigraphBackend` keeps the asserted graph and `cl_R(G)` in an embedded
+[Oxigraph](https://github.com/oxigraph/oxigraph) store and materialises the
+regime with the store's own SPARQL engine, several times faster than the
+in-process closure and with microsecond membership and join queries. An
+on-disk store records which regime it holds, so reopening it skips the
+closure altogether. On the command line, `--oxigraph DIR` opens or creates
+such a store; `-g` files are loaded into it once, and later runs need only
+the directory:
+
+```bash
+pynmms rdf ask --oxigraph ./kb -g ontology.ttl -g data.ttl --regime rdfs "<ex:tweety a ex:Bird>"
+pynmms rdf ask --oxigraph ./kb --regime rdfs --prefix ex=http://ex.org/ "<ex:tweety a ex:Bird>"
+pynmms rdf tell --oxigraph ./kb --regime rdfs --prefix ex=http://ex.org/ "<ex:polly a ex:Sparrow>"
+```
+
+`tell` extends the closure incrementally and persists it. In Python:
+
+```python
+from pynmms.rdf import RDFS, RegimeBase
+from pynmms.rdf.backends import OxigraphBackend
+
+with OxigraphBackend("./kb", regime=RDFS, prefixes={"ex": "http://ex.org/"}) as backend:
+    backend.load("ontology.ttl", materialize=False)
+    backend.load("data.ttl")            # materialises once, in the store
+    base = RegimeBase(backend)
+```
+
+Rules with a Python guard or a procedural body (the OWL 2 RL list rules)
+run in process against the store between rounds, so every shipped regime
+works. Two RDFS rules, `rdfs1` and `rdfD1`, conclude generalized triples
+with a literal subject that a SPARQL store cannot hold; the backend skips
+them, and literal typing is therefore absent from the store's closure.
 
 ## Shipped regimes
 

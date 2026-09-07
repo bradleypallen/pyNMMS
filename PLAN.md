@@ -407,10 +407,27 @@ per-query cost grows with it, which Phases 1 to 3 already established and
 which this phase must preserve under every new feature.
 
 What is already in place: the calculus and its bases, the `GraphBackend`
-protocol with in-memory and SPARQL implementations, the semi-naive extras
-step with batched joins, per-generation memos, robustness policies over
-ground triples, and oracle tests against ROLE.jl and owlrl. What follows is
-the gap between that and the target, as seven workstreams.
+protocol with in-memory, SPARQL, and (since v0.11.0) embedded Oxigraph
+implementations, the semi-naive extras step with batched joins,
+per-generation memos, robustness policies over ground triples read through
+the regime, and oracle tests against ROLE.jl and owlrl. What follows is the
+gap between that and the target, as seven workstreams.
+
+**Development store: Oxigraph (decided 2026-09-07).** The first adapter is
+an embedded Oxigraph store through `pyoxigraph`, not a GraphDB container:
+no server, no licence, RocksDB on disk for the target sizes, and a Rust
+SPARQL engine that runs the regime's rules itself. Measured on the
+synthetic RDFS graph, the closure in the store is five times faster than the
+in-process engine (24 s against 113 s for 600k asserted, 2.4M closed) and
+matches it triple for triple; an `ASK`, an `ASK` with `NOT EXISTS`, and a
+scratch-graph insert-ask-drop are 15 to 30 µs. Rule updates run directly
+against an on-disk store are RocksDB-write-bound (127 s for the same
+closure), so the backend materialises in memory and bulk-loads the result
+(33 s on disk, all in); see `bench/PERFORMANCE.md` section 7. Oxigraph has no reasoner of
+its own, so the rule translation of workstream C is what materialises the
+regime; the hypothetical closure of A.3 is a scratch named graph rather
+than a transaction. GraphDB and RDFox remain the adapters for a store
+someone else operates.
 
 #### A. Store adapters with four capabilities
 
@@ -436,7 +453,15 @@ an emulation when it does not:
    API (RDFox `EXPLAIN`, GraphDB's explain plugin), used for traces now and
    for the SMT-style learning later.
 
-Deliverables: `backends/graphdb.py` and `backends/rdfox.py` (REST clients
+Delivered first (v0.11.0): `backends/oxigraph.py`, an embedded store with
+capabilities 1 (the regime materialised by SPARQL rule updates, incremental
+`add()`, persistence with a recorded regime) and the D0 operations at
+microsecond cost; `sparql_rules.py` is the rule translation of workstream C
+for pattern rules. Still to do for Oxigraph: capability 3 as a scratch
+named graph, and capability 2 (`VALUES`-batched membership), which matters
+less in process than over HTTP.
+
+Deliverables for the network stores: `backends/graphdb.py` and `backends/rdfox.py` (REST clients
 with auth, timeouts, retries, and per-call stats), `--store graphdb://host/
 repo` and `rdfox://host/datastore` in the CLI, and Docker-based integration
 tests. GraphDB Free runs in a container and can be a CI service; RDFox needs
@@ -586,10 +611,10 @@ phase and would be a thin layer over `RegimeBase` when wanted.
 
 | Release | Content | Depends on |
 |---|---|---|
-| v0.10 | A (GraphDB adapter, protocol, batched membership, Docker tests), G basics | a GraphDB container |
-| v0.11 | B (projection strategy, async, warm-start), D0 (material entries through the store), F LUBM latency numbers | v0.10 |
-| v0.12 | A (RDFox adapter with hypothetical closure), C (rule translation, comparisons), E (graph scoping) | RDFox licence |
-| v0.13 | D (defeasible rules over patterns; onto layer as surface syntax) | v0.11 |
+| v0.11 | A (Oxigraph adapter: closure in the store via C's rule translation, on-disk persistence, `--oxigraph`), D0 over Oxigraph | pyoxigraph — DONE 2026-09-07 |
+| v0.12 | B (projection strategy, async, warm-start), A.3 hypothetical closure as a scratch graph in Oxigraph, F LUBM latency numbers | v0.11 |
+| v0.13 | A (GraphDB and RDFox adapters, batched membership, Docker tests), C (literal comparisons), E (graph scoping) | a GraphDB container; RDFox licence |
+| v0.14 | D (defeasible rules over patterns; onto layer as surface syntax) | v0.12 |
 | v1.0 | F (GO/HPO, heritage or Wikidata evaluations), Wikidata constraint compiler, API freeze, docs | all of the above |
 
 Rough effort with one developer and Claude: A two to three weeks, B one to

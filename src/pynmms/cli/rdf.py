@@ -19,7 +19,7 @@ import argparse
 import logging
 import sys
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from pynmms.cli.exitcodes import EXIT_ERROR, EXIT_NOT_DERIVABLE, EXIT_SUCCESS
 from pynmms.cli.output import ask_response, emit_error, emit_json
@@ -27,7 +27,7 @@ from pynmms.reasoner import NMMSReasoner
 from pynmms.syntax import find_top_level, split_top_level
 
 if TYPE_CHECKING:
-    from pynmms.rdf.backends import GraphBackend, MemoryBackend
+    from pynmms.rdf.backends import GraphBackend
     from pynmms.rdf.base import RegimeBase
     from pynmms.rdf.rules import Regime
 
@@ -60,6 +60,10 @@ def add_rdf_parser(subparsers: argparse._SubParsersAction) -> None:  # type: ign
                          help="RDF file to load (repeatable; format from extension)")
         if store:
             src.add_argument("--store", help="SPARQL endpoint URL to use as the graph")
+        p.add_argument("--oxigraph", metavar="DIR",
+                       help="Open or create an on-disk Oxigraph store (requires pyoxigraph); "
+                            "-g files are loaded into it and the regime closure is kept "
+                            "in the store across runs")
         p.add_argument("--regime", choices=REGIME_CHOICES, default="simple",
                        help="Entailment regime (default: simple)")
         p.add_argument("--rules", help="File of extra Horn rules, one per line "
@@ -79,9 +83,14 @@ def add_rdf_parser(subparsers: argparse._SubParsersAction) -> None:  # type: ign
     ask.add_argument("query", nargs="?", default=None,
                      help="'antecedent => consequent' or a consequent ('-' for stdin)")
 
-    tell = sub.add_parser("tell", help="Add triples to a graph file")
-    tell.add_argument("-g", "--graph", required=True,
-                      help="RDF file to update (created if absent)")
+    tell = sub.add_parser("tell", help="Add triples to a graph file or an Oxigraph store")
+    tell.add_argument("-g", "--graph", help="RDF file to update (created if absent)")
+    tell.add_argument("--oxigraph", metavar="DIR",
+                      help="Oxigraph store to update instead of a file; its closure is "
+                           "extended incrementally")
+    tell.add_argument("--regime", choices=REGIME_CHOICES, default="simple",
+                      help="Entailment regime of the store (with --oxigraph)")
+    tell.add_argument("--rules", help="File of extra Horn rules (with --oxigraph)")
     tell.add_argument("--prefix", action="append", default=[], metavar="PFX=IRI",
                       help="Bind a prefix (repeatable), e.g. ex=http://ex.org/")
     tell.add_argument("--json", action="store_true", help="JSON output")
@@ -155,6 +164,11 @@ def _build_backend(args: argparse.Namespace) -> tuple[GraphBackend, Regime]:
     regime = REGIMES[args.regime]
     prefixes = _prefixes(args)
     backend: GraphBackend
+    if getattr(args, "oxigraph", None):
+        if getattr(args, "store", None):
+            raise ValueError("--oxigraph and --store are mutually exclusive")
+        backend = _build_oxigraph(args, regime, prefixes)
+        return backend, args.regime_obj
     if getattr(args, "store", None):
         backend = SPARQLBackend(args.store, regime=regime, prefixes=prefixes)
     else:
@@ -172,6 +186,40 @@ def _build_backend(args: argparse.Namespace) -> tuple[GraphBackend, Regime]:
         backend = MemoryBackend(backend.graph, regime=regime, skolemize=False)
     _bind_prefixes(backend, prefixes)
     return backend, regime
+
+
+def _build_oxigraph(
+    args: argparse.Namespace, regime: Regime, prefixes: dict[str, str]
+) -> GraphBackend:
+    """An Oxigraph store, materialised once after every -g file is loaded."""
+    from rdflib import Graph
+
+    from pynmms.rdf.atoms import Resolver
+    from pynmms.rdf.backends import OxigraphBackend
+    from pynmms.rdf.rules import custom
+
+    if getattr(args, "rules", None):
+        resolver = Resolver(Graph())
+        for pfx, iri in prefixes.items():
+            resolver.bind(pfx, iri)
+        rules = _load_rules(args.rules, resolver)
+        regime = custom(f"{regime.name}+{Path(args.rules).name}", rules, extends=regime)
+    graphs = getattr(args, "graph", None) or []
+    backend = OxigraphBackend(args.oxigraph, regime=regime, prefixes=prefixes,
+                              skolemize=not getattr(args, "no_skolemize", False),
+                              materialize=not graphs)
+    for path in graphs:
+        backend.load(path, materialize=False)
+    if graphs:
+        backend.materialize()
+    args.regime_obj = regime
+    return backend
+
+
+def _close(backend: object) -> None:
+    close = getattr(backend, "close", None)
+    if callable(close):
+        close()
 
 
 def _parse_triples(base: RegimeBase, text: str) -> list:  # type: ignore[type-arg]
@@ -281,6 +329,7 @@ def _run_position(args: argparse.Namespace) -> int:
                 print(f"  {line}")
     logger.info("rdf position accept=%s reject=%s: %s (nodes %d)",
                 args.accept, args.reject, verdict, result.nodes)
+    _close(backend)
     return EXIT_SUCCESS if result.derivable else EXIT_NOT_DERIVABLE
 
 
@@ -290,7 +339,7 @@ def _run_ask(args: argparse.Namespace) -> int:
     json_mode, quiet, trace = args.json, args.quiet, args.trace
     try:
         backend, regime = _build_backend(args)
-    except (OSError, ValueError) as e:
+    except (OSError, ValueError, ImportError) as e:
         emit_error(str(e), json_mode=json_mode, quiet=quiet)
         return EXIT_ERROR
     base = RegimeBase(backend, regime=regime)
@@ -310,25 +359,38 @@ def _run_ask(args: argparse.Namespace) -> int:
     for q in queries:
         rc = _ask_one(base, reasoner, q, json_mode=json_mode, quiet=quiet, trace=trace)
         if rc == EXIT_ERROR:
+            _close(backend)
             return EXIT_ERROR
         worst = max(worst, rc)
+    _close(backend)
     return worst
 
 
 def _run_tell(args: argparse.Namespace) -> int:
     from pynmms.rdf import RegimeBase
     from pynmms.rdf.backends import MemoryBackend
+    from pynmms.rdf.rules import REGIMES
 
     json_mode, quiet = args.json, args.quiet
-    path = Path(args.graph)
-    fmt = _FORMATS.get(path.suffix.lower(), "turtle")
-    backend = MemoryBackend(skolemize=False)
+    if not args.graph and not args.oxigraph:
+        emit_error("tell needs -g FILE or --oxigraph DIR", json_mode=json_mode, quiet=quiet)
+        return EXIT_ERROR
+    backend: Any
     try:
-        if path.exists():
-            backend.load(path, format=fmt)
-        for pfx, iri in _prefixes(args).items():
-            backend.graph.namespace_manager.bind(pfx, iri, replace=True)
-    except (OSError, ValueError) as e:
+        if args.oxigraph:
+            args.graph = []
+            backend = _build_oxigraph(args, REGIMES[args.regime], _prefixes(args))
+            path = Path(args.oxigraph)
+            fmt = None
+        else:
+            path = Path(args.graph)
+            fmt = _FORMATS.get(path.suffix.lower(), "turtle")
+            backend = MemoryBackend(skolemize=False)
+            if path.exists():
+                backend.load(path, format=fmt)
+            for pfx, iri in _prefixes(args).items():
+                backend.graph.namespace_manager.bind(pfx, iri, replace=True)
+    except (OSError, ValueError, ImportError) as e:
         emit_error(str(e), json_mode=json_mode, quiet=quiet)
         return EXIT_ERROR
     base = RegimeBase(backend)
@@ -351,13 +413,15 @@ def _run_tell(args: argparse.Namespace) -> int:
             emit_error(str(e), json_mode=json_mode, quiet=quiet)
             return EXIT_ERROR
         added_total += backend.add(triples)
-    backend.graph.serialize(destination=str(path), format=fmt)
+    if fmt is not None:
+        backend.graph.serialize(destination=str(path), format=fmt)
     logger.info("rdf tell: %d triples added to %s (%d total)", added_total, path, backend.size())
     if json_mode:
         emit_json({"action": "added_triples", "added": added_total,
                    "graph_triples": backend.size(), "graph_file": str(path)})
     elif not quiet:
         print(f"Added {added_total} triple(s); {backend.size()} in {path}")
+    _close(backend)
     return EXIT_SUCCESS
 
 
@@ -367,11 +431,10 @@ def _run_repl(args: argparse.Namespace) -> int:
 
     try:
         backend, regime = _build_backend(args)
-    except (OSError, ValueError) as e:
+    except (OSError, ValueError, ImportError) as e:
         emit_error(str(e))
         return EXIT_ERROR
-    assert isinstance(backend, MemoryBackend)
-    mem: MemoryBackend = backend
+    mem: Any = backend  # MemoryBackend or OxigraphBackend
     base = RegimeBase(mem, regime=regime)
     reasoner = NMMSReasoner(base, persistent_cache=True)
     default_file = args.graph[0] if args.graph else None
@@ -393,7 +456,8 @@ def _run_repl(args: argparse.Namespace) -> int:
         elif line == "show":
             print(f"Triples: {mem.size()}  closure: {mem.closure_size()}  regime: {regime}"
                   f"{'  INCONSISTENT' if mem.is_inconsistent() else ''}")
-            for prefix, ns in mem.graph.namespaces():
+            nsm = mem.resolver.nsm
+            for prefix, ns in (nsm.namespaces() if nsm is not None else []):
                 if prefix and not prefix.startswith(("brick", "csvw", "dc", "foaf", "odrl", "org",
                                                      "prof", "prov", "qb", "schema", "sh", "skos",
                                                      "sosa", "ssn", "time", "vann", "void", "wgs",
@@ -421,9 +485,13 @@ def _run_repl(args: argparse.Namespace) -> int:
             if not target:
                 print("Error: no file given and none loaded")
                 continue
-            fmt = _FORMATS.get(Path(target).suffix.lower(), "turtle")
-            mem.graph.serialize(destination=target, format=fmt)
+            if isinstance(mem, MemoryBackend):
+                fmt = _FORMATS.get(Path(target).suffix.lower(), "turtle")
+                mem.graph.serialize(destination=target, format=fmt)
+            else:
+                mem.dump(target)
             print(f"Saved {mem.size()} triples to {target}")
         else:
             print("Unknown command. Type 'help'.")
+    _close(mem)
     return EXIT_SUCCESS

@@ -42,6 +42,10 @@ rdf = [
     "rdflib>=7.0",
     "owlrl>=7.0",
 ]
+oxigraph = [
+    "rdflib>=7.0",
+    "pyoxigraph>=0.5",
+]
 
 [project.scripts]
 pynmms = "pynmms.cli.main:main"

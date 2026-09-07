@@ -632,6 +632,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#positions-accepted-graphs-and-rejected-graphs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Positions: accepted graphs and rejected graphs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#how-the-closure-is-split" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1416,6 +1427,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#positions-accepted-graphs-and-rejected-graphs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Positions: accepted graphs and rejected graphs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#how-the-closure-is-split" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1597,6 +1619,29 @@ is defeated only when both atoms are present. On the command line that is
 <p>Endpoints do not expose their prefix declarations, so give <code>SPARQLBackend</code>
 the prefixes your queries use (<code>prefixes={"ex": "http://ex.org/"}</code>). A name
 such as <code>ex:tweety</code> with no bound prefix is an error, not the IRI <code>ex:tweety</code>.</p>
+<h2 id="positions-accepted-graphs-and-rejected-graphs">Positions: accepted graphs and rejected graphs<a class="headerlink" href="#positions-accepted-graphs-and-rejected-graphs" title="Permanent link">&para;</a></h2>
+<p>The paper's basic object is a <em>position</em> ⟨𝔊, 𝔇⟩: a set of graphs accepted
+and a set of graphs rejected. The position is out of bounds when the
+accepted graphs entail one of the rejected ones, and that is a sequent:
+the accepted graphs are read conjunctively and unioned into the antecedent
+(blank nodes Skolemized per graph), and each rejected ground graph becomes
+the conjunction of its triples in the succedent, which is what the Ketonen
+<code>R∧</code> rule with its third premise checks "severally and in every joint
+combination" (Lemma 24). A rejected graph with blank nodes becomes a pattern
+atom. Several rejected graphs are alternatives. With nothing rejected, the
+question is whether the accepted graphs are incoherent.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>pynmms<span class="w"> </span>rdf<span class="w"> </span>position<span class="w"> </span>-g<span class="w"> </span>birds.ttl<span class="w"> </span>--regime<span class="w"> </span>rdfs<span class="w"> </span>--reject<span class="w"> </span>claims.ttl
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>pynmms<span class="w"> </span>rdf<span class="w"> </span>position<span class="w"> </span>-g<span class="w"> </span>birds.ttl<span class="w"> </span>--rules<span class="w"> </span>rules.txt<span class="w"> </span>--accept<span class="w"> </span>observation.ttl
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>pynmms<span class="w"> </span>rdf<span class="w"> </span>position<span class="w"> </span>-g<span class="w"> </span>birds.ttl<span class="w"> </span>--regime<span class="w"> </span>rdfs<span class="w"> </span>--accept<span class="w"> </span>a.ttl<span class="w"> </span>--reject<span class="w"> </span>r1.ttl<span class="w"> </span>--reject<span class="w"> </span>r2.ttl<span class="w"> </span>--json
+</code></pre></div>
+<p>Exit code 0 means out of bounds, 2 means in bounds. From Python:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="n">seq</span> <span class="o">=</span> <span class="n">base</span><span class="o">.</span><span class="n">position</span><span class="p">(</span><span class="n">accept</span><span class="o">=</span><span class="p">[</span><span class="n">graph_or_path_or_triples</span><span class="p">],</span> <span class="n">reject</span><span class="o">=</span><span class="p">[</span><span class="n">another_graph</span><span class="p">])</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="n">reasoner</span><span class="o">.</span><span class="n">derives_sequent</span><span class="p">(</span><span class="n">seq</span><span class="p">)</span><span class="o">.</span><span class="n">derivable</span>   <span class="c1"># True: the position is out of bounds</span>
+</code></pre></div>
+<p>Under a monotone regime a rejected ground graph is entailed iff each of its
+triples is in the closure; under exact or guarded entries the conjunction
+form is what keeps the joint combinations honest, which is why
+<code>position()</code> expands ground graphs rather than using a pattern atom.</p>
 <h2 id="how-the-closure-is-split">How the closure is split<a class="headerlink" href="#how-the-closure-is-split" title="Permanent link">&para;</a></h2>
 <p>The regime base checks <code>Γ |~ Δ</code> as "Γ is inconsistent or Δ meets <code>cl_R(Γ)</code>".
 The backend holds <code>cl_R(G)</code> for the stored graph; the per-node extras (the

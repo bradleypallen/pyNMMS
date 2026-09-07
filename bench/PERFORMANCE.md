@@ -25,8 +25,10 @@ systems do not offer and is measured per query in the number of connectives.
 | Largest graph measured with the in-memory backend | 300,010 asserted triples, 1,100,234 after RDFS closure |
 | Resident memory at that size | 1.65 GB (rdflib graph plus closure graph plus indexes); about 1.5 KB per closure triple |
 | Largest OWL 2 RL closure measured | 90,010 asserted, 420,289 closed |
+| Largest graph measured with the Oxigraph backend, on disk | 10,000,003 asserted, 40,000,166 after RDFS closure; 6.7 GB on disk after compaction (section 7) |
 | Python-side cost of the antecedent | zero per query: the graph never enters a Python set (`GraphView` is a reference plus a diff) |
 | Practical ceiling, in-memory backend | a few million closure triples, bounded by rdflib's memory use and the one-time closure |
+| Practical ceiling, Oxigraph backend | disk; the 10⁷ import is a one-time hour, queries stay flat (section 7) |
 | Practical ceiling, SPARQL backend | the store's; pyNMMS holds no copy of the graph |
 
 For comparison, the in-memory backend sits where rdflib and owlrl sit: fine
@@ -180,20 +182,50 @@ so they pay the store round trips every time.
 |---|---|---|---|---|---|---|---|---|---|---|
 | 30,000 | 2.9 s | 10.9 s | 240,254 | 30 µs | 23 µs | 2.0 ms | 110 µs | 1.4 ms | 67 ms | 0.01 s |
 | 300,000 | 32.7 s | 113 s | 2,400,254 | 24 µs | 23 µs | 2.0 ms | 113 µs | 1.7 ms | 68 ms | 0.01 s |
+| 5,000,000 (10⁷ asserted) | 56 min, direct on disk | not run | 40,000,166 | 38 µs | 32 µs | 2.3 ms | 123 µs | 4.3 ms | 89 ms | 0.01 to 0.04 s |
 
-Three things to read off this. First, membership and connective queries are
-lookup-speed and flat, as with the in-memory backend, and the store holds
-the closure across sessions: reopening a 2.4-million-triple store is
-instantaneous, where the in-memory backend re-parses and re-closes for
-about two minutes. Second, materialisation is three to four times faster
-than the Python engine, and the closure matched it triple for triple at
-every size. Running the rule updates directly against the on-disk store was
-tried first and took 127 s at 300,000 individuals, slower than Python,
-because RocksDB writes dominate; computing in memory and bulk-loading the
-result (29 s of the 32.7 s) is what the backend now does. Third, the
-negation and extras queries cost more than in memory (2.0 ms against 54 µs,
-68 ms against 36 ms) because the extras closure still runs in process and
-calls the store once per rule firing; each call is about 20 µs, so the cost
-is round trips into Rust rather than Python work, and the scratch-graph
-hypothetical closure planned for workstream A.3 removes them.
+The 10⁷ row (2026-09-07, 24 GB machine) took the direct-on-disk path,
+since a scratch in-memory store costs about 600 bytes per closure triple
+and 40 million closure triples would have needed the whole machine. Its
+56 minutes break down as 52 s for Oxigraph to parse the 0.8 GB N-Triples
+file, 4.3 min to copy the asserted graph into the closure graph (a
+`DROP`/`ADD` inside the store), and 51 min for three rounds of the fifteen
+rule updates against RocksDB, of which the last round derives nothing and
+is pure `NOT EXISTS` reads. Resident memory peaked at 9.5 GB during
+materialisation (RocksDB memtables and block cache; the process ran at 2 to
+3.4 GB most of the time) and the store directory peaked at 15 GB before
+compaction brought it to 6.7 GB. The Python engine was not run at this size:
+it would need about 60 GB for the closure in rdflib. The reopen measured
+inside the run, 40 s, was RocksDB recovering its write-ahead log right
+after the write session; three further reopens took 0.01 to 0.04 s, with
+the first lookup under a millisecond. `COUNT(*)` over the 40-million-triple
+closure takes 8 s, so `closure_size()` is not an interactive operation at
+this scale, though the fixpoint's per-round count is negligible against
+the rounds.
+
+Four things to read off this. First, membership and connective queries are
+lookup-speed and flat from 24 thousand to 40 million closure triples, and
+the store holds the closure across sessions: reopening is instantaneous,
+where the in-memory backend re-parses and re-closes for about two minutes
+at 2.4 million and could not hold 40 million at all. A 10⁷-triple RDFS
+knowledge base is therefore a one-time hour of import followed by
+interactive sessions that start in milliseconds, which is the Phase 6
+target on the query side. Second, below two million asserted triples
+materialisation runs in a temporary in-memory store and is three to four
+times faster than the Python engine, and the closure matched it triple for
+triple at every size where both ran. Running the rule updates directly
+against the on-disk store took 127 s at 300,000 individuals, slower than
+Python, because RocksDB writes dominate, which is why the backend chooses
+the path by size. Third, the direct-on-disk hour at 10⁷ is mostly
+avoidable: the 4-minute copy can be replaced by loading the file into both
+graphs, the final read-only round by a semi-naive delta, and the write
+cost by materialising in memory in partitions or by an Oxigraph server
+with more memory; none of this is calculus work. Fourth, the negation and
+extras queries cost more than in memory (2.3 ms against 54 µs, 89 ms
+against 36 ms) because the extras closure still runs in process and calls
+the store once per rule firing; each call is about 20 µs, so the cost is
+round trips into Rust rather than Python work, and the scratch-graph
+hypothetical closure planned for workstream A.3 removes them. `TELL` rose
+from 1.7 ms to 4.3 ms at 10⁷, the only column that moved, since each
+insert now lands in a much larger RocksDB tree.
 

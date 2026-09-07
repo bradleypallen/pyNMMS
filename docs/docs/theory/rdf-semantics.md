@@ -231,6 +231,85 @@ applies to the whole.
   it with a probe query. Push-down of the extras step into the store's own
   rule engine is future work.
 
+## 9. Status against the paper's objectives
+
+A snapshot as of pyNMMS 0.10.0 (September 2026), in three parts: what the
+paper states and the code now does, what the paper points toward and the
+code adds, and what the paper leaves open and the code does too.
+
+### 9.1 The paper's results, now executable
+
+| Paper | Implementation |
+|---|---|
+| Definition 19, triples as bearers of one ternary property | `TripleAtom`: a triple as an atomic sentence that flows through the NMMS core unchanged |
+| Definition 9, regimes as range-restricted uniform Horn rules with ⊥ | `Rule`, `Regime`, `parse_rule`; the `SIMPLE`, `RDFS`, and `OWL2RL` regimes; custom false-concluding rules |
+| Definition 25, the base `𝔅_R` specified by closure | `RegimeBase`: Γ inconsistent or Δ meets `cl_R(Γ)`, the graph's closure in a backend, the extras closed semi-naively in process |
+| Definition 14 and Proposition 16, positions as pairs of sets of graphs | `RDFBase.position(accept, reject)` and `pynmms rdf position` |
+| Lemma 24, a graph denied severally and in every joint combination | rejected ground graphs as conjunctions under the Ketonen `R∧` rule |
+| Lemma 30 and Remark 31, Skolemization sound only in the antecedent | polarity-aware Skolemization through negation and implication |
+| Lemma 33, the witness characterisation for blank nodes | `PatternAtom` and the basic-graph-pattern witness search |
+| Proposition 34, incoherence recovery | `is_inconsistent`, empty-consequent queries, explosion of `𝔅_R` |
+| Theorem 35 and Corollaries 36 to 38 | oracle tests against owlrl on random RDFS and OWL 2 RL graphs, list constructs included |
+
+The paper's closing conjecture, that NMMS over `𝔅_R` is a sound and complete
+calculus for regime entailment, is what the oracle tests exercise. They are
+evidence for ground graphs on the implemented fragment. They are not a
+proof, and the paper still owes one.
+
+### 9.2 What the paper points toward, now running
+
+The introduction asks for a semantics able to handle negation and default
+reasoning, which RDF omits and practice works around with `NOT EXISTS`,
+`MINUS`, and SHACL. Section 4 claims that the false-concluding rules a
+community publishes become incoherent positions, and that the substructural
+machinery is idle on the regimes but not on the domain knowledge they leave
+out. Both claims are now running code with measurements attached.
+
+- **Negation over RDF** comes from published incompatibilities through the
+  II condition: `Γ, A ⇒ ¬B` iff `Γ, A, B` is incoherent under the regime's
+  rules. It costs about 50 µs in memory and one to a few round trips over a
+  store.
+- **The domain knowledge regimes leave out has a home.** Section 3.3's
+  observation that a rule base taken without closing "corresponds to no
+  regime" diagnosed the pre-existing ontology extension exactly. The
+  response was to make Definition 13's range of subjunctive robustness a
+  per-entry policy, `exact`, `monotone`, or `guarded` by singleton and
+  conjunctive defeaters, so that `Penguin` defeats `Bird |~ Flies` and
+  `Tall` does not. Containment holds for the union of the regime layer and
+  the material layer, so the metatheory of Chapter 3 applies to the whole.
+- **The two layers sit in one base**, which is the paper's picture of a base
+  over `N` that need not be monotone, alongside the austere corner the
+  regimes occupy.
+
+Around this sits what the paper does not discuss but a reasoner needs: a
+store-resident graph with no per-query dependence on its size, batched
+joins against the store, a differential test against the pre-rewrite
+reasoner, this page, and a measured performance profile
+(`bench/PERFORMANCE.md`) framed for comparison with classical reasoners.
+
+### 9.3 What remains open, from the paper's own list
+
+- The first-order existential of Hlobil's extension, which the paper names
+  as the right treatment of blank nodes in the succedent. Pattern atoms
+  implement Lemma 33's witness search instead; they are opaque to the
+  logical rules and cannot occur in antecedent position.
+- `owl:sameAs` as symmetric substitution commitments (Remark 11). It runs
+  only monotonically today, through the OWL 2 RL equality rules.
+- RDF 1.2 triple terms, which the paper defers.
+- The datatype rules of OWL 2 RL and the axiomatic-only rules.
+- The comparison with SHACL that Section 4 invites: constraints as
+  incoherence, checked against a shapes graph's own violation report.
+  Planned as a Phase 6 evaluation in `PLAN.md`; not done.
+- Any evaluation on real data. Every number so far is synthetic, and the
+  paper's larger objective, understanding the Semantic Web as logical
+  expressivism in the wild, needs the wild.
+
+In short: the manuscript's technical content is implemented, tested against
+independent oracles where oracles exist, and extended with the defeasible
+layer it says the regimes lack. Its conjecture is tested rather than proved,
+its future-work items remain future work, and its empirical ambition is the
+next phase.
+
 ## References
 
 - Bradley P. Allen. *Implication-Space Semantics for RDF*. Unpublished manuscript, 2026.

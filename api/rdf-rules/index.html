@@ -1470,17 +1470,17 @@
     <div class="doc doc-contents first">
 
         <p>Entailment regimes as Horn rules over generalized RDF triples.</p>
-<p>Definition 9 of the paper: a regime is a set of rules <code>&lt;A, c&gt;</code> with a finite
+<p>The paper's <code>def:entailmentregime</code>: a regime is a set of rules <code>&lt;A, c&gt;</code> with a finite
 premise set <em>A</em> of triples and a conclusion <em>c</em> that is a triple or ⊥,
 range-restricted and uniform under substitution. Here a rule is a schema over
 variables; its instances are the regime's rules.</p>
 <p>Shipped regimes:</p>
 <ul>
-<li><code>SIMPLE</code> -- the empty regime (simple entailment, Corollary 36).</li>
+<li><code>SIMPLE</code> -- the empty regime (simple entailment, <code>cor:simple</code>).</li>
 <li><code>RDFS</code>   -- the RDF and RDFS entailment patterns of RDF 1.1 Semantics
   §9.2.1 (rdf1, rdfs2-13 except the literal-typing rules rdfs1 and rdfD1,
   which need a side condition) with the finite axiomatic triples of §9.2.2
-  (the container-membership family <code>rdf:_i</code> excluded). See Corollary 37.</li>
+  (the container-membership family <code>rdf:_i</code> excluded). See <code>cor:rdfs</code>.</li>
 </ul>
 <p>Custom regimes are built from :func:<code>parse_rule</code> lines such as::</p>
 <div class="highlight"><pre><span></span><code>?x ex:parentOf ?y -&gt; ?y ex:childOf ?x
@@ -1727,7 +1727,7 @@ computed from a literal's datatype.</p>
 
 
         <p>A Horn rule schema. <code>conclusion is None</code> means ⊥ (false-concluding).</p>
-<p><code>guard</code> is an optional side condition on the bindings (Definition 9
+<p><code>guard</code> is an optional side condition on the bindings (<code>def:entailmentregime</code>
 admits conditions such as "is a literal" that substitution preserves).</p>
 
 
@@ -1772,7 +1772,7 @@ admits conditions such as "is a literal" that substitution preserves).</p>
 <a id="__codelineno-0-58" name="__codelineno-0-58"></a><span class="k">class</span><span class="w"> </span><span class="nc">Rule</span><span class="p">:</span>
 <a id="__codelineno-0-59" name="__codelineno-0-59"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;A Horn rule schema. ``conclusion is None`` means ⊥ (false-concluding).</span>
 <a id="__codelineno-0-60" name="__codelineno-0-60"></a>
-<a id="__codelineno-0-61" name="__codelineno-0-61"></a><span class="sd">    ``guard`` is an optional side condition on the bindings (Definition 9</span>
+<a id="__codelineno-0-61" name="__codelineno-0-61"></a><span class="sd">    ``guard`` is an optional side condition on the bindings (``def:entailmentregime``</span>
 <a id="__codelineno-0-62" name="__codelineno-0-62"></a><span class="sd">    admits conditions such as &quot;is a literal&quot; that substitution preserves).</span>
 <a id="__codelineno-0-63" name="__codelineno-0-63"></a><span class="sd">    &quot;&quot;&quot;</span>
 <a id="__codelineno-0-64" name="__codelineno-0-64"></a>

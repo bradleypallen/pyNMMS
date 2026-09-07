@@ -1560,7 +1560,7 @@
     <div class="doc doc-contents first">
 
         <p>RDF triples as atomic sentences.</p>
-<p>Definition 19 of the paper encodes a ground triple <code>(s, p, o)</code> as the bearer
+<p>The paper's <code>def:triplebearers</code> encodes a ground triple <code>(s, p, o)</code> as the bearer
 <code>T&lt;s, p, o&gt;</code> of a single ternary property. In pyNMMS that bearer is a
 :class:<code>TripleAtom</code>: a <code>str</code> subclass whose value is the <em>canonical quoted
 atom name</em> <code>&lt;s p o&gt;</code> accepted by the propositional parser, and which also
@@ -1615,9 +1615,9 @@ angle brackets, so no content ever contains <code>&lt;</code> or <code>&gt;</cod
 
 
         <p>A succedent graph pattern <code>&lt;{ s p o . s p o }&gt;</code> with blank nodes as variables.</p>
-<p>Lemma 30 makes Skolemization unsound on the succedent side, so a
+<p><code>lem:skolem</code> makes Skolemization unsound on the succedent side, so a
 consequent graph with blank nodes is kept as one atom whose axiom check
-is the witness search of Lemma 33: it holds iff some instance mapping
+is the witness search of <code>lem:witnesschar</code>: it holds iff some instance mapping
 sends every triple into the closure of Γ. Ground patterns (no blank
 nodes) simply require all their triples. The atom is opaque to the
 logical rules; it can be combined with connectives but not decomposed.</p>
@@ -1688,9 +1688,9 @@ logical rules; it can be combined with connectives but not decomposed.</p>
 <span class="normal"><a href="#__codelineno-0-330">330</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-276" name="__codelineno-0-276"></a><span class="k">class</span><span class="w"> </span><span class="nc">PatternAtom</span><span class="p">(</span><span class="nb">str</span><span class="p">):</span>
 <a id="__codelineno-0-277" name="__codelineno-0-277"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;A succedent graph pattern ``&lt;{ s p o . s p o }&gt;`` with blank nodes as variables.</span>
 <a id="__codelineno-0-278" name="__codelineno-0-278"></a>
-<a id="__codelineno-0-279" name="__codelineno-0-279"></a><span class="sd">    Lemma 30 makes Skolemization unsound on the succedent side, so a</span>
+<a id="__codelineno-0-279" name="__codelineno-0-279"></a><span class="sd">    ``lem:skolem`` makes Skolemization unsound on the succedent side, so a</span>
 <a id="__codelineno-0-280" name="__codelineno-0-280"></a><span class="sd">    consequent graph with blank nodes is kept as one atom whose axiom check</span>
-<a id="__codelineno-0-281" name="__codelineno-0-281"></a><span class="sd">    is the witness search of Lemma 33: it holds iff some instance mapping</span>
+<a id="__codelineno-0-281" name="__codelineno-0-281"></a><span class="sd">    is the witness search of ``lem:witnesschar``: it holds iff some instance mapping</span>
 <a id="__codelineno-0-282" name="__codelineno-0-282"></a><span class="sd">    sends every triple into the closure of Γ. Ground patterns (no blank</span>
 <a id="__codelineno-0-283" name="__codelineno-0-283"></a><span class="sd">    nodes) simply require all their triples. The atom is opaque to the</span>
 <a id="__codelineno-0-284" name="__codelineno-0-284"></a><span class="sd">    logical rules; it can be combined with connectives but not decomposed.</span>
@@ -2356,7 +2356,7 @@ their triples are.</p>
 
     <div class="doc doc-contents ">
 
-        <p>Replace blank nodes in <em>t</em> by Skolem IRIs (sound in the antecedent, Lemma 30).</p>
+        <p>Replace blank nodes in <em>t</em> by Skolem IRIs (sound in the antecedent, <code>lem:skolem</code>).</p>
 
 
             <details class="mkdocstrings-source">
@@ -2364,7 +2364,7 @@ their triples are.</p>
               <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-271">271</a></span>
 <span class="normal"><a href="#__codelineno-0-272">272</a></span>
 <span class="normal"><a href="#__codelineno-0-273">273</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-271" name="__codelineno-0-271"></a><span class="k">def</span><span class="w"> </span><span class="nf">skolemize_triple</span><span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="n">Triple</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Triple</span><span class="p">:</span>
-<a id="__codelineno-0-272" name="__codelineno-0-272"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Replace blank nodes in *t* by Skolem IRIs (sound in the antecedent, Lemma 30).&quot;&quot;&quot;</span>
+<a id="__codelineno-0-272" name="__codelineno-0-272"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Replace blank nodes in *t* by Skolem IRIs (sound in the antecedent, ``lem:skolem``).&quot;&quot;&quot;</span>
 <a id="__codelineno-0-273" name="__codelineno-0-273"></a>    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">skolem</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="p">))</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">BNode</span><span class="p">)</span> <span class="k">else</span> <span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">t</span><span class="p">)</span>  <span class="c1"># type: ignore[return-value]</span>
 </code></pre></div></td></tr></table></div>
             </details>

@@ -1490,10 +1490,10 @@ which the implication survives. A base entry <code>Γ₀ |~ Δ₀</code> in pyNM
     The entry licenses only <code>Γ₀ ⇒ Δ₀</code> itself. Any addition to either side
     defeats it. This is the pre-0.7 behaviour of every entry and schema; its
     failure of monotonicity is "by omission rather than by defeat" (Allen,
-    "Implication-Space Semantics for RDF", Sec. 3.3).</p>
+    "Implication-Space Semantics for RDF", remark after <code>def:fitness</code>).</p>
 <p><code>MONOTONE</code>
     The entry licenses every <code>Γ ⇒ Δ</code> with <code>Γ ⊇ Γ₀</code> and <code>Δ ⊇ Δ₀</code>. This is
-    the reading of a regime base (Definition 25 of the same paper).</p>
+    the reading of a regime base (<code>def:fitness</code> of the same paper).</p>
 <p><code>guarded(left, right, exclusions)</code>
     MONOTONE except when <code>Γ</code> meets <code>left</code>, <code>Δ</code> meets <code>right</code>, or some
     exclusion pair <code>⟨x, y⟩</code> has <code>x ⊆ Γ</code> and <code>y ⊆ Δ</code>. <code>left</code> and

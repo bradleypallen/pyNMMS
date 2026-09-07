@@ -1472,7 +1472,7 @@
   new set. Cost is proportional to the new triples and their joins, never to
   |G|.</li>
 </ul>
-<p>Rules are range-restricted (Definition 9), so every conclusion is ground.</p>
+<p>Rules are range-restricted (<code>def:entailmentregime</code>), so every conclusion is ground.</p>
 
 
 
@@ -2094,7 +2094,7 @@ one query per firing (procedural rules still use <em>store_lookup</em>).</p>
     <div class="doc doc-contents ">
 
         <p>Find one instance mapping making every pattern a triple in <em>lookup</em>.</p>
-<p>This is the witness search of Lemma 33: with the blank nodes of a
+<p>This is the witness search of <code>lem:witnesschar</code>: with the blank nodes of a
 succedent graph H as variables, <code>H</code> is entailed iff some binding puts
 all of <code>μ(H)</code> in the closure. Returns the binding or <code>None</code>.</p>
 
@@ -2124,7 +2124,7 @@ all of <code>μ(H)</code> in the closure. Returns the binding or <code>None</cod
 <span class="normal"><a href="#__codelineno-0-354">354</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-334" name="__codelineno-0-334"></a><span class="k">def</span><span class="w"> </span><span class="nf">match_patterns</span><span class="p">(</span><span class="n">patterns</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Pattern</span><span class="p">],</span> <span class="n">lookup</span><span class="p">:</span> <span class="n">Lookup</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Bindings</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <a id="__codelineno-0-335" name="__codelineno-0-335"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Find one instance mapping making every pattern a triple in *lookup*.</span>
 <a id="__codelineno-0-336" name="__codelineno-0-336"></a>
-<a id="__codelineno-0-337" name="__codelineno-0-337"></a><span class="sd">    This is the witness search of Lemma 33: with the blank nodes of a</span>
+<a id="__codelineno-0-337" name="__codelineno-0-337"></a><span class="sd">    This is the witness search of ``lem:witnesschar``: with the blank nodes of a</span>
 <a id="__codelineno-0-338" name="__codelineno-0-338"></a><span class="sd">    succedent graph H as variables, ``H`` is entailed iff some binding puts</span>
 <a id="__codelineno-0-339" name="__codelineno-0-339"></a><span class="sd">    all of ``μ(H)`` in the closure. Returns the binding or ``None``.</span>
 <a id="__codelineno-0-340" name="__codelineno-0-340"></a><span class="sd">    &quot;&quot;&quot;</span>

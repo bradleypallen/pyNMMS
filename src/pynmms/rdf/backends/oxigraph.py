@@ -365,24 +365,47 @@ class OxigraphBackend:
         logger.info("Closure written to %s in %.1f ms total", self._path,
                     (time.perf_counter() - t0) * 1000)
 
-    def load_graph(self, graph: Graph) -> int:
-        """Load an rdflib graph (its namespace bindings included)."""
+    def load_graph(self, graph: Graph, *, source: URIRef | None = None) -> int:
+        """Load an rdflib graph (its namespace bindings included).
+
+        With *source*, the triples are also recorded in that named graph, so
+        :meth:`graphs_of` reports them as coming from it (provenance).
+        """
         for pfx, ns in graph.namespaces():
             self._resolver.bind(pfx, str(ns))
         triples = [skolemize_triple(t) if self._skolemize else t for t in graph]
         before = self.size()
         self._insert(triples, self._asserted)
+        if source is not None:
+            self._insert(triples, self._ox.NamedNode(str(source)))
         self.materialize()
         return self.size() - before
 
-    def add(self, triples: Iterable[Triple]) -> int:
+    def graphs_of(self, t: Triple) -> list[URIRef]:
+        """The named graphs (sources) holding *t*, the backend's own graphs excluded."""
+        ox = self._ox
+        s, p, o = t
+        if isinstance(s, Literal):
+            return []
+        out: list[URIRef] = []
+        for q in self._store.quads_for_pattern(to_ox(s, ox), to_ox(p, ox), to_ox(o, ox), None):
+            g = q.graph_name
+            if isinstance(g, ox.NamedNode) and g.value not in (ASSERTED, META):
+                out.append(URIRef(g.value))
+        return sorted(out)
+
+    def add(self, triples: Iterable[Triple], *, source: URIRef | None = None) -> int:
         """Assert triples and extend the closure incrementally in process.
 
         The new triples are closed by :meth:`ClosureEngine.extend` with the
         store as the join partner, and the result is written to the closure
-        graph; the store is never re-materialised.
+        graph; the store is never re-materialised. With *source*, they are
+        also recorded in that named graph.
         """
+        triples = list(triples)
         added = [t for t in triples if not self.contains(t)]
+        if source is not None and triples:
+            self._insert(triples, self._ox.NamedNode(str(source)))
         if not added:
             return 0
         self._insert(added, self._asserted)

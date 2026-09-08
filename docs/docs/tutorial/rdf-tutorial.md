@@ -310,6 +310,39 @@ and `commit` are the other moves, and `save` commits before writing.
 `python -m bench.replay_dialogue` replays a scripted dialogue with
 predictions against a persisted store.
 
+## Provenance as entitlement
+
+A position keeps two scores. What it is committed to is what it asserted
+plus what follows; what it is entitled to is the subset it has standing
+for. `Position.grounds()` says why each commitment is held:
+
+- `asserted`: the holder said it and has not defended it;
+- `defended`: the holder said it and `defend()`, a round of the opponent's
+  probes, found no refutation;
+- `inherited`: read aloud from the store by `Position.of`, with the named
+  graph it came from and, through `RegimeBase.provenance = RecordPattern(...)`,
+  the evidence and reference of the annotation record that carries it;
+- `derived` (with `grounds(derived=True)`): a default the base commits the
+  holder to, via its entry.
+
+`score()` counts committed, entitled, and open. `Position.of(base, s,
+source=graph)` reads one named graph's account of a subject, so two
+catalogues become two positions that can be checked alone and together.
+`commit()` with a holder writes the assertions into the holder's own named
+graph, attributed with `prov:wasAttributedTo`, so the store becomes a
+ledger of who committed to what, and later readers inherit from the
+holder. A defeater can read evidence strength, since annotation records
+are patterns and evidence codes an ordering:
+
+```
+?g go:involved_in ?c, ?c rdfs:subClassOf ?d |~ ?g go:involved_in ?d
+    unless ?g go:not_involved_in ?d
+    ; ?r go:gene_product ?g, ?r go:class ?c, ?r go:evidence ?e, [rank(strength, ?e) < rank(strength, "IMP")]
+```
+
+The REPL's `defend` and `entitlement` commands and the replay script's
+`defend`, `entitled?`, and `score?` moves expose the same score.
+
 ## How the closure is split
 
 The regime base checks `Γ |~ Δ` as "Γ is inconsistent or Δ meets `cl_R(Γ)`".

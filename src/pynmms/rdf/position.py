@@ -42,6 +42,7 @@ from rdflib.term import Node
 
 from pynmms.rdf.atoms import SKOLEM_NS, PatternAtom, TripleAtom
 from pynmms.rdf.base import GraphLike, _conjunction, _load_graph
+from pynmms.rdf.provenance import Ground, attribution_triple, holder_graph, provenance_of
 from pynmms.rdf.rules import Rule, Var
 from pynmms.reasoner import NMMSReasoner
 
@@ -62,6 +63,16 @@ class Move:
     kind: str  # "assert", "deny", "withdraw", "commit"
     atoms: frozenset[str] = frozenset()
     note: str = ""
+
+
+@dataclass(frozen=True)
+class Round:
+    """The outcome of a round of the opponent's probes (:meth:`Position.defend`)."""
+
+    stood: bool
+    refutations: int
+    open: int
+    challenges: tuple[Any, ...] = field(default=(), compare=False, repr=False)
 
 
 @dataclass(frozen=True)
@@ -125,6 +136,7 @@ class Position:
         self._accepted: set[str] = set()
         self._rejected: list[str] = []  # succedent sentences (conjunctions or patterns)
         self._rejected_graphs: list[list[Triple]] = []
+        self._grounds: dict[str, Ground] = {}
         self.log: list[Move] = []
         self._reasoner = NMMSReasoner(base, persistent_cache=True)
 
@@ -157,10 +169,17 @@ class Position:
             out.add(str(t))
         return frozenset(out)
 
-    def assert_(self, *triples: Any) -> Position:
-        """Undertake commitment to these triples (atoms, names, or rdflib triples)."""
+    def assert_(self, *triples: Any, ground: Ground | None = None) -> Position:
+        """Undertake commitment to these triples (atoms, names, or rdflib triples).
+
+        The commitment's ground is ``asserted`` (undefended) unless *ground*
+        says otherwise; :meth:`of` passes the inherited provenance.
+        """
         atoms = self._atoms(triples)
         self._accepted |= atoms
+        for a in atoms:
+            if a not in self._grounds or self._grounds[a].kind == "asserted":
+                self._grounds[a] = ground or Ground("asserted")
         self.log.append(Move("assert", atoms))
         return self
 
@@ -180,48 +199,100 @@ class Position:
         """Take back assertions."""
         atoms = self._atoms(triples)
         self._accepted -= atoms
+        for a in atoms:
+            self._grounds.pop(a, None)
         self.log.append(Move("withdraw", atoms))
         return self
 
     def commit(self) -> int:
-        """Write the accepted triples to the store (a ``TELL``); they become background."""
+        """Write the accepted triples to the store (a ``TELL``); they become background.
+
+        With a holder, the triples are also recorded in the holder's named
+        graph, attributed with ``prov:wasAttributedTo``, so later readers
+        inherit them from this holder.
+        """
         triples = [t.triple for t in (TripleAtom.coerce(a) for a in self._accepted) if t]
         add = getattr(self.base.backend, "add", None)
         if add is None:
             raise TypeError("the backend cannot be written to")
-        n = int(add(triples))
+        if self.holder and triples:
+            graph = holder_graph(self.holder)
+            n = int(add(triples, source=graph))
+            if not self.base.backend.contains(attribution_triple(graph, self.holder)):
+                add([attribution_triple(graph, self.holder)])
+        else:
+            n = int(add(triples))
         self.log.append(Move("commit", frozenset(self._accepted), f"{n} new"))
         self._accepted.clear()
+        self._grounds.clear()
         self.base.clear_caches()
         return n
 
     @classmethod
-    def of(cls, base: RegimeBase, subject: Node | str, *, holder: str = "") -> Position:
+    def of(cls, base: RegimeBase, subject: Node | str, *, holder: str = "",
+           source: URIRef | None = None) -> Position:
         """Read a stored record aloud: its concise description as a position.
 
         The subject's asserted triples, following blank nodes and Skolem
-        nodes into their own records (a maker record, an annotation).
+        nodes into their own records (a maker record, an annotation). Each
+        commitment is inherited, with its source graph and its record's
+        evidence (``base.provenance``). With *source*, only that named
+        graph's account of the subject is read: one catalogue's position.
         """
         s = subject if isinstance(subject, Node) else base.resolver.expand(subject)
         pos = cls(base, holder=holder)
         seen: set[Node] = set()
         frontier: list[Node] = [s]
-        atoms: list[TripleAtom] = []
+        graphs_of = getattr(base.backend, "graphs_of", None)
         while frontier:
             node = frontier.pop()
             if node in seen:
                 continue
             seen.add(node)
             for t in base.backend.triples((node, None, None)):
-                atoms.append(TripleAtom(*t))
+                if source is not None and (graphs_of is None or source not in graphs_of(t)):
+                    continue
+                pos.assert_(TripleAtom(*t), ground=provenance_of(base, t, prefer_source=source))
                 o = t[2]
                 if isinstance(o, BNode) or (
                     isinstance(o, URIRef) and str(o).startswith(SKOLEM_NS)
                 ):
                     frontier.append(o)
-        if atoms:
-            pos.assert_(*atoms)
         return pos
+
+    # --- Entitlement ---
+
+    def grounds(self, *, derived: bool = False) -> dict[str, Ground]:
+        """Why the position holds each commitment; with *derived*, the defaults it is
+        committed to but has not acknowledged, via their entries."""
+        out = {a: self._grounds.get(a, Ground("asserted")) for a in sorted(self._accepted)}
+        if derived:
+            for c in self.challenges():
+                if c.kind == "default":
+                    for a in c.asks:
+                        out.setdefault(a, Ground("derived", via=c.source))
+        return out
+
+    def defend(self) -> Round:
+        """A round of the opponent's probes. If none refutes the position, every
+        asserted commitment becomes defended; otherwise standings are unchanged."""
+        cs = self.challenges()
+        refutations = sum(1 for c in cs if c.kind == "refutation")
+        open_ = len(cs) - refutations
+        stood = refutations == 0
+        if stood:
+            for a in self._accepted:
+                if self._grounds.get(a, Ground("asserted")).kind == "asserted":
+                    self._grounds[a] = Ground("defended")
+        self.log.append(Move("defend", frozenset(self._accepted),
+                             f"{'stood' if stood else 'refuted'}, {open_} open"))
+        return Round(stood, refutations, open_, tuple(cs))
+
+    def score(self) -> dict[str, int]:
+        """Committed, entitled (defended or inherited), and open (asserted, undefended)."""
+        g = self.grounds()
+        entitled = sum(1 for x in g.values() if x.entitled)
+        return {"committed": len(g), "entitled": entitled, "open": len(g) - entitled}
 
     # --- Checking ---
 

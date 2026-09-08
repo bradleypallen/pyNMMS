@@ -40,6 +40,22 @@ coherent? ## 1
 deny <am:proxy-52227 am:objectName am:t-9646>
 coherent? ## 0
 
+# 3b. Entitlement. The record read aloud is inherited (entitled: 78 commitments, the museum's
+#     record); the curator's own assertion is undefended until a round stands. Withdraw the
+#     denials first so the round can stand.
+withdraw <am:proxy-52227 am:madeBy am:p-10974>
+assert <am:proxy-52227 am:printedBy "unknown">
+entitled? <am:proxy-52227 am:printedBy "unknown"> ## 0
+score? ## 78
+defend ## 0
+# The standing denial of the propagated object name still refutes; withdrawing it is not a
+# position move (denials are not withdrawn here), so read the record afresh and try again.
+read am:proxy-52227
+assert <am:proxy-52227 am:printedBy "unknown">
+defend ## 1
+entitled? <am:proxy-52227 am:printedBy "unknown"> ## 1
+score? ## 79
+
 # 4. The chalice, read aloud, carries two production starts and is out of bounds; one start alone is fine.
 read am:proxy-31227
 coherent? ## 0

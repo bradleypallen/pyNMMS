@@ -11,6 +11,9 @@ A dialogue file has one move per line::
     commits? <query> ## 0               # predicted derivability of accepted, ant => con
     precludes? <s p o> ## 1             # predicted incompatibility
     challenges? ## 2                    # predicted number of probes an opponent would generate
+    defend ## 1                         # a round of probes; predicted 1 if the position stood
+    entitled? <s p o> ## 1              # predicted: the commitment is defended or inherited
+    score? ## 3                         # predicted number of entitled commitments
     commit
     # comments and blank lines are ignored
 
@@ -124,6 +127,19 @@ def replay(args: argparse.Namespace) -> list[Section]:
             cs = position.challenges()
             answer = len(cs)
             reason = " | ".join(f"[{c.kind}] {c.question()}" for c in cs)[:400]
+        elif kind == "defend":
+            rnd = position.defend()
+            answer = rnd.stood
+            reason = f"{rnd.refutations} refutation(s), {rnd.open} open"
+        elif kind == "entitled?":
+            atom = str(TripleAtom.from_name(rest, base.resolver))
+            g = position.grounds().get(atom)
+            answer = bool(g is not None and g.entitled)
+            reason = f"{g.kind} {g.source or ''} {g.evidence or ''}".strip() if g else "not held"
+        elif kind == "score?":
+            sc = position.score()
+            answer = sc["entitled"]
+            reason = str(sc)
         else:
             raise ValueError(f"line {n}: unknown move {kind!r}")
         ms = (time.perf_counter() - t0) * 1000

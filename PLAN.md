@@ -745,10 +745,13 @@ has to be true, in the order each unblocks the next:
    their values when written. Settles what `def:entailmentregime` admits
    beyond uniform rules: flagged on the theory page, to be stated in the
    second paper.
-4. **Provenance as entitlement.** Named graphs and PROV as the modelling
-   convention; a triple carries its source, defeaters can name sources and
-   evidence levels, a position is a holder's commitments. Two catalogues
-   become two positions. A week.
+4. **Provenance as entitlement** — DONE 2026-09-08 (`pynmms.rdf.provenance`:
+   grounds asserted/defended/inherited/derived, `Position.defend()` and
+   `score()`, sources from named graphs and annotation records
+   (`RecordPattern`), `Position.of(source=)` for one catalogue's account,
+   `commit` into the holder's graph with `prov:wasAttributedTo`,
+   evidence-keyed defeaters over the records; `bench/defeasible_go.py
+   --evidence`).
 5. **The curation loop.** `propose`: submit a record or edit as a position
    and get back what it commits to, what it is precluded from, which
    defeater would rescue an incoherence, and a trace, before anything is

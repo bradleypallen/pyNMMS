@@ -46,6 +46,8 @@ Commands:
   withdraw <t1>, ...       take assertions back
   coherent                 is the position in bounds? names what fails and what would rescue it
   challenges               the probes an opponent would put to the position
+  defend                   a round of probes; if none refutes, assertions become defended
+  entitlement              each commitment's ground: asserted, defended, inherited, derived
   position                 the position's commitments, denials, and history
   commit                   write the position's assertions to the graph (closure extended)
   load <file>              load another RDF file into the graph
@@ -538,6 +540,18 @@ def _run_repl(args: argparse.Namespace) -> int:
                 print("No challenges: nothing in the base bears on this position.")
             for i, c in enumerate(cs, 1):
                 print(f"  {i}. [{c.kind}] {c.question()}")
+        elif line == "defend":
+            rnd = position.defend()
+            print(f"{'STOOD' if rnd.stood else 'REFUTED'}: {rnd.refutations} refutation(s), "
+                  f"{rnd.open} open probe(s); score {position.score()}")
+        elif line == "entitlement":
+            for a, g in position.grounds(derived=True).items():
+                extra = " ".join(f"{k}={v}" for k, v in (("source", g.source),
+                                                          ("evidence", g.evidence),
+                                                          ("reference", g.reference),
+                                                          ("via", g.via)) if v)
+                print(f"  [{g.kind:9s}] {a}{' ' + extra if extra else ''}")
+            print(f"  score {position.score()}")
         elif line == "position":
             print(f"Holder: {position.holder or '-'}")
             for a in sorted(position.accepted):

@@ -1,0 +1,140 @@
+{
+  "timestamp": "2026-09-08T18:36:45+00:00",
+  "git_sha": "3289370-dirty",
+  "quick": false,
+  "env": {
+    "pynmms": "0.13.1",
+    "python": "3.11.11",
+    "implementation": "CPython",
+    "platform": "macOS-26.6.2-arm64-arm-64bit",
+    "machine": "arm64"
+  },
+  "sections": [
+    {
+      "name": "defeasible_go:not",
+      "columns": [
+        "relation",
+        "NOT",
+        "asserted_too",
+        "committed",
+        "committed_asserted",
+        "committed_other",
+        "ms_per_position"
+      ],
+      "rows": [
+        [
+          "enables",
+          537,
+          151,
+          151,
+          151,
+          0,
+          250.3
+        ],
+        [
+          "involved_in",
+          591,
+          114,
+          114,
+          114,
+          0,
+          632.8
+        ],
+        [
+          "located_in",
+          201,
+          61,
+          61,
+          61,
+          0,
+          340.1
+        ],
+        [
+          "part_of",
+          21,
+          8,
+          8,
+          8,
+          0,
+          878.6
+        ],
+        [
+          "is_active_in",
+          6,
+          0,
+          0,
+          0,
+          0,
+          238.9
+        ],
+        [
+          "contributes_to",
+          10,
+          0,
+          0,
+          0,
+          0,
+          100.3
+        ],
+        [
+          "colocalizes_with",
+          11,
+          0,
+          0,
+          0,
+          0,
+          7592.9
+        ],
+        [
+          "acts_upstream_of_or_within",
+          6,
+          1,
+          1,
+          1,
+          0,
+          139.2
+        ],
+        [
+          "acts_upstream_of_or_within_negative_effect",
+          1,
+          0,
+          0,
+          0,
+          0,
+          4.0
+        ]
+      ],
+      "notes": ""
+    },
+    {
+      "name": "defeasible_go:summary",
+      "columns": [
+        "NOT",
+        "asserted_too",
+        "committed",
+        "committed_asserted",
+        "committed_other",
+        "sample_propagations",
+        "predicted_fired",
+        "fired",
+        "inherited_with_evidence",
+        "ms_per_position"
+      ],
+      "rows": [
+        [
+          1384,
+          335,
+          335,
+          335,
+          0,
+          400,
+          158,
+          158,
+          400,
+          155.5
+        ]
+      ],
+      "notes": "store /private/tmp/pynmms-go/store-rdfs; rdfs + 13 pattern entries + evidence below IMP as defeater; predictions: committed == asserted_too, committed_other == 0, fired == predicted_fired"
+    }
+  ]
+}

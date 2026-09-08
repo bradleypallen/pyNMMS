@@ -298,6 +298,9 @@ class RegimeBase(RDFBase):
         self._entry_closure_cache: dict[frozenset[str], set[Triple]] = {}
         #: Material entries with variables (workstream D), see :mod:`pynmms.rdf.defeasible`.
         self._pattern_rules: list[Any] = []
+        #: How annotation records carry evidence and references for a triple
+        #: (:class:`pynmms.rdf.provenance.RecordPattern`), read when a record is read aloud.
+        self.provenance: Any = None
 
     def clear_caches(self) -> None:
         self._extras_cache.clear()

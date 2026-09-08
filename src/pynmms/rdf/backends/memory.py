@@ -8,7 +8,7 @@ from collections.abc import Iterable, Iterator
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from rdflib import BNode, Graph
+from rdflib import BNode, Graph, URIRef
 from rdflib.term import Node
 
 from pynmms.rdf.atoms import Resolver
@@ -140,8 +140,12 @@ class MemoryBackend:
         self._materialize()
         return loaded
 
-    def add(self, triples: Iterable[Triple]) -> int:
-        """Assert triples and extend the closure incrementally."""
+    def graphs_of(self, t: Triple) -> list[URIRef]:
+        """Named-graph provenance is not kept by the in-memory backend."""
+        return []
+
+    def add(self, triples: Iterable[Triple], *, source: URIRef | None = None) -> int:
+        """Assert triples and extend the closure incrementally (*source* is not kept)."""
         added = [t for t in triples if t not in self._graph]
         for t in added:
             self._graph.add(t)

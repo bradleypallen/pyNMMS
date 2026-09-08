@@ -559,3 +559,53 @@ dataset it was set on. The two settings differ only in where the
 propagation rule lives: in the regime it is monotone and the `NOT` is
 inert; as a material entry it is a default and the `NOT` is its defeater,
 which is what the GO documentation says `NOT` is for.
+
+## 12. Provenance as entitlement
+
+Run 2026-09-08. A position now keeps the second score of Brandom's
+scorekeeper: beside what it is committed to, what it is entitled to, the
+commitments it has standing for. A ground is `asserted` (said, undefended),
+`defended` (said, and a round of the opponent's probes found no
+refutation), `inherited` (read aloud from the store, with the named graph
+it came from and the evidence and reference of the annotation record that
+carries it), or `derived` (a default the base commits the holder to).
+`commit` with a holder writes into the holder's own named graph with
+`prov:wasAttributedTo`, so later readers inherit from the holder.
+
+**The museum session** (records `20260908T*` of `bench/replay_dialogue.py`,
+23 predictions, all held). The etching's record read aloud is entitled to
+all 78 of its commitments, since they are the museum's; the curator's own
+assertion of a printer is open, with the score at 78 entitled of 79
+committed; a round of probes is refuted while a denial of the propagated
+object name stands, so the assertion stays open; with the record read
+afresh and the assertion repeated, the round stands, the assertion is
+defended, and the score is 79 of 79. Each move costs what it cost before:
+7 to 9 ms for a round of probes, under 0.1 ms to read the score.
+
+**Two catalogues as two positions** (`tests/test_rdf_entitlement.py`). Two
+named graphs attribute one etching to different makers. Read aloud
+together, under an incompatibility "one object, two makers", the record is
+out of bounds; read from one catalogue's graph alone, each account stands.
+That is the representation of disagreement the vision asked for, and it is
+one keyword argument, `Position.of(base, subject, source=graph)`.
+
+**Evidence as a defeater's argument on GO** (`python -m bench.defeasible_go
+--evidence IMP`, records `20260908T180530Z-*`, `*T182103Z-*`, `*T183645Z-*`).
+The GAF's evidence codes were declared as an ordering from computational
+to experimental, the annotation records as a `RecordPattern`, and each
+propagation entry given a second defeater: yield when the annotation's
+evidence is below IMP. Every gene product's inherited commitments now
+carry their evidence and reference, 400 of 400 in the sample. Of the 400
+sampled propagations, 158 fired and 242 were defeated by weak evidence,
+exactly as predicted by the SPARQL query that asks the question the entry
+answers: the target is asserted outright, or some subclass the gene
+product is annotated to with evidence at or above the threshold reaches
+it. It took three runs to write that predictor. The first looked only at
+the sampled annotation and predicted 96; the second forgot that an
+asserted target is committed by the regime, which no entry retracts, and
+that the closure's `subClassOf` is reflexive, and predicted 161; the third
+held at 158. All three records are kept, since two wrong predictions about
+what a default does over a real knowledge base are part of the finding:
+the entry's semantics is exact and the human's expectation of it was not.
+The `NOT` results are unchanged, 335 committed and none by propagation,
+at 155 ms per position with the extra join over the records.

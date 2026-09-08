@@ -1,0 +1,460 @@
+{
+  "timestamp": "2026-09-08T18:01:44+00:00",
+  "git_sha": "3289370-dirty",
+  "quick": false,
+  "env": {
+    "pynmms": "0.13.1",
+    "python": "3.11.11",
+    "implementation": "CPython",
+    "platform": "macOS-26.6.2-arm64-arm-64bit",
+    "machine": "arm64"
+  },
+  "sections": [
+    {
+      "name": "dialogue:moves",
+      "columns": [
+        "#",
+        "move",
+        "text",
+        "answer",
+        "expect",
+        "ok",
+        "ms",
+        "reason",
+        "rescue"
+      ],
+      "rows": [
+        [
+          3,
+          "holder",
+          "curator@amsterdammuseum.nl",
+          "",
+          "n/a",
+          "n/a",
+          0.0,
+          "",
+          ""
+        ],
+        [
+          7,
+          "read",
+          "am:proxy-52227",
+          "78 asserted",
+          "n/a",
+          "n/a",
+          20.028,
+          "",
+          ""
+        ],
+        [
+          8,
+          "coherent?",
+          "",
+          true,
+          1,
+          true,
+          8.045,
+          "",
+          ""
+        ],
+        [
+          12,
+          "commits?",
+          "<am:proxy-52227 am:objectName am:t-9646>",
+          true,
+          1,
+          true,
+          2.734,
+          "<http://purl.org/collections/nl/am/proxy-52227 http://purl.org/collections/nl/am/objectName http://purl.org/collections/nl/am/t-9646> \u2208 cl(\u0393)",
+          ""
+        ],
+        [
+          14,
+          "commits?",
+          "<am:proxy-52227 am:etchedBy am:p-10974>",
+          true,
+          1,
+          true,
+          2.876,
+          "entry <http://purl.org/collections/nl/am/proxy-52227 http://purl.org/collections/nl/am/maker https://pynmms.dev/.well-known/genid/Nbeaaf6d873ed427bb6df02e7e6e24699>, <https://pynmms.dev/.well-known/genid/Nbeaaf6d873ed427bb6df02e7e6e24699 http://www.w3.org/1999/02/22-rdf-syntax-ns#value http://purl.org/collections/nl/am/p-10974> |~ <http://purl.org/collections/nl/am/proxy-52227 http://purl.org/collections/nl/am/etchedBy http://purl.org/collections/nl/am/p-10974> [guarded]",
+          ""
+        ],
+        [
+          15,
+          "commits?",
+          "<am:proxy-52227 am:madeBy am:p-10974>",
+          false,
+          0,
+          true,
+          2.862,
+          "",
+          ""
+        ],
+        [
+          21,
+          "challenges?",
+          "",
+          2,
+          2,
+          true,
+          5.297,
+          "[incompatibility] Do you also accept <http://purl.org/collections/nl/am/proxy-52227 http://purl.org/collections/nl/am/etchedBy http://purl.org/collections/nl/am/p-10974>? Then <http://purl.org/collections/nl/am/p-10974 http://purl.org/collections/nl/am/deathDateEnd \"1712-04-05\">, <http://purl.org/collections/nl/am/proxy-52227 http://purl.org/collections/nl/am/etchedBy http://purl.org/collections/n",
+          ""
+        ],
+        [
+          24,
+          "assert",
+          "<am:proxy-52227 am:etchedBy am:p-10974>",
+          "79 asserted",
+          "n/a",
+          "n/a",
+          0.027,
+          "",
+          ""
+        ],
+        [
+          25,
+          "coherent?",
+          "",
+          false,
+          0,
+          true,
+          3.568,
+          "incompatibility <http://purl.org/collections/nl/am/p-10974 http://purl.org/collections/nl/am/deathDateEnd \"1712-04-05\">, <http://purl.org/collections/nl/am/proxy-52227 http://purl.org/collections/nl/am/etchedBy http://purl.org/collections/nl/am/p-10974>, <http://purl.org/collections/nl/am/proxy-52227 http://purl.org/collections/nl/am/productionDateStart \"1727\"> |~ \u2205 [guarded]",
+          "<http://purl.org/collections/nl/am/proxy-52227 http://purl.org/collections/nl/am/posthumousImpression \"yes\">"
+        ],
+        [
+          27,
+          "challenges?",
+          "",
+          1,
+          1,
+          true,
+          5.636,
+          "[refutation] Your position is out of bounds: incoherent.",
+          ""
+        ],
+        [
+          29,
+          "assert",
+          "<am:proxy-52227 am:posthumousImpression \"yes\">",
+          "80 asserted",
+          "n/a",
+          "n/a",
+          0.03,
+          "",
+          ""
+        ],
+        [
+          30,
+          "coherent?",
+          "",
+          true,
+          1,
+          true,
+          8.033,
+          "",
+          ""
+        ],
+        [
+          31,
+          "withdraw",
+          "<am:proxy-52227 am:posthumousImpression \"yes\">",
+          "79 asserted",
+          "n/a",
+          "n/a",
+          0.029,
+          "",
+          ""
+        ],
+        [
+          32,
+          "coherent?",
+          "",
+          false,
+          0,
+          true,
+          2.771,
+          "",
+          ""
+        ],
+        [
+          33,
+          "withdraw",
+          "<am:proxy-52227 am:etchedBy am:p-10974>",
+          "78 asserted",
+          "n/a",
+          "n/a",
+          0.021,
+          "",
+          ""
+        ],
+        [
+          34,
+          "coherent?",
+          "",
+          true,
+          1,
+          true,
+          2.725,
+          "",
+          ""
+        ],
+        [
+          37,
+          "deny",
+          "<am:proxy-52227 am:madeBy am:p-10974>",
+          "1 denied",
+          "n/a",
+          "n/a",
+          0.035,
+          "",
+          ""
+        ],
+        [
+          38,
+          "coherent?",
+          "",
+          true,
+          1,
+          true,
+          2.729,
+          "",
+          ""
+        ],
+        [
+          40,
+          "deny",
+          "<am:proxy-52227 am:objectName am:t-9646>",
+          "2 denied",
+          "n/a",
+          "n/a",
+          0.024,
+          "",
+          ""
+        ],
+        [
+          41,
+          "coherent?",
+          "",
+          false,
+          0,
+          true,
+          2.693,
+          "<http://purl.org/collections/nl/am/proxy-52227 http://purl.org/collections/nl/am/objectName http://purl.org/collections/nl/am/t-9646> \u2208 cl(\u0393)",
+          ""
+        ],
+        [
+          46,
+          "withdraw",
+          "<am:proxy-52227 am:madeBy am:p-10974>",
+          "78 asserted",
+          "n/a",
+          "n/a",
+          0.022,
+          "",
+          ""
+        ],
+        [
+          47,
+          "assert",
+          "<am:proxy-52227 am:printedBy \"unknown\">",
+          "79 asserted",
+          "n/a",
+          "n/a",
+          0.025,
+          "",
+          ""
+        ],
+        [
+          48,
+          "entitled?",
+          "<am:proxy-52227 am:printedBy \"unknown\">",
+          false,
+          0,
+          true,
+          0.071,
+          "asserted",
+          ""
+        ],
+        [
+          49,
+          "score?",
+          "",
+          78,
+          78,
+          true,
+          0.059,
+          "{'committed': 79, 'entitled': 78, 'open': 1}",
+          ""
+        ],
+        [
+          50,
+          "defend",
+          "",
+          false,
+          0,
+          true,
+          8.516,
+          "1 refutation(s), 2 open",
+          ""
+        ],
+        [
+          53,
+          "read",
+          "am:proxy-52227",
+          "78 asserted",
+          "n/a",
+          "n/a",
+          2.086,
+          "",
+          ""
+        ],
+        [
+          54,
+          "assert",
+          "<am:proxy-52227 am:printedBy \"unknown\">",
+          "79 asserted",
+          "n/a",
+          "n/a",
+          0.025,
+          "",
+          ""
+        ],
+        [
+          55,
+          "defend",
+          "",
+          true,
+          1,
+          true,
+          6.719,
+          "0 refutation(s), 2 open",
+          ""
+        ],
+        [
+          56,
+          "entitled?",
+          "<am:proxy-52227 am:printedBy \"unknown\">",
+          true,
+          1,
+          true,
+          0.066,
+          "defended",
+          ""
+        ],
+        [
+          57,
+          "score?",
+          "",
+          79,
+          79,
+          true,
+          0.057,
+          "{'committed': 79, 'entitled': 79, 'open': 0}",
+          ""
+        ],
+        [
+          60,
+          "read",
+          "am:proxy-31227",
+          "189 asserted",
+          "n/a",
+          "n/a",
+          25.627,
+          "",
+          ""
+        ],
+        [
+          61,
+          "coherent?",
+          "",
+          false,
+          0,
+          true,
+          8.251,
+          "incompatibility <http://purl.org/collections/nl/am/proxy-31227 http://purl.org/collections/nl/am/productionDateStart \"1632\">, <http://purl.org/collections/nl/am/proxy-31227 http://purl.org/collections/nl/am/productionDateStart \"1780\"> |~ \u2205 [monotone]",
+          ""
+        ],
+        [
+          62,
+          "withdraw",
+          "<am:proxy-31227 am:productionDateStart \"1632\">",
+          "188 asserted",
+          "n/a",
+          "n/a",
+          0.031,
+          "",
+          ""
+        ],
+        [
+          63,
+          "coherent?",
+          "",
+          true,
+          1,
+          true,
+          9.342,
+          "",
+          ""
+        ],
+        [
+          65,
+          "challenges?",
+          "",
+          1,
+          1,
+          true,
+          13.756,
+          "[incompatibility] Do you also accept <http://purl.org/collections/nl/am/proxy-31227 http://purl.org/collections/nl/am/productionDateStart \"1632\">? Then <http://purl.org/collections/nl/am/proxy-31227 http://purl.org/collections/nl/am/productionDateStart \"1632\">, <http://purl.org/collections/nl/am/proxy-31227 http://purl.org/collections/nl/am/productionDateStart \"1780\"> |~ \u2205 [monotone] puts you out ",
+          ""
+        ],
+        [
+          67,
+          "commits?",
+          "<am:proxy-31227 am:productionDateEnd \"1800\">",
+          true,
+          1,
+          true,
+          7.033,
+          "",
+          ""
+        ],
+        [
+          69,
+          "commits?",
+          "<am:proxy-31227 am:productionDateStart \"1900\">",
+          false,
+          0,
+          true,
+          7.137,
+          "",
+          ""
+        ]
+      ],
+      "notes": "store /private/tmp/pynmms-am/store; regime rdfs+am_prop.txt; 7 entries"
+    },
+    {
+      "name": "dialogue:summary",
+      "columns": [
+        "questions",
+        "predicted",
+        "holder",
+        "asserted",
+        "denied",
+        "moves"
+      ],
+      "rows": [
+        [
+          23,
+          "23/23",
+          "curator@amsterdammuseum.nl",
+          188,
+          0,
+          190
+        ]
+      ],
+      "notes": ""
+    }
+  ]
+}

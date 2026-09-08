@@ -609,3 +609,59 @@ what a default does over a real knowledge base are part of the finding:
 the entry's semantics is exact and the human's expectation of it was not.
 The `NOT` results are unchanged, 335 committed and none by propagation,
 at 155 ms per position with the extra join over the records.
+
+## 13. The curation loop against SHACL and SPARQL
+
+Run 2026-09-08 (`python -m bench.curation_loop`, records
+`20260908T193250Z-*` and `*T193645Z-*`), on the Amsterdam Museum store of
+section 10. Three constraints were stated twice: as SHACL-SPARQL shapes
+(`bench/queries/am_shapes.ttl`) and as pattern incompatibilities
+(`am_curation_entries.txt`), the shapes' `NOT EXISTS` clauses being the
+entries' defeaters. A record starts after it ends; a record has two
+production starts; an object was made after its maker's death, unless the
+attribution is qualified, the maker's role is publisher, author, or
+designer, or the impression is posthumous. Store-wide, the shapes' SPARQL
+flags 97, 111, and 1,057 of the 73,447 objects, 1,191 in all; those plus
+200 clean objects were the 1,391 records.
+
+Each record went through three checks: pySHACL over the record's
+three-hop neighbourhood with the record as focus node, the shapes' own
+`sh:select` queries run natively on the store with `$this` bound, and NMMS
+`propose` on the record read aloud as a position.
+
+| Records | Agree | Flagged | Rescue named | Fix accepted | SHACL per record | NMMS per record |
+|---|---|---|---|---|---|---|
+| 1,391 | 1,391 | 1,191 | 1,052 | 1,052 | 92 ms | 13 ms |
+
+The prediction was agreement on every record, and it held, on the second
+run: the first run's SHACL column disagreed on 1,050 records because the
+harness extracted two hops rather than three, so pySHACL never saw the
+makers' death dates, and validated related objects in the neighbourhood as
+focus nodes of their own. Both were harness bugs and both records are
+kept. Once the three see the same data, the closed-world shape, the
+native query, and the position over a background flag the same objects,
+which is `thm:closure` and the defeater reading agreeing with the
+validation idiom on real records.
+
+What only the third column has, and what it cost. A rescue is named for
+1,052 of the 1,191 flagged records, every record whose refuting entry has
+defeaters: "a qualifier on the maker record, a publishing role, or a
+posthumous impression would answer this". The 139 others fail a constraint
+that has no defeaters, a start after an end, two starts, and no rescue is
+the right answer there; five of them were flagged by a defeasible
+constraint too but the refutation reported is the first that fired. The
+proposed fix, asserting a posthumous impression into the position and
+proposing again, restored coherence for all 1,052 without a triple being
+written, which is the hypothetical the validation report cannot run. And
+the position check was seven times faster than the validation, 13 ms
+against 92, because pySHACL builds and validates an rdflib subgraph per
+record while the position reads the store's closure in place.
+
+What the comparison does not show. SHACL and the native query answer the
+closed-world question the shapes ask, and for that question they are
+correct, mature, and standard; nothing here says a practitioner should
+replace them. The columns they cannot fill are the ones the game needs:
+what would answer the challenge, what the record commits its holder to
+by default, and whether an edit would hold before it is made. Whether a
+curator wants those columns is the question the harness cannot answer,
+and it is the last step of the plan.

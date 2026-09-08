@@ -1,0 +1,6 @@
+# The Amsterdam Museum record constraints as pattern incompatibilities with defeaters
+# (the same three checks as bench/queries/am_shapes.ttl, whose NOT EXISTS clauses are
+# these defeaters). Prefixes: am, rdf as in am_rdfs.txt.
+?x am:productionDateStart ?s, ?x am:productionDateEnd ?e, [year(?s) > year(?e)] |~ false
+?x am:productionDateStart ?s, ?x am:productionDateStart ?t, [str(?s) < str(?t)] |~ false
+?x am:maker ?m, ?m rdf:value ?p, ?p am:deathDateEnd ?d, ?x am:productionDateStart ?s, [year(?s) > year(?d)] |~ false unless ?m am:creatorQualifier ?q ; ?m am:creatorRole "uitgever" ; ?m am:creatorRole "auteur" ; ?m am:creatorRole "ontwerper" ; ?x am:posthumousImpression "yes"

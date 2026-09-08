@@ -33,6 +33,7 @@ dev = [
     "mypy",
     "rdflib-endpoint>=0.5",
     "uvicorn>=0.30",
+    "pyshacl>=0.30",
 ]
 docs = [
     "mkdocs-material",

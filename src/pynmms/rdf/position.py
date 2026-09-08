@@ -20,6 +20,9 @@ The three questions a scorekeeper asks of a position:
   entail this? (``ask`` as a challenge.)
 * :meth:`Position.precludes` -- is the position incompatible with this?
   (``Γ, A ⇒ ∅``.)
+* :meth:`Position.propose` -- the curation loop's report: everything the
+  holder needs before writing (in bounds or not, refutation and rescue, the
+  opponent's probes, commitments and preclusions, the score, the trace).
 * :meth:`Position.challenges` -- the probes an opponent can put to it,
   generated from the base: incompatibilities and ⊥ rules the position's
   commitments partly satisfy (asking for the rest), and defaults it is
@@ -33,6 +36,7 @@ the store, however large, matters only as background.
 from __future__ import annotations
 
 import logging
+import time
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
@@ -73,6 +77,38 @@ class Round:
     refutations: int
     open: int
     challenges: tuple[Any, ...] = field(default=(), compare=False, repr=False)
+
+
+@dataclass(frozen=True)
+class Report:
+    """What :meth:`Position.propose` returns: the position assessed, nothing written."""
+
+    coherent: Any  # Verdict
+    challenges: tuple[Any, ...]
+    commitments: dict[str, Ground]
+    precluded: tuple[str, ...]
+    defaults: tuple[str, ...]
+    rescue: tuple[str, ...]
+    score: dict[str, int]
+    trace: tuple[str, ...]
+    ms: float
+
+    def summary(self) -> str:
+        lines = []
+        if self.coherent:
+            lines.append(f"Position is in bounds; score {self.score}.")
+        else:
+            lines.append(f"Position is out of bounds: {self.coherent.reason}.")
+            if self.rescue:
+                lines.append("It would be rescued by: " + ", ".join(self.rescue) + ".")
+        if self.defaults:
+            lines.append("Committed by default to: " + ", ".join(self.defaults) + ".")
+        if self.precluded:
+            lines.append("Precluded from accepting: " + ", ".join(self.precluded) + ".")
+        open_probes = [c for c in self.challenges if c.kind != "refutation"]
+        if open_probes:
+            lines.append(f"{len(open_probes)} open probe(s).")
+        return "\n".join(lines)
 
 
 @dataclass(frozen=True)
@@ -331,6 +367,39 @@ class Position:
 
     def precludes(self, *atoms: Any) -> Verdict:
         return self._ask(self.sequent(antecedent=atoms))
+
+    # --- The curation loop ---
+
+    def propose(self) -> Report:
+        """Assess the position as a proposal, writing nothing.
+
+        Returns whether it is in bounds with the refutation and rescue, the
+        opponent's probes, its commitments (asserted, inherited, and the
+        defaults it is committed to), what it is precluded from accepting
+        (the atoms incompatibility and incoherence probes ask for), its
+        entitlement score, and the proof trace of the coherence check.
+        """
+        t0 = time.perf_counter()
+        v = self.coherent()
+        cs = tuple(self.challenges())
+        commitments = {a: self._grounds.get(a, Ground("asserted")) for a in sorted(self._accepted)}
+        defaults: list[str] = []
+        precluded: list[str] = []
+        for c in cs:
+            if c.kind == "default":
+                for a in c.asks:
+                    commitments.setdefault(a, Ground("derived", via=c.source))
+                    defaults.append(a)
+            elif c.kind in ("incompatibility", "incoherence"):
+                precluded.extend(c.asks)
+        trace = tuple(str(e) for e in getattr(v.result, "entries", ()) or ())
+        g = commitments
+        entitled = sum(1 for a in self._accepted if g[a].entitled)
+        score = {"committed": len(self._accepted), "entitled": entitled,
+                 "open": len(self._accepted) - entitled}
+        return Report(v, cs, commitments, tuple(dict.fromkeys(precluded)),
+                      tuple(dict.fromkeys(defaults)), v.rescue, score, trace,
+                      (time.perf_counter() - t0) * 1000)
 
     # --- The opponent's probes ---
 

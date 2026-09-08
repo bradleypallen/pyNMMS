@@ -752,11 +752,15 @@ has to be true, in the order each unblocks the next:
    `commit` into the holder's graph with `prov:wasAttributedTo`,
    evidence-keyed defeaters over the records; `bench/defeasible_go.py
    --evidence`).
-5. **The curation loop.** `propose`: submit a record or edit as a position
-   and get back what it commits to, what it is precluded from, which
-   defeater would rescue an incoherence, and a trace, before anything is
-   written. Measured on the museum and GO with predictions written first,
-   against SHACL and SPARQL on the same store. A week.
+5. **The curation loop** — DONE 2026-09-08 (`Position.propose()` → `Report`;
+   REPL `propose`; `bench/curation_loop.py` runs the same records through
+   pySHACL, the shapes' SPARQL, and NMMS on one store: on the museum, 1,391
+   records, the three agree on every one, NMMS names a rescue for every
+   record flagged by a defeasible constraint and accepts the proposed fix
+   without writing, at 13 ms a record against SHACL's 92;
+   `bench/PERFORMANCE.md` section 13). What remains of the step is the
+   part no harness supplies: a curator rather than the author as
+   respondent.
 6. **Scorekeeping and dialogue.** Positions per participant, commitments and
    preclusions tracked as assertions accumulate, challenges as incoherence
    queries. `Position.challenges()` (DONE 2026-09-08) generates the

@@ -1,0 +1,36 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix ore: <http://www.openarchives.org/ore/terms/> .
+@prefix shp: <http://pynmms.dev/shapes/am/> .
+
+# The Amsterdam Museum record constraints as SHACL-SPARQL, the same three checks that
+# bench/queries/am_curation_entries.txt states as pattern incompatibilities with defeaters.
+# Full IRIs in the queries; xsd: is declared by the harness.
+
+shp:ObjectShape a sh:NodeShape ;
+    sh:targetClass ore:Proxy ;
+    sh:sparql [
+        sh:message "production starts after it ends" ;
+        sh:select """SELECT $this WHERE {
+            $this <http://purl.org/collections/nl/am/productionDateStart> ?s ;
+                  <http://purl.org/collections/nl/am/productionDateEnd> ?e .
+            FILTER(xsd:integer(SUBSTR(STR(?s), 1, 4)) > xsd:integer(SUBSTR(STR(?e), 1, 4))) }"""
+    ] ;
+    sh:sparql [
+        sh:message "two production starts" ;
+        sh:select """SELECT $this WHERE {
+            $this <http://purl.org/collections/nl/am/productionDateStart> ?s , ?t .
+            FILTER(STR(?s) < STR(?t)) }"""
+    ] ;
+    sh:sparql [
+        sh:message "made after the maker's death, with no qualifier and no publishing role" ;
+        sh:select """SELECT $this WHERE {
+            $this <http://purl.org/collections/nl/am/maker> ?m .
+            ?m <http://www.w3.org/1999/02/22-rdf-syntax-ns#value> ?p .
+            ?p <http://purl.org/collections/nl/am/deathDateEnd> ?d .
+            $this <http://purl.org/collections/nl/am/productionDateStart> ?s .
+            FILTER(xsd:integer(SUBSTR(STR(?s), 1, 4)) > xsd:integer(SUBSTR(STR(?d), 1, 4)))
+            FILTER NOT EXISTS { ?m <http://purl.org/collections/nl/am/creatorQualifier> ?q }
+            FILTER NOT EXISTS { ?m <http://purl.org/collections/nl/am/creatorRole> ?r
+                                FILTER(?r IN ("uitgever", "auteur", "ontwerper")) }
+            FILTER NOT EXISTS { $this <http://purl.org/collections/nl/am/posthumousImpression> "yes" } }"""
+    ] .

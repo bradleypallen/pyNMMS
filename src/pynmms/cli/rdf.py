@@ -46,6 +46,8 @@ Commands:
   withdraw <t1>, ...       take assertions back
   coherent                 is the position in bounds? names what fails and what would rescue it
   challenges               the probes an opponent would put to the position
+  propose                  the curation report: in bounds?, refutation and rescue, probes,
+                           commitments and preclusions, score; nothing is written
   defend                   a round of probes; if none refutes, assertions become defended
   entitlement              each commitment's ground: asserted, defended, inherited, derived
   position                 the position's commitments, denials, and history
@@ -540,6 +542,8 @@ def _run_repl(args: argparse.Namespace) -> int:
                 print("No challenges: nothing in the base bears on this position.")
             for i, c in enumerate(cs, 1):
                 print(f"  {i}. [{c.kind}] {c.question()}")
+        elif line == "propose":
+            print(position.propose().summary())
         elif line == "defend":
             rnd = position.defend()
             print(f"{'STOOD' if rnd.stood else 'REFUTED'}: {rnd.refutations} refutation(s), "

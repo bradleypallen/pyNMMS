@@ -343,6 +343,25 @@ are patterns and evidence codes an ordering:
 The REPL's `defend` and `entitlement` commands and the replay script's
 `defend`, `entitled?`, and `score?` moves expose the same score.
 
+## The curation loop
+
+`Position.propose()` assesses a position as a proposal and writes nothing:
+whether it is in bounds with the refutation and the rescue, the opponent's
+probes, its commitments (asserted, inherited, and the defaults it is
+committed to), what it is precluded from accepting, its entitlement score,
+and the proof trace. The loop is propose, take the rescue or edit, propose
+again, commit. The REPL's `propose` command prints the report's summary
+and the replay script's `propose?` move records it.
+
+`python -m bench.curation_loop` runs the same records through SHACL
+(pySHACL over each record's neighbourhood, with SHACL-SPARQL constraints),
+the shapes' own SPARQL run natively on the store, and NMMS `propose` on the
+record read aloud, with the constraints stated once as shapes and once as
+pattern incompatibilities whose defeaters are the shapes' `NOT EXISTS`
+clauses. The three must agree on what is flagged; what only the third
+column has is the rescue, the defaults, and a hypothetical fix accepted
+without writing.
+
 ## How the closure is split
 
 The regime base checks `Γ |~ Δ` as "Γ is inconsistent or Δ meets `cl_R(Γ)`".

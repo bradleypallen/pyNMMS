@@ -14,6 +14,7 @@ A dialogue file has one move per line::
     defend ## 1                         # a round of probes; predicted 1 if the position stood
     entitled? <s p o> ## 1              # predicted: the commitment is defended or inherited
     score? ## 3                         # predicted number of entitled commitments
+    propose? ## 1                       # the curation report; predicted 1 if in bounds
     commit
     # comments and blank lines are ignored
 
@@ -140,6 +141,11 @@ def replay(args: argparse.Namespace) -> list[Section]:
             sc = position.score()
             answer = sc["entitled"]
             reason = str(sc)
+        elif kind == "propose?":
+            rep_ = position.propose()
+            answer = bool(rep_.coherent)
+            reason = rep_.summary().replace("\n", " | ")[:400]
+            rescue = ", ".join(rep_.rescue)
         else:
             raise ValueError(f"line {n}: unknown move {kind!r}")
         ms = (time.perf_counter() - t0) * 1000

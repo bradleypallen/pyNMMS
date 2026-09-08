@@ -1854,6 +1854,17 @@ the irrelevant premise that changes nothing, the consequent elaborated only
 with the flag on, the absence of material chaining, the empty-<code>I</code> regression
 against the closure base and owlrl on five hundred random cases, Containment
 on random pairs with entries present, and the documented nonmonotonicity.</p>
+<p><strong>Guards over values.</strong> <code>def:entailmentregime</code> requires rules to be
+uniform, closed under substituting terms for terms, and admits side
+conditions such as "is a literal" that substitution preserves. Real data
+needs conditions substitution does not preserve: a production date after
+a maker's death, evidence below a threshold. The implementation admits a
+guard on a rule (<code>pynmms.rdf.values</code>), a comparison over the literals it
+binds, evaluated as a SPARQL <code>FILTER</code> in the store and identically in
+process. A guarded rule is an exception to uniformity, and the second
+paper has to say which guards are admitted and why <code>thm:closure</code>
+survives them (the conclusion is still ground and still determined by
+the premises' terms; only which instances fire depends on values).</p>
 <h2 id="9-where-the-implementation-stops-short">9. Where the implementation stops short<a class="headerlink" href="#9-where-the-implementation-stops-short" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>The first-order existential.</strong> A pattern atom is the witness search of

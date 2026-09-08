@@ -253,6 +253,23 @@ position's own triples take part. Alternatives are separated by `;`.
 Entries do not chain. The harness entry files accept these lines beside
 ground ones, and `Position.challenges()` generates probes from them.
 
+### Entry files and the ontology extension as surface syntax
+
+`--entries FILE` on `ask`, `position`, and `repl` loads material entries in
+tell syntax, ground or pattern (`pynmms.rdf.entries.load_entries` in
+Python). `--onto FILE` loads an ontology-extension base and installs its
+schemas as pattern entries and its consequences as ground entries
+(`pynmms.rdf.convert.install_onto`): `subClassOf(C, D)` becomes
+`?x a C |~ ?x a D`, `range`, `domain`, and `subPropertyOf` the corresponding
+role entries, `disjointWith` and `disjointProperties` incompatibilities,
+`jointCommitment` a multi-premise entry, and a guarded schema's defeater
+concepts become defeaters on the individuals of the match. The seven
+schema types are therefore a surface syntax for pattern entries over
+`rdf:type` and role triples, with one difference from NMMS_Onto's own
+matcher: an exact schema, defeated by any addition, has no pattern
+counterpart and is compiled as monotone; and a monotone or guarded
+incompatibility explodes within the position, where NMMS_Onto's does not.
+
 ## Positions as speech acts
 
 A position is what a holder has said. `Position` keeps the atoms asserted,

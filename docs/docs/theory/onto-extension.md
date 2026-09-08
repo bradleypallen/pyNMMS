@@ -291,6 +291,21 @@ Allen (2026) gives RDF itself an implication-space semantics, and `pynmms.rdf` i
 
 The two layers differ in exactly the way Section 8.2 describes. A regime base `B_R` is defined by closure, so it is monotone, transitive, and explosive: subclass chains compose, additions never defeat, and an inconsistent graph entails everything. Allen (2026) notes, after `def:fitness`, that a base which took the rule instances without closing -- which is what an `exact` NMMS_Onto schema generates -- "corresponds to no regime" and fails monotonicity "by omission rather than by defeat". NMMS_Onto is therefore not a fragment of RDFS but a different kind of base: the place for material inferential commitments with their defeat conditions, which the regimes leave out. In `pynmms.rdf` both kinds sit in one `RegimeBase`: the regime part is store-resident and monotone, the material part is explicit entries with `guarded` robustness, and Containment holds for the union, so the metatheory of Section 4 applies to the whole.
 
+### 8.5 NMMS_Onto as a surface syntax
+
+Since v0.13 the seven schema types compile to pattern entries of the
+regime-relative material base (`pynmms.rdf.convert.onto_to_defeasible`):
+each schema with its robustness policy is one entry with variables over
+`rdf:type` and role triples, and guarded defeater concepts become pattern
+defeaters on the individuals of the match. A differential test over
+random bases shows NMMS_Onto's matcher and the compiled entries agree on
+atomic sequents for monotone and guarded schemas, up to one licensed
+difference: NMMS_Onto's incompatibility schemas never explode, while a
+monotone or guarded pattern incompatibility does. Exact schemas, defeated
+by any addition, have no pattern counterpart and compile as monotone.
+NMMS_Onto therefore remains as the propositional, string-atom surface of
+the same knowledge, and the RDF layer is where it meets a graph.
+
 ## 9. Inferentialist Knowledge Engineering: What Gets Better About an RDF Graph
 
 The sections above describe a mechanism. This section says what the

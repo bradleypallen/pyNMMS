@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Iterable
+from typing import Any
 
 from rdflib import Graph, Namespace, URIRef
 from rdflib.namespace import OWL, RDF, RDFS
@@ -115,17 +116,130 @@ def onto_to_rules(base: OntoMaterialBase, ns: Namespace = DEFAULT_NS) -> list[Ru
     return rules
 
 
+def onto_to_defeasible(base: OntoMaterialBase, ns: Namespace = DEFAULT_NS,
+                       *, exact: str = "monotone") -> list[Any]:
+    """Every schema of *base* as a pattern entry (``pynmms.rdf.defeasible``).
+
+    ``subClassOf(C, D)`` becomes ``?x a C |~ ?x a D``; ``range(R, C)``
+    ``?x R ?y |~ ?y a C``; ``domain(R, C)`` ``?x R ?y |~ ?x a C``;
+    ``subPropertyOf(R, S)`` ``?x R ?y |~ ?x S ?y``; ``disjointWith(C, D)``
+    ``?x a C, ?x a D |~ false``; ``disjointProperties(R, S)`` ``?x R ?y, ?x S ?y
+    |~ false``; ``jointCommitment([C1..Cn], D)`` ``?x a C1, ..., ?x a Cn |~ ?x a D``.
+    A guarded schema's defeater concepts become defeaters on each individual of
+    the match (``?x a E`` ; ``?y a E``), conjunctive exclusions conjunctions on
+    one individual. An exact schema, defeated by any addition, has no pattern
+    counterpart: with ``exact="monotone"`` (default) it is compiled as monotone
+    and logged, with ``exact="skip"`` it is left out.
+    """
+    from pynmms.rdf.defeasible import DefeasibleRule, Defeater
+    from pynmms.rdf.rules import Var
+
+    x, y = Var("x"), Var("y")
+    rules: list[Any] = []
+    for e in base.onto_schemas:
+        t = e.type
+        premises: tuple[tuple[Any, Any, Any], ...]
+        if t == "subClassOf":
+            premises = ((x, RDF.type, _iri(e.arg1, ns)),)
+            conclusion: Any = (x, RDF.type, _iri(e.arg2, ns))
+            individuals: tuple[Var, ...] = (x,)
+            name = f"subClassOf:{e.arg1}->{e.arg2}"
+        elif t == "range":
+            premises = ((x, _iri(e.arg1, ns), y),)
+            conclusion = (y, RDF.type, _iri(e.arg2, ns))
+            individuals = (x, y)
+            name = f"range:{e.arg1}->{e.arg2}"
+        elif t == "domain":
+            premises = ((x, _iri(e.arg1, ns), y),)
+            conclusion = (x, RDF.type, _iri(e.arg2, ns))
+            individuals = (x, y)
+            name = f"domain:{e.arg1}->{e.arg2}"
+        elif t == "subPropertyOf":
+            premises = ((x, _iri(e.arg1, ns), y),)
+            conclusion = (x, _iri(e.arg2, ns), y)
+            individuals = (x, y)
+            name = f"subPropertyOf:{e.arg1}->{e.arg2}"
+        elif t == "disjointWith":
+            premises = ((x, RDF.type, _iri(e.arg1, ns)), (x, RDF.type, _iri(e.arg2, ns)))
+            conclusion = None
+            individuals = (x,)
+            name = f"disjointWith:{e.arg1}/{e.arg2}"
+        elif t == "disjointProperties":
+            premises = ((x, _iri(e.arg1, ns), y), (x, _iri(e.arg2, ns), y))
+            conclusion = None
+            individuals = (x, y)
+            name = f"disjointProperties:{e.arg1}/{e.arg2}"
+        elif t == "jointCommitment":
+            premises = tuple((x, RDF.type, _iri(c, ns)) for c in e.concepts)
+            conclusion = (x, RDF.type, _iri(e.arg2, ns))
+            individuals = (x,)
+            name = f"jointCommitment:{e.arg1}->{e.arg2}"
+        else:  # pragma: no cover - the extension has seven types
+            logger.warning("onto_to_defeasible: unknown schema type %s", t)
+            continue
+        rob = e.robustness
+        if rob.is_exact:
+            if exact == "skip":
+                logger.info("onto_to_defeasible: exact schema %s skipped", name)
+                continue
+            logger.info("onto_to_defeasible: exact schema %s compiled as monotone "
+                        "(exact matching has no pattern counterpart)", name)
+            rules.append(DefeasibleRule(name, premises, conclusion, (), "monotone"))
+            continue
+        defeaters: list[Defeater] = []
+        for d in sorted(rob.left):
+            for ind in individuals:
+                defeaters.append(Defeater(((ind, RDF.type, _iri(d, ns)),)))
+        for xs, _ys in rob.exclusions:
+            for ind in individuals:
+                defeaters.append(Defeater(tuple((ind, RDF.type, _iri(d, ns)) for d in sorted(xs))))
+        rules.append(DefeasibleRule(name, premises, conclusion, tuple(defeaters),
+                                    "guarded" if defeaters else "monotone"))
+    return rules
+
+
+def install_onto(target: Any, base: OntoMaterialBase, ns: Namespace = DEFAULT_NS,
+                 *, exact: str = "monotone") -> tuple[int, int]:
+    """Install *base*'s schemas as pattern entries and its consequences as ground entries
+    of an ``RDFBase``/``RegimeBase``; returns (rules, entries) added."""
+    rules = onto_to_defeasible(base, ns, exact=exact)
+    for r in rules:
+        target.add_rule(r)
+    n = 0
+    for gamma, delta, rob in consequences_to_triples(base, ns):
+        target.add_consequence(gamma, delta, robustness=rob)
+        n += 1
+    return len(rules), n
+
+
 def consequences_to_triples(
     base: OntoMaterialBase, ns: Namespace = DEFAULT_NS
 ) -> Iterable[tuple[frozenset[str], frozenset[str], object]]:
-    """Ground consequences of *base* as triple-atom pairs with their policies."""
+    """Ground consequences of *base* as triple-atom pairs with their policies.
+
+    The policy's defeaters are translated too, so a guarded entry keeps its
+    defeaters as triple atoms.
+    """
+    from pynmms.robustness import Robustness
+
+    def tr(name: str) -> str:
+        return str(atom_to_triple(name, ns))
+
     for gamma, delta in base.consequences:
+        rob = base.robustness_of(gamma, delta)
+        rob = Robustness(
+            rob.kind,
+            frozenset(tr(a) for a in rob.left),
+            frozenset(tr(a) for a in rob.right),
+            frozenset((frozenset(tr(a) for a in xs), frozenset(tr(a) for a in ys))
+                      for xs, ys in rob.exclusions),
+        )
         yield (
             frozenset(atom_to_triple(a, ns) for a in gamma),
             frozenset(atom_to_triple(a, ns) for a in delta),
-            base.robustness_of(gamma, delta),
+            rob,
         )
 
 
-__all__ = ["atom_to_triple", "onto_to_graph", "onto_to_rules", "consequences_to_triples",
-           "DEFAULT_NS"]
+__all__ = ["atom_to_triple", "onto_to_graph", "onto_to_rules", "onto_to_defeasible",
+           "install_onto", "consequences_to_triples", "DEFAULT_NS"]

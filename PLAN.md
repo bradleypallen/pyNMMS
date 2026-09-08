@@ -734,8 +734,9 @@ has to be true, in the order each unblocks the next:
    value guards, matched by unification at the leaf, attribution for
    incompatibilities, probes from patterns; `bench/defeasible_go.py` runs
    GO's propagation as defeasible entries defeated by `NOT` over a plain
-   RDFS store). The ontology extension as a surface syntax for it, and
-   retiring its matcher, remain.
+   RDFS store). The ontology extension is now a surface syntax for it
+   (`onto_to_defeasible`, `install_onto`, `--onto`; DONE 2026-09-08); its own
+   matcher stays as the propositional surface.
 3. **Values in rules and defeaters** (C) — rules DONE 2026-09-08
    (`pynmms.rdf.values`: guards as `[...]` among premises, evaluated as
    `FILTER` in the store and in Python, cross-checked; `year`, `num`,

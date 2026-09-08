@@ -79,6 +79,11 @@ def add_rdf_parser(subparsers: argparse._SubParsersAction) -> None:  # type: ign
                        help="Keep blank nodes as blank nodes (default: Skolemize on load)")
         p.add_argument("--prefix", action="append", default=[], metavar="PFX=IRI",
                        help="Bind a prefix for queries (repeatable), e.g. ex=http://ex.org/")
+        p.add_argument("--entries", action="append", default=[], metavar="FILE",
+                       help="Material entries in tell syntax, ground or pattern (repeatable)")
+        p.add_argument("--onto", action="append", default=[], metavar="FILE",
+                       help="An ontology-extension base (JSON) whose schemas become pattern "
+                            "entries and whose consequences become ground entries (repeatable)")
 
     ask = sub.add_parser("ask", help="Query derivability against a graph")
     common(ask)
@@ -221,6 +226,22 @@ def _build_oxigraph(
     return backend
 
 
+def _install_extras(base: RegimeBase, args: argparse.Namespace) -> None:
+    """Load --entries files and --onto bases into *base*."""
+    for path in getattr(args, "entries", None) or []:
+        from pynmms.rdf.entries import load_entries
+
+        ground, patterns = load_entries(Path(path), base)
+        logger.info("loaded %d ground and %d pattern entries from %s", ground, patterns, path)
+    for path in getattr(args, "onto", None) or []:
+        from pynmms.onto.base import OntoMaterialBase
+        from pynmms.rdf.convert import install_onto
+
+        rules, entries = install_onto(base, OntoMaterialBase.from_file(path))
+        logger.info("installed %d schemas as pattern entries and %d ground entries from %s",
+                    rules, entries, path)
+
+
 def _close(backend: object) -> None:
     close = getattr(backend, "close", None)
     if callable(close):
@@ -305,6 +326,7 @@ def _run_position(args: argparse.Namespace) -> int:
     try:
         backend, regime = _build_backend(args)
         base = RegimeBase(backend, regime=regime)
+        _install_extras(base, args)
         seq = base.position(accept=args.accept, reject=args.reject)
     except (OSError, ValueError) as e:
         emit_error(str(e), json_mode=json_mode, quiet=quiet)
@@ -348,6 +370,7 @@ def _run_ask(args: argparse.Namespace) -> int:
         emit_error(str(e), json_mode=json_mode, quiet=quiet)
         return EXIT_ERROR
     base = RegimeBase(backend, regime=regime)
+    _install_extras(base, args)
     reasoner = NMMSReasoner(base, max_depth=args.max_depth, persistent_cache=True)
 
     if args.batch is not None:
@@ -443,6 +466,7 @@ def _run_repl(args: argparse.Namespace) -> int:
 
     mem: Any = backend  # MemoryBackend or OxigraphBackend
     base = RegimeBase(mem, regime=regime)
+    _install_extras(base, args)
     reasoner = NMMSReasoner(base, persistent_cache=True)
     position = Position(base, holder="repl")
     default_file = args.graph[0] if args.graph else None

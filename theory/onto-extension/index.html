@@ -1451,6 +1451,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#85-nmms_onto-as-a-surface-syntax" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.5 NMMS_Onto as a surface syntax
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1926,6 +1937,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#85-nmms_onto-as-a-surface-syntax" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.5 NMMS_Onto as a surface syntax
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2232,6 +2254,19 @@
 <h3 id="84-from-nmms_onto-to-nmms-over-rdf">8.4 From NMMS_Onto to NMMS over RDF<a class="headerlink" href="#84-from-nmms_onto-to-nmms-over-rdf" title="Permanent link">&para;</a></h3>
 <p>Allen (2026) gives RDF itself an implication-space semantics, and <code>pynmms.rdf</code> implements it (see <a href="../rdf-semantics/">RDF Semantics</a>). In that setting the atomic bearers are ground triples, and NMMS_Onto's vocabulary is the <code>rdf:type</code> fragment of the encoding: <code>C(x)</code> is <code>(x rdf:type C)</code> and <code>R(x, y)</code> is <code>(x R y)</code>. Schema commitments become schema triples (<code>rdfs:subClassOf</code>, <code>rdfs:range</code>, <code>rdfs:domain</code>, <code>rdfs:subPropertyOf</code>, <code>owl:disjointWith</code>, <code>owl:propertyDisjointWith</code>), which an entailment regime reads through its rules; <code>jointCommitment</code> becomes a rule. <code>onto_to_graph</code>, <code>onto_to_rules</code>, and <code>consequences_to_triples</code> perform the translation.</p>
 <p>The two layers differ in exactly the way Section 8.2 describes. A regime base <code>B_R</code> is defined by closure, so it is monotone, transitive, and explosive: subclass chains compose, additions never defeat, and an inconsistent graph entails everything. Allen (2026) notes, after <code>def:fitness</code>, that a base which took the rule instances without closing -- which is what an <code>exact</code> NMMS_Onto schema generates -- "corresponds to no regime" and fails monotonicity "by omission rather than by defeat". NMMS_Onto is therefore not a fragment of RDFS but a different kind of base: the place for material inferential commitments with their defeat conditions, which the regimes leave out. In <code>pynmms.rdf</code> both kinds sit in one <code>RegimeBase</code>: the regime part is store-resident and monotone, the material part is explicit entries with <code>guarded</code> robustness, and Containment holds for the union, so the metatheory of Section 4 applies to the whole.</p>
+<h3 id="85-nmms_onto-as-a-surface-syntax">8.5 NMMS_Onto as a surface syntax<a class="headerlink" href="#85-nmms_onto-as-a-surface-syntax" title="Permanent link">&para;</a></h3>
+<p>Since v0.13 the seven schema types compile to pattern entries of the
+regime-relative material base (<code>pynmms.rdf.convert.onto_to_defeasible</code>):
+each schema with its robustness policy is one entry with variables over
+<code>rdf:type</code> and role triples, and guarded defeater concepts become pattern
+defeaters on the individuals of the match. A differential test over
+random bases shows NMMS_Onto's matcher and the compiled entries agree on
+atomic sequents for monotone and guarded schemas, up to one licensed
+difference: NMMS_Onto's incompatibility schemas never explode, while a
+monotone or guarded pattern incompatibility does. Exact schemas, defeated
+by any addition, have no pattern counterpart and compile as monotone.
+NMMS_Onto therefore remains as the propositional, string-atom surface of
+the same knowledge, and the RDF layer is where it meets a graph.</p>
 <h2 id="9-inferentialist-knowledge-engineering-what-gets-better-about-an-rdf-graph">9. Inferentialist Knowledge Engineering: What Gets Better About an RDF Graph<a class="headerlink" href="#9-inferentialist-knowledge-engineering-what-gets-better-about-an-rdf-graph" title="Permanent link">&para;</a></h2>
 <p>The sections above describe a mechanism. This section says what the
 mechanism is for, as a practice, now that the RDF layer of Section 8.4 has

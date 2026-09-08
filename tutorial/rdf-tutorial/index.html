@@ -662,6 +662,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Material entries as patterns">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#entry-files-and-the-ontology-extension-as-surface-syntax" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Entry files and the ontology extension as surface syntax
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1535,6 +1552,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Material entries as patterns">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#entry-files-and-the-ontology-extension-as-surface-syntax" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Entry files and the ontology extension as surface syntax
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1820,6 +1854,21 @@ concludes an incompatibility, counted against a position only when the
 position's own triples take part. Alternatives are separated by <code>;</code>.
 Entries do not chain. The harness entry files accept these lines beside
 ground ones, and <code>Position.challenges()</code> generates probes from them.</p>
+<h3 id="entry-files-and-the-ontology-extension-as-surface-syntax">Entry files and the ontology extension as surface syntax<a class="headerlink" href="#entry-files-and-the-ontology-extension-as-surface-syntax" title="Permanent link">&para;</a></h3>
+<p><code>--entries FILE</code> on <code>ask</code>, <code>position</code>, and <code>repl</code> loads material entries in
+tell syntax, ground or pattern (<code>pynmms.rdf.entries.load_entries</code> in
+Python). <code>--onto FILE</code> loads an ontology-extension base and installs its
+schemas as pattern entries and its consequences as ground entries
+(<code>pynmms.rdf.convert.install_onto</code>): <code>subClassOf(C, D)</code> becomes
+<code>?x a C |~ ?x a D</code>, <code>range</code>, <code>domain</code>, and <code>subPropertyOf</code> the corresponding
+role entries, <code>disjointWith</code> and <code>disjointProperties</code> incompatibilities,
+<code>jointCommitment</code> a multi-premise entry, and a guarded schema's defeater
+concepts become defeaters on the individuals of the match. The seven
+schema types are therefore a surface syntax for pattern entries over
+<code>rdf:type</code> and role triples, with one difference from NMMS_Onto's own
+matcher: an exact schema, defeated by any addition, has no pattern
+counterpart and is compiled as monotone; and a monotone or guarded
+incompatibility explodes within the position, where NMMS_Onto's does not.</p>
 <h2 id="positions-as-speech-acts">Positions as speech acts<a class="headerlink" href="#positions-as-speech-acts" title="Permanent link">&para;</a></h2>
 <p>A position is what a holder has said. <code>Position</code> keeps the atoms asserted,
 the graphs denied, and the order of the moves, and checks them over the

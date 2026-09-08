@@ -739,11 +739,73 @@ unblocks the next:
    preclusions tracked as assertions accumulate, challenges as incoherence
    queries. The Elenchus work; its own project once 1, 4, and 5 exist.
 
-Alongside: the second paper, stating positions over backgrounds, pattern
-roles, and value guards, since the implementation is now ahead of the
-text in exactly those places; and the discipline the runs taught, every
+Alongside: the second paper (outline below), since the implementation is
+now ahead of the text in exactly the places where negation and
+defeasibility became usable; and the discipline the runs taught, every
 experiment with its expectations recorded before it runs (`## r,n,i` in
 the harness) and compared with the usual tooling on the same store.
+
+#### The second paper: what the semantics has to add to catch up
+
+The first paper proves `thm:recovery` and `thm:closure` for the closure
+base `𝔅_R`. Everything that made negation and defeasibility usable on
+real data (2026-09-07) is outside its text: the regime-relative material
+base, positions over a background, attribution. Each item below is fixed
+by what the code does and has tests stating the expected behaviour
+(`tests/test_rdf_material.py`, `tests/test_rdf_position.py`), so the
+definitions can be written from them. Labels follow the first paper's
+convention and are cited by label.
+
+1. **`def:materialbase`, the regime-relative material base `𝔅_{R,I}`.**
+   Entries `⟨A, D; E⟩` and the three clauses as implemented: Γ
+   R-inconsistent, or Δ meets `cl_R(Γ)`, or an entry with `A ⊆ cl_R(Γ)`,
+   no `e ∈ E` with `e ⊆ cl_R(Γ)`, and Δ meeting `cl_R(Γ ∪ D)`; the
+   policies exact, monotone, guarded; the empty-consequent case with the
+   succedent policy deciding explosion. To prove: it is a base in the
+   sense of `def:fitness`; with `I` empty it is `𝔅_R`; and the defeater
+   test picks out a fragment of the range of subjunctive robustness of
+   `def:roles`, so a guarded entry is an implication with a specified RSR
+   and not an ad hoc rule. (Theory page, Section 8, is the draft.)
+2. **`def:background` and `def:positionover`, a position over a
+   background.** A background `B` and a position `P`, the base evaluated on
+   `cl_R(B ∪ P)` with `P` alone as the commitments. The organising
+   definition; short.
+3. **`prop:attribution`.** A ⊥, or an incompatibility's antecedent, counts
+   against `P` only if its derivation uses a triple of `P` not already in
+   `cl_R(B)`. Define the `P`-dependent part of a closure and show the
+   semi-naive extras step (`ClosureEngine.extend`) computes it. Corollary:
+   the empty position over an R-inconsistent background is coherent, and
+   the background's ⊥ is inventory (`background_inconsistent()`).
+4. **`thm:recoverybg` and `thm:closurebg`, the theorems restated relative
+   to a background.** On the positive part, `P` over `B` entails `H` iff
+   `B ∪ P` R-entails `H` with ⊥ removed from `cl_R(B)`; on incoherence, `P`
+   is out of bounds iff its own contribution derives ⊥. A paraconsistent
+   reading of the background; its own proof, not a corollary.
+5. **`lem:readaloud`, speaking for one's subjects.** Reading a record
+   `rec(s)` aloud is the position `P = rec(s)` over `B \ rec(s)`. The
+   positive closure is unchanged, `cl_R((B \ rec) ∪ rec) = cl_R(B)`, so
+   reading aloud is conservative on what follows and changes only who is
+   answerable for it (one date coherent, two dates not).
+6. **The evidence.** The F0 methodology (predictions before runs;
+   agreement with the store's own answers as the oracle) and the three
+   results: total agreement at 4×10⁷ closure triples; 394 of 1,383
+   curated `NOT` annotations contradicted by the RDFS closure, 335 in the
+   asserted data; the museum session of fourteen probes at milliseconds
+   each (`bench/PERFORMANCE.md` sections 8 to 10).
+
+Two revisions to the first paper's `sec:discussion`: the query-side
+defeat idioms are no longer outside the semantics, since `𝔅_{R,I}` brings
+the `NOT EXISTS` test inside as a claim in the base at the price of a
+closed-world defeater check over a finite closure, and the section should
+say so; and SHACL's focus node and the position over a background are the
+same locality reached from opposite directions. `def:entailmentregime`'s
+uniformity will need a stated exception once value guards exist (step 3
+above), since a date comparison is not closed under substitution; flag it
+now, state it with the values work.
+
+Kept out of the paper until the code has them: patterns as bearers
+(workstream D) and the pragmatics of verdicts and rescues, which are the
+game (`onto-extension.md`, Section 9.1) rather than the semantics.
 
 #### Sequencing and releases
 

@@ -710,9 +710,22 @@ game, the background is the common ground, and positions are the moves.
 
 `docs/docs/theory/onto-extension.md`, Section 9, states the vision:
 knowledge engineering as the engineering of the space of implications a
-graph lives in, with the graph as a record of commitments. What has to be
-true for that to be a practice rather than an argument, in the order each
-unblocks the next:
+graph lives in, with the graph as a record of commitments. Section 9.1
+states it as a game, and that is the frame this phase now works in:
+inferentialist knowledge engineering is Brandom's game of giving and
+asking for reasons with the knowledge graph as the scorekeeper's ledger.
+An expert formulates positions (assertions and denials, over the store as
+background, speaking for the subjects they assert about), an opponent,
+human or computed from the base by `Position.challenges()`, probes them
+for incoherence, and the knowledge base improves over time through
+commitments that have held up under challenge (`commit`) and through
+the exceptions those challenges surface, which become defeaters and
+entries. Entitlement is what survives challenge; the regime is the fixed
+part; everything else is revisable in play. The core mechanism of that
+game is now implemented and tested on real data (GO and the Amsterdam
+Museum, sections 9 to 11 of `bench/PERFORMANCE.md`); what remains below
+is what turns it into a practice an expert can be watched using. What
+has to be true, in the order each unblocks the next:
 
 1. **Positions as speech acts** (H above; the small design decision that
    everything else depends on). A week, with the REPL client.
@@ -847,6 +860,30 @@ of every store adapter.
 - The extras-oracle and differential tests passing against the store
   adapters as well as in memory.
 - Round trips per query independent of the number of connectives.
+
+**Beyond 10⁷: the 10⁸ estimate (2026-09-08).** The query side is settled:
+nothing per query grows with the background, measured flat from 24
+thousand to 40 million closure triples, so a position over a 10⁸ store
+costs what it costs over 10⁷. The import is the whole question, and it is
+a matter of memory and one-time time rather than of algorithms:
+
+- *In memory* the closure costs about 600 bytes per closure triple, so 10⁸
+  asserted triples with a fourfold closure need on the order of 240 GB of
+  RAM for the scratch store, which is a large cloud instance, at an
+  extrapolated 40 minutes of rule updates (24 s per 2.4 million measured).
+- *On disk* the direct RocksDB path needs no memory but was 56 minutes at
+  10⁷ asserted and is write-bound and likely superlinear, so 10⁸ is an
+  overnight import unless the avoidable parts (the asserted-to-closure
+  copy, the final read-only round, partitioned in-memory materialisation)
+  are done first; section 7 lists them.
+- *On disk afterwards* the store is about 6.7 GB per 40 million closure
+  triples, so 70 GB at 10⁸, and reopening is instantaneous regardless.
+
+So 10⁸ is reachable on a laptop with patience or on a cloud instance with
+memory, once, and interactive thereafter; that puts positions over large
+class slices of Wikidata within reach, which is the F evaluation the
+target names. It is an extrapolation, not a measurement, until the run is
+done, and the run should be the first cloud experiment of this phase.
 
 #### Decisions needed
 

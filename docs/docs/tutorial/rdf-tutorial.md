@@ -230,6 +230,13 @@ pos.commit()                  # TELL: the assertions become background
 record = Position.of(base, "am:proxy-31227")   # the stored record as a position
 ```
 
+`challenges()` generates the probes an opponent would put to the position
+from the base: incompatibilities and ⊥ rules its commitments partly
+satisfy, asking for the rest, and defaults it is committed to but has not
+acknowledged, each with the defeaters that would answer it. That is the
+opponent's side of the game of Section 9.1 of the ontology extension
+page, and the REPL's `challenges` command prints them as questions.
+
 `coherent()` asks whether ⟨accepted, rejected⟩ is in bounds
 (`def:contententailment`): out of bounds iff the accepted graphs entail a
 rejected one, or, with nothing rejected, iff they are incoherent. A failed

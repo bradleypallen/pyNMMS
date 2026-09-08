@@ -23,7 +23,7 @@ Requires the ``rdf`` extra: ``pip install pyNMMS[rdf]``.
 from pynmms.rdf.atoms import PatternAtom, Resolver, TripleAtom
 from pynmms.rdf.base import RDFBase, RegimeBase
 from pynmms.rdf.convert import onto_to_graph, onto_to_rules
-from pynmms.rdf.position import Move, Position, Verdict
+from pynmms.rdf.position import Challenge, Move, Position, Verdict
 from pynmms.rdf.rules import OWL2RL, RDFS, SIMPLE, Regime, Rule, Var, parse_rule
 from pynmms.rdf.view import GraphView
 
@@ -44,6 +44,7 @@ __all__ = [
     "onto_to_rules",
     "parse_rule",
     "Position",
+    "Challenge",
     "Verdict",
     "Move",
 ]

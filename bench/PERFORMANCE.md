@@ -490,3 +490,17 @@ fourteen. This is the locality the chalice needed, done the way the
 speech-act reading says: the position speaks for the subjects it asserts
 about, so their stored record is set aside while it is checked, and one
 asserted date is coherent where the record read aloud with two is not.
+
+**The opponent's probes** (2026-09-08, `Position.challenges()`, the same
+dialogue with three `challenges?` moves and predicted counts). After the
+etching's record is read aloud the opponent generates two probes in 5 ms:
+a default to acknowledge, "you are committed to the etcher credit by the
+unqualified etcher record", and an incompatibility, "do you also accept
+the etcher credit? then the anachronism puts you out of bounds, unless a
+posthumous impression"; the "naar" record's default is defeated and
+yields nothing. Once the credit is asserted the only probe is the
+refutation. After the chalice is read aloud and one date withdrawn, the
+one probe asks whether the curator also accepts the record's other date.
+All seventeen predictions held. This is the Elenchus loop with the
+opponent generated from the base rather than scripted: the respondent's
+moves are the dialogue file, the opponent's questions are computed.

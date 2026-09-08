@@ -737,7 +737,12 @@ unblocks the next:
    against SHACL and SPARQL on the same store. A week.
 6. **Scorekeeping and dialogue.** Positions per participant, commitments and
    preclusions tracked as assertions accumulate, challenges as incoherence
-   queries. The Elenchus work; its own project once 1, 4, and 5 exist.
+   queries. `Position.challenges()` (DONE 2026-09-08) generates the
+   opponent's probes from the base: refutations, incompatibilities and ⊥
+   rules the position partly satisfies, unacknowledged defaults, each with
+   its rescue. What remains is the turn structure, explicit entitlement,
+   and a termination rule: the Elenchus work, its own project once 1, 4,
+   and 5 exist.
 
 Alongside: the second paper (outline below), since the implementation is
 now ahead of the text in exactly the places where negation and

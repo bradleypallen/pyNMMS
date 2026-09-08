@@ -434,19 +434,22 @@ class RegimeBase(RDFBase):
                 if rob.is_exact and len(delta) > 0:
                     continue
                 logger.debug("entry %s |~ ∅ fires: Γ materially incoherent [%s]", set(a_set), rob)
-                self.last_reason = f"incompatibility {sorted(a_set)} |~ ∅ [{rob.kind}]"
+                self.last_reason = (f"incompatibility {', '.join(sorted(map(str, a_set)))} "
+                                    f"|~ ∅ [{rob.kind}]")
                 self.last_rescue = tuple(sorted(rob.left))
                 return True
             if self.elaborate_consequent:
                 elaborated = self._closure_of_extras_plus(extras, derived, d_set, over_graph)
                 if self._delta_meets(delta, elaborated, over_graph, "cl(Γ ∪ D)", hidden):
                     logger.debug("entry %s |~ %s fires [%s]", set(a_set), set(d_set), rob)
-                    self.last_reason = f"entry {sorted(a_set)} |~ {sorted(d_set)} [{rob.kind}]"
+                    self.last_reason = (f"entry {', '.join(sorted(map(str, a_set)))} |~ "
+                                        f"{', '.join(sorted(map(str, d_set)))} [{rob.kind}]")
                     self.last_rescue = tuple(sorted(rob.left))
                     return True
             elif any(x in delta for x in d_set):
                 logger.debug("entry %s |~ %s fires literally [%s]", set(a_set), set(d_set), rob)
-                self.last_reason = f"entry {sorted(a_set)} |~ {sorted(d_set)} [{rob.kind}]"
+                self.last_reason = (f"entry {', '.join(sorted(map(str, a_set)))} |~ "
+                                    f"{', '.join(sorted(map(str, d_set)))} [{rob.kind}]")
                 self.last_rescue = tuple(sorted(rob.left))
                 return True
         return False

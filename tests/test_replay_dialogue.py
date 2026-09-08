@@ -37,6 +37,7 @@ read ex:chalice
 coherent? ## 0
 withdraw <ex:chalice ex:start "1632">
 coherent? ## 1
+challenges? ## 1
 assert <ex:polly a ex:Sparrow>
 commits? <ex:polly a ex:Bird> ## 1
 commits? <ex:tweety a ex:Bird> ## 1
@@ -51,5 +52,6 @@ commit
     out = capsys.readouterr().out
     assert "dialogue:summary" in out
     # The last coherence check is predicted in bounds but the denial of Bird is entailed:
-    # a deliberate failed prediction, so the report must say 5/6.
-    assert "5/6" in out
+    # a deliberate failed prediction, so the report must say 6/7 (the challenges? count holds:
+    # one date asserted, the opponent asks about the other).
+    assert "6/7" in out

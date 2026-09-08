@@ -14,9 +14,17 @@ commits? <am:proxy-52227 am:objectName am:t-9646> ## 1
 commits? <am:proxy-52227 am:etchedBy am:p-10974> ## 1
 commits? <am:proxy-52227 am:madeBy am:p-10974> ## 0
 
+# 1b. What would an opponent ask? Two probes are predicted: the unqualified etcher record makes the
+#     curator committed by default to the etcher credit (a default to acknowledge), and accepting it
+#     would complete the anachronism (an incompatibility asking for it, rescued by a posthumous
+#     impression). The "naar" record's default is defeated and yields no probe.
+challenges? ## 2
+
 # 2. The curator asserts the etcher credit outright. Luyken died in 1712; the etching is dated 1727.
 assert <am:proxy-52227 am:etchedBy am:p-10974>
 coherent? ## 0
+# The opponent's only probe is now the refutation itself.
+challenges? ## 1
 # ... and is told what would rescue it: a posthumous impression.
 assert <am:proxy-52227 am:posthumousImpression "yes">
 coherent? ## 1
@@ -37,6 +45,8 @@ read am:proxy-31227
 coherent? ## 0
 withdraw <am:proxy-31227 am:productionDateStart "1632">
 coherent? ## 1
+# The opponent asks whether the curator also accepts the record's other start.
+challenges? ## 1
 # The rest of the record (title, credit line) is still the curator's: it commits to it.
 commits? <am:proxy-31227 am:productionDateEnd "1800"> ## 1
 # Something the store never said is not.

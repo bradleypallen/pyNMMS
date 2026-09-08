@@ -10,6 +10,7 @@ A dialogue file has one move per line::
     coherent? ## 1                      # predicted verdict: 1 in bounds, 0 out of bounds
     commits? <query> ## 0               # predicted derivability of accepted, ant => con
     precludes? <s p o> ## 1             # predicted incompatibility
+    challenges? ## 2                    # predicted number of probes an opponent would generate
     commit
     # comments and blank lines are ignored
 
@@ -84,7 +85,9 @@ def replay(args: argparse.Namespace) -> list[Section]:
             continue
         expect: Any = NA
         if "##" in raw:
-            expect = raw.split("##", 1)[1].strip() == "1"
+            pred = raw.split("##", 1)[1].strip()
+            expect = int(pred) if pred.isdigit() and len(pred) > 1 or pred not in ("0", "1") \
+                else pred == "1"
         kind, _, rest = line.partition(" ")
         rest = rest.strip()
         t0 = time.perf_counter()
@@ -118,12 +121,17 @@ def replay(args: argparse.Namespace) -> list[Section]:
         elif kind == "precludes?":
             v = position.precludes(*[TripleAtom.from_name(x, base.resolver) for x in _split(rest)])
             answer, reason, rescue = bool(v), v.reason or "", ", ".join(v.rescue)
+        elif kind == "challenges?":
+            cs = position.challenges()
+            answer = len(cs)
+            reason = " | ".join(f"[{c.kind}] {c.question()}" for c in cs)[:400]
         else:
             raise ValueError(f"line {n}: unknown move {kind!r}")
         ms = (time.perf_counter() - t0) * 1000
         ok: Any = NA
-        if expect is not NA and isinstance(answer, bool):
-            ok = answer == expect
+        if expect is not NA and isinstance(answer, (bool, int)):
+            ok = (answer == expect) if isinstance(answer, bool) == isinstance(expect, bool) \
+                else (bool(answer) == expect if isinstance(expect, bool) else answer == expect)
             oks.append(ok)
             if not ok:
                 logger.warning("PREDICTION FAILED at line %d (%s): expected %s, got %s", n, line,

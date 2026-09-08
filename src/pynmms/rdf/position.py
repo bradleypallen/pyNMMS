@@ -20,6 +20,10 @@ The three questions a scorekeeper asks of a position:
   entail this? (``ask`` as a challenge.)
 * :meth:`Position.precludes` -- is the position incompatible with this?
   (``Γ, A ⇒ ∅``.)
+* :meth:`Position.challenges` -- the probes an opponent can put to it,
+  generated from the base: incompatibilities and ⊥ rules the position's
+  commitments partly satisfy (asking for the rest), and defaults it is
+  committed to but has not acknowledged (asking whether it accepts them).
 
 Human scale is the normal scale: a position built in dialogue is tens of
 triples, so the per-query cost is the extras closure of those triples, and
@@ -38,6 +42,7 @@ from rdflib.term import Node
 
 from pynmms.rdf.atoms import SKOLEM_NS, PatternAtom, TripleAtom
 from pynmms.rdf.base import GraphLike, _conjunction, _load_graph
+from pynmms.rdf.rules import Rule, Var
 from pynmms.reasoner import NMMSReasoner
 
 if TYPE_CHECKING:
@@ -76,6 +81,37 @@ class Verdict:
 
     def __bool__(self) -> bool:
         return self.value
+
+
+@dataclass(frozen=True)
+class Challenge:
+    """A probe an opponent can put to a position.
+
+    *kind* is ``"refutation"`` (the position is already out of bounds),
+    ``"incompatibility"`` (a material incompatibility it partly satisfies),
+    ``"incoherence"`` (a ⊥ rule of the regime it partly matches), or
+    ``"default"`` (a material inference it is committed to and has not
+    acknowledged). *asks* are the atoms, or a pattern with blank nodes for the
+    unbound variables, the holder is asked to accept; *source* the entry or
+    rule; *rescue* the defeaters that would answer the challenge.
+    """
+
+    kind: str
+    asks: tuple[str, ...]
+    source: str
+    rescue: tuple[str, ...] = ()
+
+    def question(self) -> str:
+        what = ", ".join(self.asks)
+        if self.kind == "refutation":
+            q = f"Your position is out of bounds: {self.source}."
+        elif self.kind == "default":
+            q = f"You are committed to {what} by {self.source}. Do you accept it?"
+        else:
+            q = f"Do you also accept {what}? Then {self.source} puts you out of bounds."
+        if self.rescue:
+            q += " Unless: " + ", ".join(self.rescue) + "."
+        return q
 
 
 class Position:
@@ -225,7 +261,123 @@ class Position:
     def precludes(self, *atoms: Any) -> Verdict:
         return self._ask(self.sequent(antecedent=atoms))
 
+    # --- The opponent's probes ---
+
+    def challenges(self) -> list[Challenge]:
+        """The probes an opponent can generate from the base for this position.
+
+        Refutations first, then incompatibilities and ⊥ rules by how few atoms
+        they still need, then unacknowledged defaults. Only what the position's
+        own commitments take part in is asked (attribution), and what the store
+        holds about the position's subjects counts as set aside, so the record's
+        other facts are asked rather than assumed.
+        """
+        base = self.base
+        aside = self.aside()
+        accepted = frozenset(self._accepted)
+        derived, bottom = base._closure_of_extras(accepted, True)
+        hidden = aside - accepted
+        own_triples: set[Triple] = set(derived)
+        for a in accepted:
+            t = TripleAtom.coerce(a, base.resolver)
+            if t is not None:
+                own_triples.add(t.triple)
+        own_atoms = {str(TripleAtom(*t)) for t in own_triples}
+
+        def in_cl(atom: str) -> bool:
+            t = TripleAtom.coerce(atom, base.resolver)
+            if t is None:
+                return False
+            if t.triple in own_triples:
+                return True
+            return str(t) not in hidden and base.backend.closure_contains(t.triple)
+
+        def defeated(rob: Any) -> bool:
+            return any(in_cl(x) for x in rob.left)
+
+        out: list[Challenge] = []
+        v = self.coherent()
+        if not v:
+            out.append(Challenge("refutation", (), v.reason or "incoherent", v.rescue))
+        elif bottom:
+            out.append(Challenge("refutation", (), f"⊥ from the regime {base.regime.name}"))
+
+        # Material entries: incompatibilities partly satisfied, defaults unacknowledged.
+        for a_set, d_set, rob in base.material_entries:
+            have = [a for a in a_set if a in own_atoms]
+            if not have:
+                continue  # background only: not this position's
+            if defeated(rob):
+                continue
+            rest = [a for a in a_set if a not in own_atoms]
+            missing = tuple(sorted(a for a in rest if not in_cl(a)))
+            source = (f"{', '.join(sorted(map(str, a_set)))} |~ "
+                      f"{', '.join(sorted(map(str, d_set))) if d_set else '∅'} [{rob.kind}]")
+            rescue = tuple(sorted(rob.left))
+            if not d_set:
+                if missing:
+                    out.append(Challenge("incompatibility", missing, source, rescue))
+                elif not v.value:
+                    pass  # already reported as the refutation
+                else:
+                    out.append(Challenge("refutation", (), source, rescue))
+            elif not missing:
+                unacknowledged = tuple(sorted(d for d in d_set if not in_cl(d)))
+                if unacknowledged:
+                    out.append(Challenge("default", unacknowledged, source, rescue))
+
+        # ⊥ rules of the regime, anchored on one of the position's own triples.
+        for rule in base.regime.rules:
+            if not isinstance(rule, Rule) or rule.conclusion is not None or rule.guard:
+                continue
+            for i, premise in enumerate(rule.premises):
+                for tr in own_triples:
+                    b = _unify(premise, tr)
+                    if b is None:
+                        continue
+                    rest_p = [_apply(p, b) for j, p in enumerate(rule.premises) if j != i]
+                    ground = [p for p in rest_p if not any(isinstance(x, Var) for x in p)]
+                    open_ = [p for p in rest_p if any(isinstance(x, Var) for x in p)]
+                    asks: list[str] = [str(TripleAtom(*p)) for p in ground  # type: ignore[misc]
+                                       if not in_cl(str(TripleAtom(*p)))]  # type: ignore[misc]
+                    if open_:
+                        with_blanks: list[Triple] = [
+                            tuple(BNode(x.name) if isinstance(x, Var) else x for x in p)  # type: ignore[misc]
+                            for p in open_
+                        ]
+                        asks.append(str(PatternAtom(with_blanks)))
+                    if not asks:
+                        continue  # fully satisfied: ⊥ already, reported as the refutation
+                    out.append(Challenge("incoherence", tuple(asks), str(rule)))
+
+        order = {"refutation": 0, "incompatibility": 1, "incoherence": 1, "default": 2}
+        seen: set[tuple[str, tuple[str, ...], str]] = set()
+        unique: list[Challenge] = []
+        for c in sorted(out, key=lambda c: (order[c.kind], len(c.asks))):
+            key = (c.kind, c.asks, c.source)
+            if key not in seen:
+                seen.add(key)
+                unique.append(c)
+        return unique
+
     def __repr__(self) -> str:
         who = f"{self.holder!r}, " if self.holder else ""
         return (f"Position({who}{len(self._accepted)} accepted, {len(self._rejected)} rejected, "
                 f"{len(self.log)} moves)")
+
+
+def _unify(pattern: tuple[Any, Any, Any], t: Triple) -> dict[Var, Node] | None:
+    """Bind the variables of *pattern* against the ground triple *t*."""
+    b: dict[Var, Node] = {}
+    for p, x in zip(pattern, t):
+        if isinstance(p, Var):
+            if p in b and b[p] != x:
+                return None
+            b[p] = x
+        elif p != x:
+            return None
+    return b
+
+
+def _apply(pattern: tuple[Any, Any, Any], b: dict[Var, Node]) -> tuple[Any, Any, Any]:
+    return tuple(b.get(x, x) if isinstance(x, Var) else x for x in pattern)  # type: ignore[return-value]

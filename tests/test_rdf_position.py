@@ -150,3 +150,93 @@ def test_sequent_of_a_position_is_over_the_background():
     seq = pos.sequent(consequent=[typed("tweety", "Bird")])
     assert len(seq.gamma_atoms) == 1
     assert seq.gamma_atoms.background
+
+
+# --- challenges: the opponent's probes, generated from the base ------------------
+
+
+def _kinds(pos: Position) -> list[str]:
+    return [c.kind for c in pos.challenges()]
+
+
+def test_a_bottom_rule_partly_matched_yields_an_incoherence_probe():
+    pos = Position(base_with_bottom()).assert_(typed("tweety", "Alive"))
+    cs = pos.challenges()
+    assert [c.kind for c in cs] == ["incoherence"]
+    assert cs[0].asks == (typed("tweety", "Dead"),)
+    assert "Alive" in cs[0].source and "Dead" in cs[0].source
+    assert pos.precludes(*cs[0].asks)                       # accepting the probe refutes
+    pos.assert_(typed("tweety", "Dead"))
+    assert _kinds(pos) == ["refutation"]
+    assert not pos.coherent()
+
+
+def test_an_incompatibility_partly_satisfied_asks_for_the_rest_with_its_rescue():
+    b = RegimeBase(MemoryBackend(ontology(), regime=RDFS_REGIME))
+    b.add_consequence(F({typed("tweety", "Bird"), typed("tweety", "Grounded")}), F(),
+                      robustness=guarded([typed("tweety", "Penguin")]))
+    pos = Position(b).assert_(typed("tweety", "Sparrow"))    # Bird is derived
+    cs = pos.challenges()
+    assert [c.kind for c in cs] == ["incompatibility"]
+    assert cs[0].asks == (typed("tweety", "Grounded"),)
+    assert cs[0].rescue == (typed("tweety", "Penguin"),)
+    pos.assert_(typed("tweety", "Grounded"))
+    assert _kinds(pos) == ["refutation"]
+    pos.assert_(typed("tweety", "EmperorPenguin"))           # the rescue, derivably a penguin
+    assert _kinds(pos) == []
+
+
+def test_an_unacknowledged_default_is_a_probe_and_a_defeated_one_is_not():
+    b = RegimeBase(MemoryBackend(ontology(), regime=RDFS_REGIME))
+    b.add_consequence(F({typed("tweety", "Bird")}), F({typed("tweety", "Flies")}),
+                      robustness=guarded([typed("tweety", "Penguin")]))
+    pos = Position(b).assert_(typed("tweety", "Sparrow"))
+    cs = pos.challenges()
+    assert [c.kind for c in cs] == ["default"]
+    assert cs[0].asks == (typed("tweety", "Flies"),)
+    assert cs[0].rescue == (typed("tweety", "Penguin"),)
+    assert pos.commits_to(*cs[0].asks)                      # committed whether acknowledged or not
+    pos.assert_(typed("tweety", "Flies"))
+    assert _kinds(pos) == []                                # acknowledged
+    other = Position(b).assert_(typed("tweety", "Sparrow"), typed("tweety", "EmperorPenguin"))
+    assert _kinds(other) == []                              # defeated
+    bystander = Position(b).assert_(typed("polly", "Alive"))
+    assert _kinds(bystander) == []                          # the default is not polly's business
+
+
+def test_a_set_aside_record_fact_becomes_a_probe():
+    """The chalice: asserting one date, the opponent asks about the other the record holds."""
+    g = ontology()
+    g.add((EX.chalice, EX.start, Literal("1780")))
+    g.add((EX.chalice, EX.start, Literal("1632")))
+    b = RegimeBase(MemoryBackend(g, regime=RDFS_REGIME))
+    b.add_consequence(F({TripleAtom(EX.chalice, EX.start, Literal("1780")),
+                         TripleAtom(EX.chalice, EX.start, Literal("1632"))}), F(),
+                      robustness=MONOTONE)
+    pos = Position(b).assert_(TripleAtom(EX.chalice, EX.start, Literal("1780")))
+    cs = pos.challenges()
+    assert [c.kind for c in cs] == ["incompatibility"]
+    assert cs[0].asks == (TripleAtom(EX.chalice, EX.start, Literal("1632")),)
+    assert _kinds(Position(b).assert_(typed("tweety", "Sparrow"))) == []
+
+
+def test_refutations_come_first_and_denials_count():
+    b = RegimeBase(MemoryBackend(ontology(), regime=RDFS_REGIME))
+    b.add_consequence(F({typed("tweety", "Bird")}), F({typed("tweety", "Flies")}),
+                      robustness=MONOTONE)
+    pos = Position(b).assert_(typed("tweety", "Sparrow"))
+    pos.deny([(EX.tweety, RDF.type, EX.Bird)])
+    cs = pos.challenges()
+    assert cs[0].kind == "refutation" and "Bird" in cs[0].source
+    assert [c.kind for c in cs[1:]] == ["default"]
+    assert all(c.question() for c in cs)
+
+
+def test_a_rule_probe_with_a_free_variable_is_a_pattern():
+    g = ontology()
+    rule = parse_rule("?x a ex:Alive, ?y ex:killed ?x -> false", Resolver(g))
+    b = RegimeBase(MemoryBackend(g, regime=custom("rdfs+k", [rule], extends=RDFS_REGIME)))
+    pos = Position(b).assert_(typed("tweety", "Alive"))
+    cs = pos.challenges()
+    assert [c.kind for c in cs] == ["incoherence"]
+    assert cs[0].asks[0].startswith("<{") and "killed" in cs[0].asks[0]

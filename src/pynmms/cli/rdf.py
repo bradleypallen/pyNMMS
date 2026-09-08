@@ -45,6 +45,7 @@ Commands:
   deny <t1>, <t2>, ...     reject a graph (its triples jointly); blank nodes are existential
   withdraw <t1>, ...       take assertions back
   coherent                 is the position in bounds? names what fails and what would rescue it
+  challenges               the probes an opponent would put to the position
   position                 the position's commitments, denials, and history
   commit                   write the position's assertions to the graph (closure extended)
   load <file>              load another RDF file into the graph
@@ -509,6 +510,12 @@ def _run_repl(args: argparse.Namespace) -> int:
                 print(f"OUT OF BOUNDS: {v.reason}")
                 if v.rescue:
                     print("  would be rescued by: " + ", ".join(v.rescue))
+        elif line == "challenges":
+            cs = position.challenges()
+            if not cs:
+                print("No challenges: nothing in the base bears on this position.")
+            for i, c in enumerate(cs, 1):
+                print(f"  {i}. [{c.kind}] {c.question()}")
         elif line == "position":
             print(f"Holder: {position.holder or '-'}")
             for a in sorted(position.accepted):

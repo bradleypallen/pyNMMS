@@ -366,6 +366,66 @@ triplestore. The base delegates the closure and the lookups to them and
 adds the consequence relation on top, so the interactive cost is theirs
 plus microseconds.
 
+### 9.1 The practice, stated as a game
+
+Put the six gains together and the practice has a familiar shape: it is
+Brandom's game of giving and asking for reasons, played with a knowledge
+graph as the scorekeeper's ledger. The game has two moves, asserting and
+challenging, and a scorekeeper who tracks what each player is committed
+to and entitled to. In the graph:
+
+- **Assertions** are `assert_` and `deny` on a `Position`: what a holder has
+  said, over the store as background, in order. Reading a stored record
+  aloud (`Position.of`) is adopting an earlier speaker's account as one's
+  own.
+- **Challenges** are `commits_to`, `precludes`, and `coherent`: questions
+  that leave the position as it is. A position's commitments are what it
+  has asserted plus what the base makes follow, which is why a challenge
+  can succeed against something the holder never said. A failed
+  `coherent` names the entry or rule that refutes the position and the
+  defeaters that would rescue it, which is the next round's agenda.
+- **The scorekeeper** is the base: the regime for what everyone is held to,
+  the material entries for what the domain licenses and forbids, and the
+  store for what has already been settled. Attribution to the position is
+  what keeps a refutation about the player's stake rather than about the
+  state of the database.
+- **Entitlement** is what survives challenge. A position that has come back
+  in bounds under the probes put to it is entitled to its commitments;
+  `commit` is the move that makes them common ground. So the store is not
+  a collection of facts someone loaded but the sediment of commitments
+  that held up, with the holder and the moves as its provenance, and the
+  knowledge base improves over time rather than merely growing.
+- **The rules of the game are revisable too.** When a challenge is answered
+  by a defeater the entries did not carry, "a posthumous impression", the
+  expert has found an exception the domain knowledge should hold, and the
+  right move is to add it as a defeater or promote the inference to an
+  entry. Knowledge engineering on this view accumulates both: commitments
+  that held, and inferences with their exceptions that held. Only the
+  regime stays fixed, because it is what the community shares.
+
+Played adversarially, with a respondent building a position and an
+opponent probing it for incoherence, this is the Elenchus loop of
+Section 1.1, and the runs on the Amsterdam Museum store replay one round
+of it in a few milliseconds a probe over six million triples: the etcher
+credit asserted, the anachronism named with its rescue, the rescue tried
+and withdrawn, the record read aloud and defended. What an opponent agent
+still needs is to generate probes rather than only answer them, an
+enumeration of the incompatibilities and unacknowledged defaults a
+position partly satisfies, and an explicit record of entitlement beside
+commitment.
+
+All of this coexists with the existing tooling by construction. The graph
+stays RDF, since positions, entries, and moves live beside it; the store
+stays the store, materialising the regime with its own engine and
+answering SPARQL unchanged; the regime is recovered exactly
+(`thm:closure`), so every classical conclusion is one the base draws; and
+SHACL keeps validating, a report being a backlog of records to read aloud
+and defend, a defended position being one a shape will pass. The
+`NOT EXISTS` clauses and scripts that carry a community's defaults today
+are the source from which its entries are written down, and keep working
+meanwhile. The one deployment condition is a store the reasoner can read
+closure from.
+
 What the runs on real data say must be true before this is a practice
 rather than an argument: positions bounded to the record they are about,
 so that one contradictory record does not make every other record

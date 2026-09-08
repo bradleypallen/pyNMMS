@@ -715,6 +715,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#the-elenchus-loop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Elenchus loop
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#how-the-closure-is-split" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1112,6 +1123,34 @@
     
   
     RDF Provenance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/rdf-dialogue/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RDF Dialogue
   
 
     
@@ -1655,6 +1694,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#the-elenchus-loop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Elenchus loop
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#how-the-closure-is-split" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2019,6 +2069,25 @@ pattern incompatibilities whose defeaters are the shapes' <code>NOT EXISTS</code
 clauses. The three must agree on what is flagged; what only the third
 column has is the rescue, the defaults, and a hypothetical fix accepted
 without writing.</p>
+<h2 id="the-elenchus-loop">The Elenchus loop<a class="headerlink" href="#the-elenchus-loop" title="Permanent link">&para;</a></h2>
+<p><code>Dialogue</code> holds the dialectical state <code>⟨[C : D], T, I⟩</code> of Allen's
+Elenchus protocol over a store: the position, the open tensions (sequents
+<code>Γ |~ Δ</code> over the holder's own atoms that the opponent claims incoherent,
+with the rescue that would answer each), and the material implications
+from accepted tensions. The respondent's moves are <code>commit</code>, <code>deny</code>,
+<code>withdraw</code>, <code>accept(tension, retract=... | refine=(old, new))</code>, and
+<code>contest(tension, exception=...)</code>; a positum given at construction cannot
+be withdrawn. The opponent is computed from the base, so every tension it
+raises is one the base licenses: accepting one endorses the base, and
+contesting one with an exception revises it, adding the exception as a
+defeater of the responsible entry. A tension may also come from outside,
+<code>propose_tension</code>, an oracle or a colleague; accepted, it enters the base
+as a material implication. <code>status()</code> is <code>coherent</code>, <code>tensions open</code>, or
+<code>aporia</code> (out of bounds, every tension's own atoms in the positum, no
+rescue left). <code>save</code> and <code>load</code> persist the state as JSON, and
+<code>commit_to_store</code> writes the commitments that held. <code>play(script)</code> runs a
+scripted respondent with predictions, and <code>python -m
+bench.elenchus_session</code> does so over a persisted store.</p>
 <h2 id="how-the-closure-is-split">How the closure is split<a class="headerlink" href="#how-the-closure-is-split" title="Permanent link">&para;</a></h2>
 <p>The regime base checks <code>Γ |~ Δ</code> as "Γ is inconsistent or Δ meets <code>cl_R(Γ)</code>".
 The backend holds <code>cl_R(G)</code> for the stored graph; the per-node extras (the

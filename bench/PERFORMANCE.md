@@ -361,3 +361,111 @@ milliseconds for what it does not, with the reasoner and the classical
 answer agreeing wherever both exist. What is not yet there: OWL 2 RL over
 GO (the `owl:someValuesFrom` axioms, the disjoint roots), the pattern
 form of material entries, and the import hour on disk.
+
+## 10. F0 on heritage data: the Amsterdam Museum
+
+Run 2026-09-07 (record `bench/results/20260908T032844Z-*`). Data: the
+Amsterdam Museum linked data of de Boer et al. (2012) as preserved in the
+"AM" benchmark graph (`am.tgz` from data.dgl.ai): 5,988,321 triples
+describing 73,447 objects as Europeana Data Model proxies, with makers,
+roles and attribution qualifiers, production and location date ranges,
+and 28,047 SKOS concepts for object names, techniques, places, and
+subjects linked by 7,487 `skos:broader` triples. The benchmark's target
+property and the material relation are stripped. Half the triples have
+blank-node subjects; they were Skolemized textually before loading.
+Regime: RDFS plus `skos:broader` transitivity and one propagation rule
+per thesaurus-valued property (`?x am:objectName ?c, ?c skos:broader ?d
+-> ?x am:objectName ?d`, likewise technique, production place, current
+location, association subject, content motif, content subject).
+
+**Import.** Below the two-million threshold in spirit but not in count,
+so `in_memory=True` was passed: 5,988,321 asserted triples closed to
+8,042,439 in five rounds of 22 store-side rules in 2.2 minutes in a
+temporary in-memory store, 2.9 minutes with the bulk load to disk, peak
+resident memory 9.0 GB, store 2.8 GB. Reopen 10 ms. Against the 26
+minutes of the GO import on the direct-on-disk path, that is the case for
+raising the threshold when memory allows.
+
+**The harness** (`bench/queries/am_rdfs.txt`, `am_entries.txt`, 39 queries,
+6 material entries):
+
+| Group | Queries | Agreement | Classical `ASK` | NMMS cold | NMMS warm | Store calls |
+|---|---|---|---|---|---|---|
+| atomic | 15 | 15/15 | 18 µs | 20 µs | 8 µs | 1 to 2 |
+| pattern | 6 | 6/6 | 31 µs | 0.1 ms | 86 µs | 1 |
+| logical | 8 | not expressible | — | 1.3 ms | 1.3 ms; 2.5 to 8.5 ms with new triples in the antecedent | 2 to 309 |
+| material | 10 | 4/4 on atomic-form rows | 18 µs | 24 µs | 13 µs | 0 to 73 |
+
+Thesaurus propagation works at object level: an ear clip's object name
+climbs two `skos:broader` steps, a technique climbs one, and the wrong
+property on the right concept is a miss. The hypothetical rows are the
+expensive ones here, since a new object name or a new `broader` link
+propagates through the transitive closure in process, at 100 to 309
+store calls.
+
+**Attribution and anachronism.** The museum records makers as blank
+nodes carrying a person, a role, and sometimes a qualifier; 1,255 maker
+records are qualified, 3,860 of them "naar" (after) and a few hundred
+"toegeschreven aan" (attributed to), "kopie naar", "oude toeschrijving".
+Matching production dates against makers' death dates finds 137 objects
+made after their maker died, only 3 of whose maker records carry a
+qualifier; the rest are posthumous editions, impressions after a
+designer's drawing, or the anachronisms they appear to be. The material
+rows model this in ground form for two etchings:
+
+- `Pedemontium Florentissimum` (1725) has Gerard de Lairesse (died 1711)
+  as designer and another person as etcher, neither qualified. The
+  default "a maker record names who made it, unless qualified" fires for
+  both, and a monotone entry turns the designer's making credit into a
+  design credit.
+- The 1727 etching after Jan Luyken (died 1712) has Luyken twice: as
+  draughtsman with the qualifier "naar", where the default is defeated,
+  and as etcher without one, where it fires. The incompatibility "etched
+  by someone dead before it was made, unless a posthumous impression"
+  then makes the position with the etching credit incoherent (`⇒` with
+  an empty consequent is derivable, and so, by explosion within the
+  position, is anything), and adding the posthumous-impression triple
+  defeats it.
+
+**The explosion, again.** The chalice `proxy-31227` carries two production
+starts, 1780 and 1632, from two conflated records; 104 objects have a
+start after their end and 234 have two different starts. An
+incompatibility entry over the chalice's two asserted triples was tried
+first. Because both are in the stored graph, the graph itself is
+materially incoherent under that entry, and the run returned true for
+all 39 queries, `⇒` included. The entry was removed and the conflict
+kept as a query, which is coherent without it. Same lesson as GO from
+the other direction: an incompatibility whose antecedent the store
+already satisfies belongs in a position over the object, not in the
+base, and the base needs the locality that positions give.
+
+This run exposed two gaps, both fixed the same day. `RegimeBase` had no
+clause for an entry with an empty consequent, so material
+incompatibilities never fired through the regime; they now make Γ
+incoherent when the antecedent is derivable and no defeater is, with the
+entry's succedent policy deciding whether that explodes (`exact` yields
+`Γ |~ ∅` alone). And the explosion above was the regime base's global
+reading applied to a store that is itself contradictory. Incoherence is
+now attributed to the position: a ⊥, or an incompatibility's antecedent,
+counts only when the position's own triples take part in deriving it, the
+store's contradictions are `background_inconsistent()`, and a query can be
+run as a position over the store as background (`position:` in the query
+file, `include_graph="background"` in the API), so that one record's
+coherence is checked without blaming every other record.
+
+**The re-run with predictions** (record `20260908T045223Z-*`, the chalice
+entry restored, six `position:` rows with verdicts written before
+running). Predictions were the harness's new `## r,n,i` suffix. Five of
+six held: the chalice record as a position is incoherent with the entry
+and coherent without it, the incoherence explodes within the position
+(monotone entry), the ear clip's name climbs the thesaurus from a record
+over the background, a stored fact follows from the empty position, and
+the etching record with the etcher credit is incoherent. Meanwhile the
+plain rows are unchanged: `⇒` over the whole store stays coherent with the
+chalice entry present. The one failed prediction is instructive. A
+position committing to the 1780 start alone was predicted coherent and
+observed incoherent, because the background holds the 1632 start and
+attribution by derivation blames a position for every incompatibility its
+own commitments take part in. That is the principle working as stated,
+and a prediction made on a looser reading of it; the query file records
+both.

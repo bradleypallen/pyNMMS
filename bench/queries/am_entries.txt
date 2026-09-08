@@ -1,0 +1,18 @@
+# Material entries for the Amsterdam Museum store (tell syntax; prefixes as in am_rdfs.txt).
+# Attribution: a maker record with a person names who made the object, unless the record
+# qualifies the attribution ("naar" = after). Ground instances of the pattern
+#   ?x am:maker ?m, ?m rdf:value ?p |~ ?x am:madeBy ?p unless ?m am:creatorQualifier "naar"
+<am:proxy-56590 am:maker sk:N1adb8a9ddf4549dab80e02206b6a3e20>, <sk:N1adb8a9ddf4549dab80e02206b6a3e20 rdf:value am:p-10056> |~ <am:proxy-56590 am:madeBy am:p-10056> unless <sk:N1adb8a9ddf4549dab80e02206b6a3e20 am:creatorQualifier "naar">
+<am:proxy-56590 am:maker sk:Nf7c4fb114d904a409b03b8a21f4a144a>, <sk:Nf7c4fb114d904a409b03b8a21f4a144a rdf:value am:p-26575> |~ <am:proxy-56590 am:madeBy am:p-26575> unless <sk:Nf7c4fb114d904a409b03b8a21f4a144a am:creatorQualifier "naar">
+<am:proxy-52227 am:maker sk:N8cb8f929a2fb41ee89fc2bfae958b4cd>, <sk:N8cb8f929a2fb41ee89fc2bfae958b4cd rdf:value am:p-10974> |~ <am:proxy-52227 am:madeBy am:p-10974> unless <sk:N8cb8f929a2fb41ee89fc2bfae958b4cd am:creatorQualifier "naar">
+<am:proxy-52227 am:maker sk:Nbeaaf6d873ed427bb6df02e7e6e24699>, <sk:Nbeaaf6d873ed427bb6df02e7e6e24699 rdf:value am:p-10974> |~ <am:proxy-52227 am:etchedBy am:p-10974> unless <sk:Nbeaaf6d873ed427bb6df02e7e6e24699 am:creatorQualifier "naar">
+# A designer's role is a design credit, not a making credit.
+<am:proxy-56590 am:madeBy am:p-10056>, <sk:N1adb8a9ddf4549dab80e02206b6a3e20 am:creatorRole "ontwerper"> |~ <am:proxy-56590 am:designedBy am:p-10056> monotone
+# Anachronism: an object etched by someone dead before it was made is incoherent, unless
+# it is a posthumous impression. Jan Luyken died 1712-04-05; the etching is dated 1727.
+<am:proxy-52227 am:etchedBy am:p-10974>, <am:p-10974 am:deathDateEnd "1712-04-05">, <am:proxy-52227 am:productionDateStart "1727"> |~ unless <am:proxy-52227 am:posthumousImpression "yes">
+# The chalice proxy-31227 carries two production starts, 1780 and 1632, from two conflated
+# records. Both triples are in the store, so under position attribution this entry blames
+# only a position that takes the record as its own commitments (a `position:` query); under
+# global attribution it made every sequent derivable in the run of 2026-09-07.
+<am:proxy-31227 am:productionDateStart "1780">, <am:proxy-31227 am:productionDateStart "1632"> |~ monotone

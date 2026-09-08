@@ -19,8 +19,15 @@ Usage::
 
 The query file has one query per line, ``antecedent => consequent`` or a
 bare consequent, ``#`` comments, and an optional ``tag:`` prefix (``atomic``,
-``pattern``, ``logical``, ``material``); untagged lines are classified by
-form. The entries file holds material entries in tell syntax,
+``pattern``, ``logical``, ``material``, ``position``); untagged lines are
+classified by form. A ``position:`` query is a position over the store as
+background (``include_graph="background"``): Γ is the antecedent alone and
+the store supplies the closure. A line may end with a prediction,
+``## r,n,i`` giving the expected classical, NMMS, and NMMS-with-entries
+verdicts as ``1``, ``0``, or ``-`` (not applicable); the harness reports
+predicted against observed and counts the mismatches, so that a run is a
+test of the model rather than an exploration. The entries file holds
+material entries in tell syntax,
 ``<s p o>, <s p o> |~ <s p o> unless <s p o> & <s p o>, <s p o>`` or
 ``... monotone``, over the same prefixes. Every query runs against the
 plain regime base and, when entries are given, against the base with the
@@ -47,7 +54,7 @@ from ._util import Section, env_info, git_sha, timeit, write_record
 
 logger = logging.getLogger("bench.compare_rdfs")
 
-GROUPS = ("atomic", "pattern", "logical", "material")
+GROUPS = ("atomic", "pattern", "logical", "material", "position")
 NA = "n/a"
 
 
@@ -57,6 +64,11 @@ class Query:
     text: str
     antecedent: list[str]
     consequent: list[str]
+    expect: tuple[Any, Any, Any] | None = None
+
+    @property
+    def include_graph(self) -> bool | str:
+        return "background" if self.tag == "position" else True
 
 
 def _prefixes(items: list[str]) -> dict[str, str]:
@@ -77,12 +89,20 @@ def read_queries(path: Path) -> list[Query]:
         line = raw.strip()
         if not line or line.startswith("#"):
             continue
+        expect = None
+        if "##" in line:
+            line, _, pred = line.partition("##")
+            line = line.strip()
+            parts = [x.strip() for x in pred.split(",")]
+            if len(parts) != 3:
+                raise ValueError(f"prediction must be r,n,i: {raw!r}")
+            expect = tuple({"1": True, "0": False, "-": NA}[x] for x in parts)
         tag = ""
         head, sep, rest = line.partition(":")
         if sep and head.strip() in GROUPS and not head.strip().startswith("<"):
             tag, line = head.strip(), rest.strip()
         ant, con = _split_query(line)
-        out.append(Query(tag, line, ant, con))
+        out.append(Query(tag, line, ant, con, expect))
     return out
 
 
@@ -205,7 +225,7 @@ def run(args: argparse.Namespace) -> list[Section]:
     reasoner_i = NMMSReasoner(with_entries, persistent_cache=False) if with_entries else None
 
     columns = ["query", "rdfs", "nmms", "nmms+I", "agree", "ask_ms", "nmms_cold_ms",
-               "nmms_ms", "nodes", "round_trips"]
+               "nmms_ms", "nodes", "round_trips", "expect", "ok"]
     tables = {g: Section(f"compare_rdfs:{g}", columns) for g in GROUPS}
     per_group: dict[str, list[list[Any]]] = {g: [] for g in GROUPS}
 
@@ -218,7 +238,7 @@ def run(args: argparse.Namespace) -> list[Section]:
             rdfs = bool(backend.store.query(ask))
             ask_ms = timeit(lambda: backend.store.query(ask), args.reps)
 
-        seq = plain.sequent(q.antecedent, q.consequent)
+        seq = plain.sequent(q.antecedent, q.consequent, include_graph=q.include_graph)
         plain.clear_caches()
         backend.round_trips = 0
         t0 = time.perf_counter()
@@ -230,20 +250,29 @@ def run(args: argparse.Namespace) -> list[Section]:
 
         nmms_i: Any = NA
         if with_entries is not None and reasoner_i is not None:
-            seq_i = with_entries.sequent(q.antecedent, q.consequent)
+            seq_i = with_entries.sequent(q.antecedent, q.consequent,
+                                         include_graph=q.include_graph)
             with_entries.clear_caches()
             nmms_i = reasoner_i.derives_sequent(seq_i).derivable
         agree: Any = (rdfs == nmms) if rdfs is not NA else NA
+        expect_s: Any = NA
+        ok: Any = NA
+        if q.expect is not None:
+            expect_s = ",".join("-" if e is NA else ("1" if e else "0") for e in q.expect)
+            ok = all(e is NA or e == got for e, got in zip(q.expect, (rdfs, nmms, nmms_i)))
         row = [q.text, rdfs, nmms, nmms_i, agree, ask_ms, cold_ms, nmms_ms, result.nodes,
-               round_trips]
+               round_trips, expect_s, ok]
         tables[group].add(*row)
         per_group[group].append(row)
         if agree is False:
             logger.warning("DISAGREEMENT on %r: rdfs=%s nmms=%s", q.text, rdfs, nmms)
+        if ok is False:
+            logger.warning("PREDICTION FAILED on %r: expected %s, got %s/%s/%s",
+                           q.text, expect_s, rdfs, nmms, nmms_i)
 
     summary = Section("compare_rdfs:summary",
-                      ["group", "queries", "agree", "ask_ms", "nmms_cold_ms", "nmms_ms",
-                       "overhead_x"],
+                      ["group", "queries", "agree", "predicted", "ask_ms", "nmms_cold_ms",
+                       "nmms_ms", "overhead_x"],
                       notes=f"store {args.store}; regime {regime.name}; {n_entries} material "
                             f"entries; reopen {reopen_s:.3f} s; reps {args.reps}")
     for g in GROUPS:
@@ -251,12 +280,14 @@ def run(args: argparse.Namespace) -> list[Section]:
         if not rows:
             continue
         agrees = [r[4] for r in rows if r[4] is not NA]
+        oks = [r[11] for r in rows if r[11] is not NA]
         asks = [r[5] for r in rows if r[5] is not NA]
         colds = [r[6] for r in rows]
         warms = [r[7] for r in rows]
         ask_med = statistics.median(asks) if asks else NA
         warm_med = statistics.median(warms)
         summary.add(g, len(rows), f"{sum(agrees)}/{len(agrees)}" if agrees else NA,
+                    f"{sum(oks)}/{len(oks)}" if oks else NA,
                     ask_med, statistics.median(colds), warm_med,
                     (warm_med / ask_med) if asks and ask_med else NA)
     session = Section("compare_rdfs:session", ["reopen_s", "asserted", "regime", "entries"])

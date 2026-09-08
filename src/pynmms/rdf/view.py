@@ -26,19 +26,26 @@ _EMPTY: frozenset[str] = frozenset()
 
 
 class GraphView(AbstractSet[str]):
-    """Γ = G ∪ added \\ removed, with G living in a backend."""
+    """Γ = G ∪ added \\ removed, with G living in a backend.
 
-    __slots__ = ("_backend", "_added", "_removed", "_generation", "_hashcode")
+    With ``background=True`` the view is a *position over a background*: its
+    members are the added atoms alone, while the backend is still the store
+    a :class:`~pynmms.rdf.base.RegimeBase` closes the position against.
+    """
+
+    __slots__ = ("_backend", "_added", "_removed", "_generation", "_hashcode", "_background")
 
     def __init__(
         self,
         backend: GraphBackend,
         added: frozenset[str] = _EMPTY,
         removed: frozenset[str] = _EMPTY,
+        background: bool = False,
     ) -> None:
         self._backend = backend
         self._added = added
         self._removed = removed
+        self._background = background
         self._generation = backend.generation
         self._hashcode: int | None = None
 
@@ -55,6 +62,11 @@ class GraphView(AbstractSet[str]):
     @property
     def removed(self) -> frozenset[str]:
         return self._removed
+
+    @property
+    def background(self) -> bool:
+        """Is the store a background rather than part of Γ?"""
+        return self._background
 
     @property
     def diff_size(self) -> int:
@@ -77,25 +89,30 @@ class GraphView(AbstractSet[str]):
     def __contains__(self, x: object) -> bool:
         if x in self._added:
             return True
-        if x in self._removed:
+        if self._background or x in self._removed:
             return False
         return self._in_store(x)
 
     def __iter__(self) -> Iterator[str]:
-        logger.debug("GraphView iterated: streaming %d triples from the backend", len(self))
         yield from self._added
+        if self._background:
+            return
+        logger.debug("GraphView iterated: streaming %d triples from the backend", len(self))
         for t in self._backend.triples((None, None, None)):
             atom = TripleAtom.from_triple(t)
             if atom not in self._removed:
                 yield atom
 
     def __len__(self) -> int:
+        if self._background:
+            return len(self._added)
         return self._backend.size() + len(self._added) - len(self._removed)
 
     def __hash__(self) -> int:
         if self._hashcode is None:
             self._hashcode = hash(
-                (id(self._backend), self._generation, self._added, self._removed)
+                (id(self._backend), self._generation, self._added, self._removed,
+                 self._background)
             )
         return self._hashcode
 
@@ -106,6 +123,7 @@ class GraphView(AbstractSet[str]):
                 and self._generation == other._generation
                 and self._added == other._added
                 and self._removed == other._removed
+                and self._background == other._background
             )
         if isinstance(other, AbstractSet):
             return len(self) == len(other) and all(x in self for x in other)
@@ -122,15 +140,15 @@ class GraphView(AbstractSet[str]):
         if x in self:
             return self
         if x in self._removed:
-            return GraphView(self._backend, self._added, self._removed - {x})
-        return GraphView(self._backend, self._added | {x}, self._removed)
+            return GraphView(self._backend, self._added, self._removed - {x}, self._background)
+        return GraphView(self._backend, self._added | {x}, self._removed, self._background)
 
     def with_removed(self, x: str) -> GraphView:
         if x not in self:
             return self
         if x in self._added:
-            return GraphView(self._backend, self._added - {x}, self._removed)
-        return GraphView(self._backend, self._added, self._removed | {x})
+            return GraphView(self._backend, self._added - {x}, self._removed, self._background)
+        return GraphView(self._backend, self._added, self._removed | {x}, self._background)
 
     def with_added_all(self, xs: Iterable[str]) -> GraphView:
         out = self
@@ -142,7 +160,8 @@ class GraphView(AbstractSet[str]):
 
     def intersects(self, other: AtomsView) -> bool:
         if isinstance(other, GraphView):
-            if other._backend is self._backend and other._generation == self._generation:
+            if (other._backend is self._backend and other._generation == self._generation
+                    and not self._background and not other._background):
                 if self._backend.size() > len(self._removed | other._removed):
                     return True
             return any(x in self for x in other._added) or any(x in other for x in self._added)

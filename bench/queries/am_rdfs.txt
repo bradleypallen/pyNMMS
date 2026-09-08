@@ -1,0 +1,73 @@
+# F0 queries for the Amsterdam Museum store (am_stripped.nt from the AM benchmark, blank
+# nodes Skolemized; regime rdfs + am_prop.txt). Prefixes: am = http://purl.org/collections/nl/am/,
+# skos = http://www.w3.org/2004/02/skos/core#, sk = https://pynmms.dev/.well-known/genid/,
+# rdf = http://www.w3.org/1999/02/22-rdf-syntax-ns#.
+# Objects: proxy-44379 (an ear clip, objectName t-21889 -> t-9711 -> t-12684);
+# proxy-56590 "Pedemontium Florentissimum", an etching of 1725 designed by Gerard de Lairesse
+# (p-10056, died 1711; maker node sk:N1adb8a9... role ontwerper) and etched by p-26575;
+# proxy-52227, an etching of 1727 "naar" Jan Luyken (p-10974, died 1712-04-05) as tekenaar
+# (maker node sk:N8cb8f929..., qualifier naar) and also as etser (sk:Nbeaaf6d8..., no qualifier);
+# proxy-31227, a chalice with productionDateStart 1780 and 1632 and productionDateEnd 1800 and 1632.
+
+# --- atomic: asserted, propagated through the thesaurus, misses ---
+<am:proxy-44379 am:objectName am:t-21889>
+<am:proxy-44379 am:objectName am:t-9711>
+<am:proxy-44379 am:objectName am:t-12684>
+<am:t-21889 skos:broader am:t-12684>
+<am:proxy-1196 am:technique am:t-12321>
+<am:proxy-1196 am:technique am:t-11167>
+<am:proxy-44379 am:objectName am:t-11421>
+<am:proxy-44379 am:technique am:t-9711>
+<am:proxy-56590 am:productionDateStart "1725">
+<am:p-10056 am:deathDateEnd "1711">
+<sk:N1adb8a9ddf4549dab80e02206b6a3e20 am:creatorRole "ontwerper">
+<sk:N8cb8f929a2fb41ee89fc2bfae958b4cd am:creatorQualifier "naar">
+<am:proxy-31227 am:productionDateStart "1780">
+<am:proxy-31227 am:productionDateStart "1632">
+<am:proxy-99999999 am:objectName am:t-21889>
+
+# --- pattern: witnesses over the thesaurus, the maker records, the dates ---
+<{ am:proxy-44379 am:objectName _:c . _:c skos:broader am:t-12684 }>
+<{ am:proxy-56590 am:maker _:m . _:m rdf:value am:p-10056 . _:m am:creatorRole "ontwerper" }>
+<{ am:proxy-56590 am:maker _:m . _:m rdf:value am:p-10056 . _:m am:creatorQualifier "naar" }>
+<{ am:proxy-52227 am:maker _:m . _:m rdf:value am:p-10974 . _:m am:creatorQualifier "naar" }>
+<{ am:proxy-31227 am:productionDateStart _:s . am:proxy-31227 am:productionDateEnd _:e }>
+<{ _:x am:maker _:m . _:m rdf:value am:p-10974 . _:m am:creatorRole "etser" }>
+
+# --- logical: conditionals and disjunctions, and a hypothetical object ---
+<am:proxy-44379 am:objectName am:t-21889> -> <am:proxy-44379 am:objectName am:t-12684>
+<am:proxy-44379 am:objectName am:t-12684> -> <am:proxy-44379 am:objectName am:t-21889>
+<am:proxy-44379 am:objectName am:t-9711> | <am:proxy-44379 am:objectName am:t-11421>
+<am:proxy-44379 am:objectName am:t-11421> | <am:proxy-44379 am:objectName am:t-12936>
+<am:proxy-new am:objectName am:t-21889> => <am:proxy-new am:objectName am:t-12684>
+<am:proxy-new am:objectName am:t-21889> => <am:proxy-new am:objectName am:t-9711> & <am:proxy-new am:objectName am:t-12684>
+<am:proxy-new am:objectName am:t-21889> => <am:proxy-new am:technique am:t-12684>
+<am:t-new skos:broader am:t-21889>, <am:proxy-new am:objectName am:t-new> => <am:proxy-new am:objectName am:t-12684>
+
+# --- material: attribution by default, defeated by a qualifier; anachronism as incompatibility ---
+material: <am:proxy-56590 am:madeBy am:p-10056>
+material: <am:proxy-56590 am:madeBy am:p-26575>
+material: <am:proxy-52227 am:madeBy am:p-10974>
+material: <am:proxy-52227 am:etchedBy am:p-10974>
+material: <am:proxy-56590 am:madeBy am:p-10056> => <am:proxy-56590 am:designedBy am:p-10056>
+material: <am:proxy-52227 am:etchedBy am:p-10974> =>
+material: <am:proxy-52227 am:etchedBy am:p-10974> => <am:proxy-52227 am:objectName am:t-11421>
+material: <am:proxy-52227 am:etchedBy am:p-10974>, <am:proxy-52227 am:posthumousImpression "yes"> =>
+material: <am:proxy-31227 am:productionDateStart "1780">, <am:proxy-31227 am:productionDateStart "1632"> => ## -,0,0
+material: => ## -,0,0
+
+# --- position: the object's own record as Γ, the store as background (predictions first) ---
+# The chalice record commits to both starts: incoherent with the entry, coherent without.
+position: <am:proxy-31227 am:productionDateStart "1780">, <am:proxy-31227 am:productionDateStart "1632"> => ## -,0,1
+# ... and, being monotone, the incoherence explodes within the position.
+position: <am:proxy-31227 am:productionDateStart "1780">, <am:proxy-31227 am:productionDateStart "1632"> => <am:proxy-31227 am:objectName am:t-11421> ## -,0,1
+# One start alone. Predicted coherent (-,0,0) before the run of 2026-09-07 and observed
+# incoherent: the background holds the other start, and attribution by derivation blames a
+# position for every incompatibility its own commitments take part in. Prediction corrected.
+position: <am:proxy-31227 am:productionDateStart "1780"> => ## -,0,1
+# A record over the background still gets the thesaurus: the ear clip's name climbs.
+position: <am:proxy-44379 am:objectName am:t-21889> => <am:proxy-44379 am:objectName am:t-12684> ## -,1,1
+# A stored fact follows from the empty position, because the background licenses it.
+position: => <am:proxy-44379 am:objectName am:t-12684> ## -,1,1
+# The etching record with the etcher credit is incoherent as a position too.
+position: <am:proxy-52227 am:etchedBy am:p-10974> => ## -,0,1

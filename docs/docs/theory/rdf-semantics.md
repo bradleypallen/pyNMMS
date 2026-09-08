@@ -258,6 +258,10 @@ singleton set). A pair `⟨Γ, Δ⟩` is good in `𝔅_{R,I}` iff
 
 Policies map onto clause 3: `monotone` is `E = ∅`; `guarded` is `E` as
 given; `exact` adds `Γ ⊆ cl_R(A)`, an antecedent `R`-equivalent to `A`.
+An entry with an empty consequent, `⟨A, ∅; E⟩`, is an incompatibility:
+when `A ⊆ cl_R(Γ)` and no defeater is derivable, `Γ` is materially
+incoherent and `⟨Γ, Δ⟩` is good for every `Δ`, matching the propositional
+core and the explosion of `𝔅_R`.
 
 **Properties.** Containment holds through clause 2, since `Γ ⊆ cl_R(Γ)`, so
 `𝔅_{R,I}` is a base in the sense of `def:fitness` and Chapter 3's metatheory
@@ -279,6 +283,23 @@ compared on the same base. A store adapter needs exactly three operations
 to serve clause 3, `ASK` for the antecedent, `NOT EXISTS` for the defeaters,
 and `ASK` over the closure extended by `D` for the consequent, which is why
 this definition precedes the adapter work.
+
+**Attribution.** A base over a real store meets a fact the definition does
+not address: the store itself may be `R`-inconsistent, or may satisfy the
+antecedent of an incompatibility, and `𝔅_R` is explosive by `def:fitness`,
+so one contradiction anywhere would make every position over the store
+incoherent. On the Gene Ontology 394 curated negations are contradicted by
+the closure; a museum record carries two production dates. The
+implementation therefore attributes incoherence to a position: a ⊥, or an
+incompatibility's antecedent, counts against `⟨Γ, Δ⟩` only when its
+derivation uses a triple the position contributed, and the store's own
+contradictions are reported separately as background inventory. The
+consequence relation stays global; only the commitments are local. A
+position may also be taken *over* the store as background,
+`include_graph="background"`, so that its own record is `Γ` and the store
+supplies the closure, which is how a stored record is checked for
+coherence without blaming every other record. `RegimeBase.attribution =
+"global"` restores the explosive reading of `def:fitness` exactly.
 
 *Implementation.* `RegimeBase.is_axiom` implements the three clauses, with
 `cl_R(Γ)` computed once per query and `cl_R(Γ ∪ D)` as its semi-naive

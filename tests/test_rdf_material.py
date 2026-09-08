@@ -187,3 +187,105 @@ def test_7_containment_with_material_entries():
         ant = _random_side(rnd, 2) + [shared]
         con = _random_side(rnd, 2) + [shared]
         assert NMMSReasoner(b).derives_sequent(b.sequent(ant, con)).derivable
+
+
+def test_incompatibility_entry_makes_gamma_incoherent_through_the_regime():
+    """⟨A, ∅; E⟩: a derivable antecedent with no derivable defeater explodes the position."""
+    b = RegimeBase(MemoryBackend(ontology(), regime=RDFS_REGIME))
+    # A sparrow that also moves on the ground is incoherent unless it is a penguin.
+    b.add_consequence(F({typed("tweety", "Bird"), typed("tweety", "Grounded")}), F(),
+                      robustness=guarded([typed("tweety", "Penguin")]))
+    gamma = [typed("tweety", "Sparrow"), typed("tweety", "Grounded")]
+    assert ask(b, gamma, [])                                   # Γ ⇒ : incoherent
+    assert ask(b, gamma, [typed("tweety", "Fish")])            # explosion
+    assert not ask(b, [typed("tweety", "Sparrow")], [])        # antecedent not derivable
+    assert not ask(b, gamma + [typed("tweety", "EmperorPenguin")], [])  # defeater derived
+
+
+# --- attribution: incoherence belongs to the position that derives it ----------
+
+
+def _regime_with_bottom():
+    from pynmms.rdf import Resolver, parse_rule
+    from pynmms.rdf.rules import custom
+
+    rule = parse_rule("?x a ex:Alive, ?x a ex:Dead -> false", Resolver(ontology()))
+    return custom("rdfs+ad", [rule], extends=RDFS_REGIME)
+
+
+def test_background_contradiction_is_inventory_not_explosion():
+    """A contradiction in the store is reported, and does not make every position incoherent."""
+    g = ontology()
+    g.add((EX.z, RDF.type, EX.Alive))
+    g.add((EX.z, RDF.type, EX.Dead))
+    b = RegimeBase(MemoryBackend(g, regime=_regime_with_bottom()))
+    assert b.background_inconsistent()
+    assert not ask(b, [], [])                                   # the empty position is coherent
+    assert not ask(b, [], [typed("tweety", "Fish")])             # no explosion
+    assert not b.is_inconsistent()
+    # A position that commits to a contradiction of its own is incoherent, and explodes.
+    gamma = [typed("tweety", "Alive"), typed("tweety", "Dead")]
+    assert ask(b, gamma, [])
+    assert ask(b, gamma, [typed("tweety", "Fish")])
+    assert b.is_inconsistent(gamma)
+    # The regime base of def:fitness is explosive; that reading is still available.
+    b.attribution = "global"
+    assert ask(b, [], [typed("tweety", "Fish")])
+    assert b.is_inconsistent()
+
+
+def test_material_incompatibility_is_attributed_to_the_position():
+    """⟨A, ∅⟩ makes a position incoherent only if the position contributes to A."""
+    g = ontology()
+    g.add((EX.tweety, RDF.type, EX.Sparrow))
+    g.add((EX.tweety, RDF.type, EX.Grounded))
+    b = RegimeBase(MemoryBackend(g, regime=RDFS_REGIME))
+    b.add_consequence(F({typed("tweety", "Bird"), typed("tweety", "Grounded")}), F(),
+                      robustness=MONOTONE)
+    r = NMMSReasoner(b)
+    # Both antecedent atoms are background: no position over the graph is blamed.
+    assert not ask(b, [], [])
+    assert not ask(b, [], [typed("tweety", "Fish")])
+    # A position that takes the record as its own commitments, over the background, is.
+    pos = b.sequent([typed("tweety", "Sparrow"), typed("tweety", "Grounded")], [],
+                    include_graph="background")
+    assert r.derives_sequent(pos).derivable
+    # Without the background the subclass axiom is missing and Bird is not derivable.
+    assert not r.derives_sequent(b.sequent(
+        [typed("tweety", "Sparrow"), typed("tweety", "Grounded")], [], include_graph=False)
+    ).derivable
+    # A position that contributes the missing antecedent atom is blamed.
+    g2 = ontology()
+    g2.add((EX.tweety, RDF.type, EX.Sparrow))
+    b2 = RegimeBase(MemoryBackend(g2, regime=RDFS_REGIME))
+    b2.add_consequence(F({typed("tweety", "Bird"), typed("tweety", "Grounded")}), F(),
+                       robustness=MONOTONE)
+    assert ask(b2, [typed("tweety", "Grounded")], [])
+    assert not ask(b2, [], [])
+
+
+def test_background_positions_use_the_store_for_closure_and_consequents():
+    """include_graph="background": Γ is the position, the store licenses the closure."""
+    g = ontology()
+    g.add((EX.polly, RDF.type, EX.Sparrow))
+    b = RegimeBase(MemoryBackend(g, regime=RDFS_REGIME))
+    r = NMMSReasoner(b)
+    seq = b.sequent([typed("tweety", "Sparrow")], [typed("tweety", "Bird")],
+                    include_graph="background")
+    assert r.derives_sequent(seq).derivable
+    # A stored fact follows from the empty position: the background licenses it.
+    assert r.derives_sequent(b.sequent([], [typed("polly", "Bird")],
+                                       include_graph="background")).derivable
+    assert not r.derives_sequent(b.sequent([], [typed("polly", "Fish")],
+                                           include_graph="background")).derivable
+    # Γ itself holds only the position's atoms.
+    assert len(seq.gamma_atoms) == 1
+
+
+def test_exact_incompatibility_fires_only_at_empty_delta():
+    b = RegimeBase(MemoryBackend(ontology(), regime=RDFS_REGIME))
+    b.add_consequence(F({typed("t", "Bird"), typed("t", "Grounded")}), F(), robustness=EXACT)
+    r = NMMSReasoner(b)
+    q = lambda a, c: r.derives_sequent(b.sequent(a, c, include_graph=False)).derivable  # noqa: E731
+    assert q([typed("t", "Bird"), typed("t", "Grounded")], [])
+    assert not q([typed("t", "Bird"), typed("t", "Grounded")], [typed("t", "Fish")])

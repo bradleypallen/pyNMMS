@@ -140,6 +140,15 @@ with `G` as a `GraphView`: a reference to the backend plus the few atoms the
 proof rules add. Pass `include_graph=False` to reason over the listed
 sentences alone.
 
+A third form, `include_graph="background"`, makes Γ the listed triples
+alone while the store still supplies the closure: a position over a
+background. This is how one record of a large graph is checked for
+coherence. Incoherence is attributed to the position that derives it, so a
+contradiction elsewhere in the store does not make every query explode;
+`RegimeBase.background_inconsistent()` reports the store's own, and
+`RegimeBase.attribution = "global"` restores the explosive regime base of
+the paper.
+
 Explicit material inferences with robustness policies work as in the
 propositional core, with triple atoms as the sentences:
 

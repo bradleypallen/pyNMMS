@@ -291,7 +291,94 @@ Allen (2026) gives RDF itself an implication-space semantics, and `pynmms.rdf` i
 
 The two layers differ in exactly the way Section 8.2 describes. A regime base `B_R` is defined by closure, so it is monotone, transitive, and explosive: subclass chains compose, additions never defeat, and an inconsistent graph entails everything. Allen (2026) notes, after `def:fitness`, that a base which took the rule instances without closing -- which is what an `exact` NMMS_Onto schema generates -- "corresponds to no regime" and fails monotonicity "by omission rather than by defeat". NMMS_Onto is therefore not a fragment of RDFS but a different kind of base: the place for material inferential commitments with their defeat conditions, which the regimes leave out. In `pynmms.rdf` both kinds sit in one `RegimeBase`: the regime part is store-resident and monotone, the material part is explicit entries with `guarded` robustness, and Containment holds for the union, so the metatheory of Section 4 applies to the whole.
 
-## 9. Assumptions and Open Questions
+## 9. Inferentialist Knowledge Engineering: What Gets Better About an RDF Graph
+
+The sections above describe a mechanism. This section says what the
+mechanism is for, as a practice, now that the RDF layer of Section 8.4 has
+been run against real knowledge bases (the Gene Ontology with its human
+annotations, and the Amsterdam Museum collection; see
+`bench/PERFORMANCE.md`, sections 9 and 10).
+
+Start from what an RDF graph is today: a set of assertions, given meaning
+by the models that satisfy it, with an entailment regime to fill in what
+the assertions entail. Knowledge engineering on that footing is the
+engineering of contents. One decides what is true, writes the triples,
+chooses a regime, and everything the community knows beyond that, the
+defaults, the exceptions, the incompatibilities, the weight of evidence,
+lives outside the graph in SHACL shapes, query idioms, and pipeline
+scripts.
+
+The inferentialist turn (Brandom 1994) is to take the meaning of a triple
+to be its inferential role: what asserting it commits one to, what it
+precludes, what would defeat it. On that footing the graph is not a picture
+of the world but a record of commitments, and knowledge engineering
+becomes the engineering of the space of implications the graph lives in.
+The regime is the smallest part of that space, the part every community
+shares. The rest, the material inferences of a domain, is what the experts
+actually know, and the claim of this project is that it can be made
+explicit beside the graph, in the material base, without changing a byte
+of RDF. Concretely:
+
+**The domain knowledge becomes a published artefact.** "A maker record
+names the maker unless the attribution is qualified", "an annotation
+propagates up the hierarchy unless the curators denied it", "an author's
+work may be printed after his death" are today folklore encoded in
+`NOT EXISTS` clauses and scripts, invisible to anyone reading the data. As
+entries in a material base they are inspectable, versioned, shared, and
+reasoned with, and a second community can adopt a graph and its
+inferences separately. This is *making it explicit* in Brandom's sense, the
+same move OWL made for class hierarchies, applied to the defeasible
+knowledge OWL cannot hold.
+
+**Exceptions become the normal case.** Every curator knows a default is a
+default. Current tooling forces a choice between a rule that is always
+wrong somewhere and no rule at all. A base with defeaters lets the
+knowledge be written as it is known, a default with its exceptions, and
+lets the exceptions be data, a qualifier on a record or an evidence code,
+rather than special cases in code.
+
+**The graph answers questions about commitment, not only about content.**
+What would follow if this were asserted; is this record coherent given
+what we know; does this denial hold against the closure; which of two
+attributions can stand with the dates. These are the questions asked while
+knowledge is being made, and they are hypothetical, conditional, or
+negative, so no store can ask them of its contents. A base over the store
+answers them in milliseconds at ten million triples.
+
+**Disagreement becomes representable.** Two catalogues that attribute one
+object differently are not a data error to be resolved before loading;
+they are two positions over a shared background, each with its own
+commitments. The semantics of the RDF layer has a place for them, positions
+as pairs of accepted and rejected graphs (`def:contententailment`), where
+the graph model has only one graph. Provenance stops being metadata and
+becomes entitlement: who is committed, on what evidence, to what.
+
+**Coherence becomes a conversation rather than a gate.** Validation reports
+violations after the fact and stops. Scorekeeping asks, of each position,
+what it commits its holder to and where it is precluded, and treats an
+incoherence as a challenge that a defeater might answer. This is the
+coupling to dialogue (Section 1.1) that the extension was written for, and
+it is why the locality of positions matters: a position is a participant's
+stake, not the whole store.
+
+**The store stays the store.** None of this replaces SPARQL, SHACL, or the
+triplestore. The base delegates the closure and the lookups to them and
+adds the consequence relation on top, so the interactive cost is theirs
+plus microseconds.
+
+What the runs on real data say must be true before this is a practice
+rather than an argument: positions bounded to the record they are about,
+so that one contradictory record does not make every other record
+incoherent; material entries written as patterns rather than ground
+instances, since every entry worth writing on real data was an instance
+of an obvious rule; and values in rules and defeaters, since dates,
+evidence codes, and qualifiers are literals. Those are engineering. The
+reason to do them is that with them, an RDF graph stops being a
+description someone must interpret and becomes a body of commitments that
+can be reasoned with, challenged, and extended by the people and systems
+that hold it.
+
+## 10. Assumptions and Open Questions
 
 ### Assumptions
 
@@ -313,7 +400,7 @@ The two layers differ in exactly the way Section 8.2 describes. A regime base `B
 
 5. **Scaling properties**: The lazy evaluation strategy avoids combinatorial explosion in schema grounding, but the proof search itself has exponential worst-case complexity (due to the multi-premise Ketonen rules for [L->], [L|], [R&]). Measurements (the `bench/` suite, records under `bench/results/`) now separate the two costs. Since v0.7 the cost of a query is independent of the size of the antecedent and of the number of registered schemas: an atomic query against 8,001 atoms and a guarded schema takes about 7 µs, and a schema hit or miss against 100,000 schemas about 6 µs, where v0.6 took 507 ms and 4.4 ms respectively. Proof cost grows as roughly 2.17^k in the number of connectives k in the query, a tautology with k = 8 taking about 9 ms, and no base-side indexing changes that curve. For the RDF layer, per-query cost is flat from 20,000 to 200,000 triples while the one-time in-process closure grows linearly (39 s at 200,000 triples), which is why closure belongs in the store at scale. The remaining O(|Γ|) paths are the non-exact `range`, `domain`, and incompatibility schemas, which must find a partner atom somewhere in Γ; heuristics for those, and for ordering rule application in the closure step, are open.
 
-## 10. References
+## 11. References
 
 - Brandom, R. B. (1994). *Making It Explicit: Reasoning, Representing, and Discursive Commitment*. Harvard University Press.
 

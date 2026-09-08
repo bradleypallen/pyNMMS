@@ -411,7 +411,7 @@ protocol with in-memory, SPARQL, and (since v0.11.0) embedded Oxigraph
 implementations, the semi-naive extras step with batched joins,
 per-generation memos, robustness policies over ground triples read through
 the regime, and oracle tests against ROLE.jl and owlrl. What follows is the
-gap between that and the target, as seven workstreams.
+gap between that and the target, as eight workstreams.
 
 **Development store: Oxigraph (decided 2026-09-07).** The first adapter is
 an embedded Oxigraph store through `pyoxigraph`, not a GraphDB container:
@@ -584,7 +584,7 @@ once the variables are bound.
 
 #### F. Evaluation on real data, with oracles
 
-- **F0. NMMS versus RDFS over one persisted materialisation** (harness, synthetic run, and GO + human GAF run DONE 2026-09-07; see `bench/PERFORMANCE.md` sections 8 and 9: total agreement, 394 of 1,383 curated `NOT` annotations contradicted by the RDFS closure, 335 of them in the asserted data itself; OWL 2 RL over GO and the pattern form of entries remain). The first
+- **F0. NMMS versus RDFS over one persisted materialisation** (harness, synthetic, GO + human GAF, and Amsterdam Museum runs DONE 2026-09-07; see `bench/PERFORMANCE.md` sections 8 to 10: total agreement, 394 of 1,383 curated `NOT` annotations contradicted by the RDFS closure, 335 of them in the asserted data itself; the Amsterdam Museum run models attribution qualifiers as defeaters and posthumous making as an incompatibility; it showed that an incompatibility the store already satisfies explodes the base under the global reading, which led to position attribution (`RegimeBase.attribution`) and positions over the store as background (`include_graph="background"`), delivered the same day; OWL 2 RL over GO and the pattern form of entries remain). The first
   evaluation needs no external store: an on-disk Oxigraph store holding a
   graph and its RDFS closure serves as both reasoners. The classical RDFS
   answer to a ground triple is one `ASK` against the closure graph
@@ -655,20 +655,112 @@ only mode, timeouts and retries with logging, thread-safe memos, and a
 and REPL stay research-grade; a service wrapper is out of scope for this
 phase and would be a thin layer over `RegimeBase` when wanted.
 
+#### H. Positions as speech acts: the position API
+
+The real-data runs of 2026-09-07 (F0 on GO and on the Amsterdam Museum)
+settled what a position is. It is not a region of the graph; it is what
+someone has said. The stored graph is the sediment of past speech acts
+whose speakers are gone, so it is the *background*, what a conversation
+takes for granted, and no one is committed to a record until they read it
+aloud. Treating the whole store as one enormous move by nobody is what
+made one contradictory record incoherent for every query; the
+`attribution` and `include_graph="background"` changes of that day are the
+first half of the correction, and this workstream is the second.
+
+The primitive is the accumulating position of a session:
+
+    pos = Position(base, holder="curator@museum")      # empty, over the store as background
+    pos.assert_("<am:proxy-52227 am:etchedBy am:p-10974>")
+    pos.deny(graph)                                     # a rejected graph (def:contententailment)
+    pos.coherent()          -> bool, with the entry or ⊥ rule that fails and the defeater that would rescue it
+    pos.commits_to(query)   -> derivability of a sequent over the position (ask as challenge)
+    pos.precludes(query)    -> Γ, A ⇒ ∅: what the position is incompatible with
+    pos.withdraw(atom)      # positions have a history, not just a set
+    pos.commit()            # write the accepted graph to the store (TELL), closure extended
+    Position.of(base, subject, holder=...)              # read a record aloud: its concise description as Γ
+
+- `Position` holds a holder, the accepted atoms, the rejected graphs, and
+  an ordered log of assertions, denials, and withdrawals; the base reads
+  its current state as a sequent over the background
+  (`include_graph="background"`). Human scale is the normal scale: tens of
+  triples, so the millisecond hypothetical rows of F0 are the ordinary
+  cost and the 10⁷ store matters only as background.
+- Coherence and preclusion reports name the entry or rule responsible and
+  the defeater that would answer it, in the shape a SHACL user recognises
+  (one report per position), so the comparison with validation is like for
+  like.
+- `Position.of(subject)` is the special case of reading a stored record
+  aloud: its triples become the position's commitments and are set aside
+  from the background for that check, which is what makes one date
+  coherent and two dates incoherent for the chalice.
+- The REPL is the first client: `tell` accumulates into the session's
+  position rather than the graph, `ask` challenges it, `show` reports its
+  commitments and preclusions, `commit` writes it. The harness gains a
+  `position` section that replays a scripted dialogue with predictions.
+- First dialogue to replay: the museum's attribution history ("oude
+  toeschrijving", "voorheen toegeschreven aan", "naar") as successive
+  positions over the collection, and a curator's `NOT` annotation on GO as
+  a denial against the propagated closure.
+
+This is the coupling to dialogue (Elenchus) the ontology extension was
+written for, stated as data: the base's entries are the rules of the
+game, the background is the common ground, and positions are the moves.
+
+#### The six steps from here to the vision
+
+`docs/docs/theory/onto-extension.md`, Section 9, states the vision:
+knowledge engineering as the engineering of the space of implications a
+graph lives in, with the graph as a record of commitments. What has to be
+true for that to be a practice rather than an argument, in the order each
+unblocks the next:
+
+1. **Positions as speech acts** (H above; the small design decision that
+   everything else depends on). A week, with the REPL client.
+2. **Material entries as patterns** (D). Every entry worth writing on real
+   data was an instance of a rule with variables and defeaters. Test set:
+   the 394 contradicted `NOT` annotations and the 137 posthumous makings;
+   oracle: the defeasible reading recovers every curated exception and
+   keeps every uncontradicted default. Two weeks.
+3. **Values in rules and defeaters** (C). Comparison and typed guards that
+   run as `FILTER` in the store and as Python in process, cross-checked;
+   defeaters matching literals with language tags and datatypes; an
+   evidence-code ordering so weaker evidence yields. Settles what
+   `def:entailmentregime` admits beyond uniform rules. A week, with 1.
+4. **Provenance as entitlement.** Named graphs and PROV as the modelling
+   convention; a triple carries its source, defeaters can name sources and
+   evidence levels, a position is a holder's commitments. Two catalogues
+   become two positions. A week.
+5. **The curation loop.** `propose`: submit a record or edit as a position
+   and get back what it commits to, what it is precluded from, which
+   defeater would rescue an incoherence, and a trace, before anything is
+   written. Measured on the museum and GO with predictions written first,
+   against SHACL and SPARQL on the same store. A week.
+6. **Scorekeeping and dialogue.** Positions per participant, commitments and
+   preclusions tracked as assertions accumulate, challenges as incoherence
+   queries. The Elenchus work; its own project once 1, 4, and 5 exist.
+
+Alongside: the second paper, stating positions over backgrounds, pattern
+roles, and value guards, since the implementation is now ahead of the
+text in exactly those places; and the discipline the runs taught, every
+experiment with its expectations recorded before it runs (`## r,n,i` in
+the harness) and compared with the usual tooling on the same store.
+
 #### Sequencing and releases
 
 | Release | Content | Depends on |
 |---|---|---|
 | v0.11 | A (Oxigraph adapter: closure in the store via C's rule translation, on-disk persistence, `--oxigraph`), D0 over Oxigraph | pyoxigraph — DONE 2026-09-07 |
-| v0.12 | F0 (NMMS versus RDFS over one persisted Oxigraph store), B (projection strategy, async, warm-start), A.3 hypothetical closure as a scratch graph in Oxigraph, F LUBM latency numbers | v0.11 |
-| v0.13 | A (GraphDB and RDFox adapters, batched membership, Docker tests), C (literal comparisons), E (graph scoping) | a GraphDB container; RDFox licence |
-| v0.14 | D (defeasible rules over patterns; onto layer as surface syntax) | v0.12 |
-| v1.0 | F (GO/HPO, heritage or Wikidata evaluations), Wikidata constraint compiler, API freeze, docs | all of the above |
+| v0.12 | F0 on synthetic, GO, and the Amsterdam Museum (DONE 2026-09-07); position attribution and positions over the store as background (DONE 2026-09-07); H (the position API, REPL as client, dialogue replay in the harness); C (values in rules and defeaters) | v0.11 |
+| v0.13 | D (defeasible rules over patterns; onto layer as surface syntax), tested on the 394 `NOT` contradictions and the 137 posthumous makings | v0.12 |
+| v0.14 | provenance as entitlement (step 4), the curation loop `propose` (step 5) compared with SHACL and SPARQL on the same store; B (projection strategy, async, warm-start), A.3 hypothetical closure as a scratch graph | v0.13 |
+| v0.15 | A (GraphDB and RDFox adapters, batched membership, Docker tests), E (graph scoping), F LUBM latency numbers | a GraphDB container; RDFox licence |
+| v1.0 | scorekeeping and dialogue (step 6, with Elenchus), HPO/HPOA and Wikidata evaluations, Wikidata constraint compiler, API freeze, docs | all of the above |
 
-Rough effort with one developer and Claude: A two to three weeks, B one to
-two, C one, D two, E one, F two to three, G one; about three months
-end to end, of which the real-data evaluations are the part most likely
-to change the plan.
+Rough effort with one developer and Claude: H one week, C one, D two,
+steps 4 and 5 one each, B one to two, the remaining A adapters two, E one,
+G one; about three months end to end. The real-data evaluations have
+already changed the plan once, on 2026-09-07, by putting positions ahead
+of every store adapter.
 
 #### Acceptance criteria for the target
 

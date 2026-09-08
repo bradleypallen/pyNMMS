@@ -21,7 +21,10 @@ Robustness policies map onto (iii): ``monotone`` has ``E = ∅``; ``guarded``
 has ``E`` as given (singleton defeaters as singleton sets, conjunctive
 exclusions as sets); ``exact`` additionally requires ``Γ ⊆ cl_R(A)``, i.e.
 an antecedent R-equivalent to ``A``. There is still no Cut between material
-entries: (iii) uses one entry. Containment holds through (ii) since
+entries: (iii) uses one entry.
+An entry with an empty consequent, ⟨A, ∅; E⟩, is an incompatibility: when A is
+derivable and no defeater is, Γ is materially incoherent and every Δ follows,
+as in the propositional core and the explosive base B_R. Containment holds through (ii) since
 ``Γ ⊆ cl_R(Γ)``. With ``I`` empty this is the base a regime specifies (the
 paper's ``def:fitness``); ``B_{R,I}`` itself is a proposal, see the theory
 page. With Γ a :class:`~pynmms.rdf.view.GraphView` over the backend,
@@ -124,9 +127,10 @@ class RDFBase(MaterialBase):
 
     # --- Sequents over the stored graph ---
 
-    def view(self) -> GraphView:
-        """Γ = G: the stored graph as an antecedent."""
-        return GraphView(self.backend)
+    def view(self, *, background: bool = False) -> GraphView:
+        """Γ = G: the stored graph as an antecedent (or, with *background*, an empty
+        position whose closure the store supplies)."""
+        return GraphView(self.backend, background=background)
 
     def parse(self, text: str, *, antecedent: bool = False) -> Sentence:
         """Parse a sentence whose atoms are ``<s p o>`` (prefixes resolved)."""
@@ -139,11 +143,18 @@ class RDFBase(MaterialBase):
         antecedent: Iterable[str] = (),
         consequent: Iterable[str] = (),
         *,
-        include_graph: bool = True,
+        include_graph: bool | str = True,
     ) -> Sequent:
-        """Build ``G, antecedent ⇒ consequent`` (or just ``antecedent ⇒ consequent``)."""
+        """Build ``G, antecedent ⇒ consequent`` (or just ``antecedent ⇒ consequent``).
+
+        *include_graph* ``True`` puts the stored graph into Γ; ``False`` leaves the
+        store out altogether; ``"background"`` makes Γ the antecedent alone while
+        the store still supplies the closure (a position over a background).
+        """
         ga, gc = _partition_canonical(antecedent, self.resolver, antecedent=True)
         da, dc = _partition_canonical(consequent, self.resolver, antecedent=False)
+        if include_graph == "background":
+            return Sequent(self.view(background=True).with_added_all(ga), gc, AtomSet(da), dc)
         if include_graph:
             return Sequent(self.view().with_added_all(ga), gc, AtomSet(da), dc)
         return Sequent(AtomSet(ga), gc, AtomSet(da), dc)
@@ -269,6 +280,12 @@ class RegimeBase(RDFBase):
         # (iii)'s third conjunct: read the consequent D through the regime
         # (Δ ∩ cl_R(Γ ∪ D)) rather than literally (Δ ∩ D).
         self.elaborate_consequent: bool = True
+        # Who is blamed for an incoherence. "position": only a position whose own
+        # commitments take part in deriving ⊥, or a material incompatibility's
+        # antecedent, is incoherent; the store's own contradictions are inventory
+        # (background_inconsistent()). "global": the base B_R of def:fitness, where a
+        # R-inconsistent store makes every pair good.
+        self.attribution: str = "position"
         self._entry_closure_cache: dict[frozenset[str], set[Triple]] = {}
 
     def clear_caches(self) -> None:
@@ -294,7 +311,10 @@ class RegimeBase(RDFBase):
             if view.removed:
                 logger.debug("regime check with removed atoms: %d", len(view.removed))
             extras = frozenset(view.added)
-            store_inconsistent = self.backend.is_inconsistent()
+            store_inconsistent = (
+                self.attribution == "global" and not view.background
+                and self.backend.is_inconsistent()
+            )
         else:
             extras = frozenset(gamma)
             store_inconsistent = False
@@ -373,6 +393,25 @@ class RegimeBase(RDFBase):
                 logger.debug("entry %s |~ %s: exact, Γ not R-equivalent to A",
                              set(a_set), set(d_set))
                 continue
+            if not d_set:
+                # An incompatibility ⟨A, ∅; E⟩. Under position attribution it is the
+                # position's only if it contributed to A (an atom of A is among the
+                # triples the position added or derived); under global attribution a
+                # background that satisfies A makes every position incoherent. What
+                # follows is the entry's succedent policy: exact yields Γ |~ ∅ alone,
+                # monotone and guarded explode (as in the propositional core).
+                if self.attribution != "global" and not any(
+                    a in extras
+                    or ((t := TripleAtom.coerce(a)) is not None and t.triple in derived)
+                    for a in a_set
+                ):
+                    logger.debug("entry %s |~ ∅: background only, not this position's",
+                                 set(a_set))
+                    continue
+                if rob.is_exact and len(delta) > 0:
+                    continue
+                logger.debug("entry %s |~ ∅ fires: Γ materially incoherent [%s]", set(a_set), rob)
+                return True
             if self.elaborate_consequent:
                 elaborated = self._closure_of_extras_plus(extras, derived, d_set, over_graph)
                 if self._delta_meets(delta, elaborated, over_graph, "cl(Γ ∪ D)"):
@@ -477,10 +516,21 @@ class RegimeBase(RDFBase):
         return result
 
     def is_inconsistent(self, extras: Iterable[str] = ()) -> bool:
-        """Is ``G ∪ extras`` R-inconsistent? (``prop:incoherence``)"""
+        """Is the position *extras* over the store R-inconsistent? (``prop:incoherence``)
+
+        Under position attribution (the default) only a ⊥ whose derivation uses
+        *extras* counts; :meth:`background_inconsistent` reports the store's own.
+        Under global attribution this is ``G ∪ extras`` R-inconsistent.
+        """
         atoms = frozenset(self._validate_atom(s, "is_inconsistent") for s in extras)
         _, bottom = self._closure_of_extras(atoms, True)
-        return self.backend.is_inconsistent() or bottom
+        if self.attribution == "global":
+            return self.backend.is_inconsistent() or bottom
+        return bottom
+
+    def background_inconsistent(self) -> bool:
+        """Does the regime derive ⊥ from the stored graph alone?"""
+        return self.backend.is_inconsistent()
 
 
 __all__ = ["RDFBase", "RegimeBase"]

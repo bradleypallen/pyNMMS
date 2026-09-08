@@ -1,0 +1,11 @@
+# Amsterdam Museum: an object described by a thesaurus concept is described by the
+# concept's broader terms, and skos:broader is transitive. Prefixes bound by the CLI
+# (am = http://purl.org/collections/nl/am/, skos = http://www.w3.org/2004/02/skos/core#).
+?a http://www.w3.org/2004/02/skos/core#broader ?b, ?b http://www.w3.org/2004/02/skos/core#broader ?c -> ?a http://www.w3.org/2004/02/skos/core#broader ?c
+?x http://purl.org/collections/nl/am/objectName ?c, ?c http://www.w3.org/2004/02/skos/core#broader ?d -> ?x http://purl.org/collections/nl/am/objectName ?d
+?x http://purl.org/collections/nl/am/technique ?c, ?c http://www.w3.org/2004/02/skos/core#broader ?d -> ?x http://purl.org/collections/nl/am/technique ?d
+?x http://purl.org/collections/nl/am/productionPlace ?c, ?c http://www.w3.org/2004/02/skos/core#broader ?d -> ?x http://purl.org/collections/nl/am/productionPlace ?d
+?x http://purl.org/collections/nl/am/currentLocation ?c, ?c http://www.w3.org/2004/02/skos/core#broader ?d -> ?x http://purl.org/collections/nl/am/currentLocation ?d
+?x http://purl.org/collections/nl/am/associationSubject ?c, ?c http://www.w3.org/2004/02/skos/core#broader ?d -> ?x http://purl.org/collections/nl/am/associationSubject ?d
+?x http://purl.org/collections/nl/am/contentMotifGeneral ?c, ?c http://www.w3.org/2004/02/skos/core#broader ?d -> ?x http://purl.org/collections/nl/am/contentMotifGeneral ?d
+?x http://purl.org/collections/nl/am/contentSubject ?c, ?c http://www.w3.org/2004/02/skos/core#broader ?d -> ?x http://purl.org/collections/nl/am/contentSubject ?d

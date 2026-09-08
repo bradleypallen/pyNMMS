@@ -142,11 +142,9 @@ def _split_query(text: str) -> tuple[list[str], list[str]]:
 
 
 def _load_rules(path: str, resolver: object) -> list:  # type: ignore[type-arg]
-    from pynmms.rdf.rules import parse_rule
+    from pynmms.rdf.rules import parse_rules_text
 
-    lines = Path(path).read_text().splitlines()
-    return [parse_rule(ln, resolver) for ln in lines  # type: ignore[arg-type]
-            if ln.strip() and not ln.strip().startswith("#")]
+    return parse_rules_text(Path(path).read_text(), resolver)  # type: ignore[arg-type]
 
 
 def _prefixes(args: argparse.Namespace) -> dict[str, str]:

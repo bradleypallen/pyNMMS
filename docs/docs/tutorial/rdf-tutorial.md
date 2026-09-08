@@ -207,6 +207,30 @@ triples is in the closure; under exact or guarded entries the conjunction
 form is what keeps the joint combinations honest, which is why
 `position()` expands ground graphs rather than using a pattern atom.
 
+## Values in rules
+
+A rule may carry a guard over the values it binds, in square brackets among
+the premises:
+
+```
+?x am:maker ?m, ?m rdf:value ?p, ?p am:deathDateEnd ?d, ?x am:productionDateStart ?s,
+    [year(?s) > year(?d)] -> ?x am:anachronisticMaker ?p
+?a go:evidence ?e, [rank(strength, ?e) >= rank(strength, "IDA")] -> ?a go:strongEvidence "yes"
+ordering strength: IEA < ISS < IBA < IMP < IDA
+```
+
+Comparisons (`< <= > >= = !=`), `in (...)`, `&& || !`, and the functions
+`num`, `year`, `str`, `lang`, `datatype`, `rank`, `isLiteral`, `isIRI`,
+`isBlank`. The guard is evaluated two ways that agree: as a SPARQL `FILTER`
+when the store materialises the closure, and in Python when the
+in-process closure runs. Semantics follow SPARQL: typed numbers and dates
+compare as values, plain strings as strings (`num` reads a plain string as
+a number, `year` takes the first four characters as a year), and a
+comparison across kinds is false. `ordering name: a < b < c` in a rules
+file declares an ordering for `rank`. A guard is not uniform under
+substitution, so a guarded rule is an admitted exception to
+`def:entailmentregime`; see the theory page.
+
 ## Positions as speech acts
 
 A position is what a holder has said. `Position` keeps the atoms asserted,

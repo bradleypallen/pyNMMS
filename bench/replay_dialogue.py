@@ -54,7 +54,7 @@ def replay(args: argparse.Namespace) -> list[Section]:
     from pynmms.rdf.atoms import Resolver, TripleAtom
     from pynmms.rdf.backends import OxigraphBackend
     from pynmms.rdf.position import Position
-    from pynmms.rdf.rules import REGIMES, custom, parse_rule
+    from pynmms.rdf.rules import REGIMES, custom, parse_rules_text
 
     prefixes = _prefixes(args.prefix)
     regime = REGIMES[args.regime]
@@ -62,8 +62,7 @@ def replay(args: argparse.Namespace) -> list[Section]:
         resolver = Resolver(Graph())
         for pfx, iri in prefixes.items():
             resolver.bind(pfx, iri)
-        rules = [parse_rule(ln, resolver) for ln in Path(args.rules).read_text().splitlines()
-                 if ln.strip() and not ln.strip().startswith("#")]
+        rules = parse_rules_text(Path(args.rules).read_text(), resolver)
         regime = custom(args.regime_name or f"{regime.name}+{Path(args.rules).name}", rules,
                         extends=regime)
     elif args.regime_name:

@@ -29,6 +29,8 @@ logger = logging.getLogger(__name__)
 
 RuleLike = Rule | ProceduralRule
 
+PROLOGUE = "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> "
+
 
 def term_n3(t: Any) -> str:
     """N3 for a rule term: ``?x`` for a variable, ``Node.n3()`` otherwise."""
@@ -87,11 +89,20 @@ def translatable(rule: RuleLike) -> bool:
     has a literal in subject position is not: it is a generalized triple
     (``def:rdftriple``) that a SPARQL store cannot hold.
     """
-    if not isinstance(rule, Rule) or rule.guard is not None:
+    if not isinstance(rule, Rule):
+        return False
+    if rule.guard is not None and (rule.guard_expr is None or rule.guard_expr.to_sparql() is None):
         return False
     if rule.conclusion is not None and isinstance(rule.conclusion[0], Literal):
         return False
     return True
+
+
+def _filter(rule: Rule) -> str:
+    """The ``FILTER`` clause of a guarded rule, empty when there is no guard."""
+    if rule.guard_expr is None:
+        return ""
+    return f" FILTER({rule.guard_expr.to_sparql()})"
 
 
 def rule_to_update(rule: Rule, *, into: str | None = None) -> str:
@@ -106,7 +117,8 @@ def rule_to_update(rule: Rule, *, into: str | None = None) -> str:
         raise ValueError(f"{rule.name} is not translatable to SPARQL")
     head = pattern_n3(rule.conclusion)
     target = f"GRAPH <{into}> {{ {head} }}" if into else head
-    return f"INSERT {{ {target} }} WHERE {{ {bgp(rule.premises)} FILTER NOT EXISTS {{ {head} }} }}"
+    return (f"{PROLOGUE}INSERT {{ {target} }} WHERE {{ {bgp(rule.premises)}{_filter(rule)} "
+            f"FILTER NOT EXISTS {{ {head} }} }}")
 
 
 def rule_to_ask(rule: Rule) -> str:
@@ -115,7 +127,7 @@ def rule_to_ask(rule: Rule) -> str:
         raise ValueError(f"{rule.name} is not false-concluding")
     if not translatable(rule):
         raise ValueError(f"{rule.name} is not translatable to SPARQL")
-    return f"ASK {{ {bgp(rule.premises)} }}"
+    return f"{PROLOGUE}ASK {{ {bgp(rule.premises)}{_filter(rule)} }}"
 
 
 @dataclass(frozen=True)

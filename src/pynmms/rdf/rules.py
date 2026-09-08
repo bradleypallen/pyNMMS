@@ -23,7 +23,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Iterable, Iterator
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from rdflib import Literal, URIRef
 from rdflib.namespace import OWL, RDF
@@ -66,6 +66,10 @@ class Rule:
     premises: tuple[Pattern, ...]
     conclusion: Pattern | None
     guard: Guard | None = None
+    #: A value guard (``pynmms.rdf.values.Guard``) written in the rule; when set and
+    #: ``guard`` is not, ``guard`` is its Python evaluation, and the store runs it
+    #: as a ``FILTER``.
+    guard_expr: Any = None
 
     def __post_init__(self) -> None:
         premise_vars = {t for p in self.premises for t in p if isinstance(t, Var)}
@@ -75,6 +79,12 @@ class Rule:
                     raise ValueError(
                         f"Rule {self.name!r} is not range-restricted: {t} not in premises"
                     )
+        if self.guard_expr is not None:
+            for v in self.guard_expr.variables:
+                if v not in premise_vars:
+                    raise ValueError(f"Rule {self.name!r}: guard variable {v} not in premises")
+            if self.guard is None:
+                object.__setattr__(self, "guard", self.guard_expr.evaluate)
 
     @property
     def is_false_concluding(self) -> bool:
@@ -82,6 +92,8 @@ class Rule:
 
     def __str__(self) -> str:
         prem = ", ".join(" ".join(str(t) for t in p) for p in self.premises)
+        if self.guard_expr is not None:
+            prem += f", [{self.guard_expr}]"
         concl = "false" if self.conclusion is None else " ".join(str(t) for t in self.conclusion)
         return f"{prem} -> {concl}"
 
@@ -149,14 +161,39 @@ def parse_rule(text: str, resolver: Resolver | None = None, name: str | None = N
     if "->" not in text:
         raise ValueError(f"Rule must contain '->': {text!r}")
     left, right = text.split("->", 1)
-    premises = tuple(_parse_pattern(p, resolver) for p in split_top_level(left, ","))
+    parts = [p.strip() for p in split_top_level(left, ",") if p.strip()]
+    guard_texts = [p[1:-1].strip() for p in parts if p.startswith("[") and p.endswith("]")]
+    premises = tuple(_parse_pattern(p, resolver) for p in parts
+                     if not (p.startswith("[") and p.endswith("]")))
     if not premises:
         raise ValueError(f"Rule has no premises: {text!r}")
+    guard_expr = None
+    if guard_texts:
+        from pynmms.rdf.values import parse_guard
+
+        guard_expr = parse_guard(" && ".join(f"({g})" for g in guard_texts)
+                                 if len(guard_texts) > 1 else guard_texts[0])
     right = right.strip()
     conclusion = None if right.lower() in ("false", "⊥", "bottom") else _parse_pattern(
         right, resolver
     )
-    return Rule(name or text.strip(), premises, conclusion)
+    return Rule(name or text.strip(), premises, conclusion, guard_expr=guard_expr)
+
+
+def parse_rules_text(text: str, resolver: Resolver | None = None) -> list[Rule]:
+    """Parse a rules file: one rule per line, ``#`` comments, and ``ordering name: a < b``
+    lines declaring orderings for ``rank(name, x)`` guards."""
+    from pynmms.rdf.values import parse_ordering_line
+
+    out: list[Rule] = []
+    for ln in text.splitlines():
+        line = ln.strip()
+        if not line or line.startswith("#"):
+            continue
+        if parse_ordering_line(line):
+            continue
+        out.append(parse_rule(line, resolver))
+    return out
 
 
 # --- RDFS ---

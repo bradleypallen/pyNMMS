@@ -504,3 +504,20 @@ one probe asks whether the curator also accepts the record's other date.
 All seventeen predictions held. This is the Elenchus loop with the
 opponent generated from the base rather than scripted: the respondent's
 moves are the dialogue file, the opponent's questions are computed.
+
+**Values in rules** (2026-09-08, `pynmms.rdf.values`). The anachronism that
+section 10 found with a hand-written SPARQL query became a rule of the
+regime, `?x am:maker ?m, ?m rdf:value ?p, ?p am:deathDateEnd ?d, ?x
+am:productionDateStart ?s, [year(?s) > year(?d)] -> ?x am:anachronisticMaker
+?p` (`bench/queries/am_values.txt`), with a marker triple rather than ⊥
+so the store stays coherent. Materialised in the store, the guard ran as a
+SPARQL `FILTER` alongside the twenty-two pattern rules (2.3 minutes in
+memory, closure 8,044,092 triples) and produced 1,650 marker triples,
+exactly the count of the independent SPARQL query with the same year
+semantics over the asserted data. The in-process evaluator agrees with
+the store on the unit graphs (`tests/test_rdf_values.py`). The 137 of
+section 10 were the objects whose dates were bare four-digit years on
+both sides; with the first four characters of any date read as a year,
+1,556 objects have a maker who died before they were made, most of them
+posthumous editions and impressions, which is the population the
+attribution defeaters of the position API are for.

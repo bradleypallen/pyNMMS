@@ -80,7 +80,7 @@ class TestTranslation:
 
     def test_bottom_rule_is_an_ask(self):
         r = parse_rule("?x a http://ex.org/Alive, ?x a http://ex.org/Dead -> false")
-        assert rule_to_ask(r).startswith("ASK {")
+        assert "ASK {" in rule_to_ask(r)
         with pytest.raises(ValueError):
             rule_to_update(r)
 

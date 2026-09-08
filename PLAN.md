@@ -721,11 +721,14 @@ unblocks the next:
    the 394 contradicted `NOT` annotations and the 137 posthumous makings;
    oracle: the defeasible reading recovers every curated exception and
    keeps every uncontradicted default. Two weeks.
-3. **Values in rules and defeaters** (C). Comparison and typed guards that
-   run as `FILTER` in the store and as Python in process, cross-checked;
-   defeaters matching literals with language tags and datatypes; an
-   evidence-code ordering so weaker evidence yields. Settles what
-   `def:entailmentregime` admits beyond uniform rules. A week, with 1.
+3. **Values in rules and defeaters** (C) — rules DONE 2026-09-08
+   (`pynmms.rdf.values`: guards as `[...]` among premises, evaluated as
+   `FILTER` in the store and in Python, cross-checked; `year`, `num`,
+   `lang`, `datatype`, `rank` over declared orderings). Defeaters with value
+   conditions wait for pattern entries (step 2), since ground entries know
+   their values when written. Settles what `def:entailmentregime` admits
+   beyond uniform rules: flagged on the theory page, to be stated in the
+   second paper.
 4. **Provenance as entitlement.** Named graphs and PROV as the modelling
    convention; a triple carries its source, defeaters can name sources and
    evidence levels, a position is a holder's commitments. Two catalogues

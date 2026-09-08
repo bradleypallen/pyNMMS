@@ -813,6 +813,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../api/rdf-position/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RDF Positions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../api/rdf-rules/" class="md-nav__link">
         
   
@@ -1429,15 +1457,43 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#9-assumptions-and-open-questions" class="md-nav__link">
+  <a href="#9-inferentialist-knowledge-engineering-what-gets-better-about-an-rdf-graph" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9. Assumptions and Open Questions
+        9. Inferentialist Knowledge Engineering: What Gets Better About an RDF Graph
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="9. Assumptions and Open Questions">
+    <nav class="md-nav" aria-label="9. Inferentialist Knowledge Engineering: What Gets Better About an RDF Graph">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#91-the-practice-stated-as-a-game" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.1 The practice, stated as a game
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-assumptions-and-open-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Assumptions and Open Questions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. Assumptions and Open Questions">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1468,10 +1524,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#10-references" class="md-nav__link">
+  <a href="#11-references" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10. References
+        11. References
       
     </span>
   </a>
@@ -1876,15 +1932,43 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#9-assumptions-and-open-questions" class="md-nav__link">
+  <a href="#9-inferentialist-knowledge-engineering-what-gets-better-about-an-rdf-graph" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9. Assumptions and Open Questions
+        9. Inferentialist Knowledge Engineering: What Gets Better About an RDF Graph
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="9. Assumptions and Open Questions">
+    <nav class="md-nav" aria-label="9. Inferentialist Knowledge Engineering: What Gets Better About an RDF Graph">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#91-the-practice-stated-as-a-game" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.1 The practice, stated as a game
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-assumptions-and-open-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Assumptions and Open Questions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. Assumptions and Open Questions">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1915,10 +1999,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#10-references" class="md-nav__link">
+  <a href="#11-references" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10. References
+        11. References
       
     </span>
   </a>
@@ -2148,7 +2232,140 @@
 <h3 id="84-from-nmms_onto-to-nmms-over-rdf">8.4 From NMMS_Onto to NMMS over RDF<a class="headerlink" href="#84-from-nmms_onto-to-nmms-over-rdf" title="Permanent link">&para;</a></h3>
 <p>Allen (2026) gives RDF itself an implication-space semantics, and <code>pynmms.rdf</code> implements it (see <a href="../rdf-semantics/">RDF Semantics</a>). In that setting the atomic bearers are ground triples, and NMMS_Onto's vocabulary is the <code>rdf:type</code> fragment of the encoding: <code>C(x)</code> is <code>(x rdf:type C)</code> and <code>R(x, y)</code> is <code>(x R y)</code>. Schema commitments become schema triples (<code>rdfs:subClassOf</code>, <code>rdfs:range</code>, <code>rdfs:domain</code>, <code>rdfs:subPropertyOf</code>, <code>owl:disjointWith</code>, <code>owl:propertyDisjointWith</code>), which an entailment regime reads through its rules; <code>jointCommitment</code> becomes a rule. <code>onto_to_graph</code>, <code>onto_to_rules</code>, and <code>consequences_to_triples</code> perform the translation.</p>
 <p>The two layers differ in exactly the way Section 8.2 describes. A regime base <code>B_R</code> is defined by closure, so it is monotone, transitive, and explosive: subclass chains compose, additions never defeat, and an inconsistent graph entails everything. Allen (2026) notes, after <code>def:fitness</code>, that a base which took the rule instances without closing -- which is what an <code>exact</code> NMMS_Onto schema generates -- "corresponds to no regime" and fails monotonicity "by omission rather than by defeat". NMMS_Onto is therefore not a fragment of RDFS but a different kind of base: the place for material inferential commitments with their defeat conditions, which the regimes leave out. In <code>pynmms.rdf</code> both kinds sit in one <code>RegimeBase</code>: the regime part is store-resident and monotone, the material part is explicit entries with <code>guarded</code> robustness, and Containment holds for the union, so the metatheory of Section 4 applies to the whole.</p>
-<h2 id="9-assumptions-and-open-questions">9. Assumptions and Open Questions<a class="headerlink" href="#9-assumptions-and-open-questions" title="Permanent link">&para;</a></h2>
+<h2 id="9-inferentialist-knowledge-engineering-what-gets-better-about-an-rdf-graph">9. Inferentialist Knowledge Engineering: What Gets Better About an RDF Graph<a class="headerlink" href="#9-inferentialist-knowledge-engineering-what-gets-better-about-an-rdf-graph" title="Permanent link">&para;</a></h2>
+<p>The sections above describe a mechanism. This section says what the
+mechanism is for, as a practice, now that the RDF layer of Section 8.4 has
+been run against real knowledge bases (the Gene Ontology with its human
+annotations, and the Amsterdam Museum collection; see
+<code>bench/PERFORMANCE.md</code>, sections 9 and 10).</p>
+<p>Start from what an RDF graph is today: a set of assertions, given meaning
+by the models that satisfy it, with an entailment regime to fill in what
+the assertions entail. Knowledge engineering on that footing is the
+engineering of contents. One decides what is true, writes the triples,
+chooses a regime, and everything the community knows beyond that, the
+defaults, the exceptions, the incompatibilities, the weight of evidence,
+lives outside the graph in SHACL shapes, query idioms, and pipeline
+scripts.</p>
+<p>The inferentialist turn (Brandom 1994) is to take the meaning of a triple
+to be its inferential role: what asserting it commits one to, what it
+precludes, what would defeat it. On that footing the graph is not a picture
+of the world but a record of commitments, and knowledge engineering
+becomes the engineering of the space of implications the graph lives in.
+The regime is the smallest part of that space, the part every community
+shares. The rest, the material inferences of a domain, is what the experts
+actually know, and the claim of this project is that it can be made
+explicit beside the graph, in the material base, without changing a byte
+of RDF. Concretely:</p>
+<p><strong>The domain knowledge becomes a published artefact.</strong> "A maker record
+names the maker unless the attribution is qualified", "an annotation
+propagates up the hierarchy unless the curators denied it", "an author's
+work may be printed after his death" are today folklore encoded in
+<code>NOT EXISTS</code> clauses and scripts, invisible to anyone reading the data. As
+entries in a material base they are inspectable, versioned, shared, and
+reasoned with, and a second community can adopt a graph and its
+inferences separately. This is <em>making it explicit</em> in Brandom's sense, the
+same move OWL made for class hierarchies, applied to the defeasible
+knowledge OWL cannot hold.</p>
+<p><strong>Exceptions become the normal case.</strong> Every curator knows a default is a
+default. Current tooling forces a choice between a rule that is always
+wrong somewhere and no rule at all. A base with defeaters lets the
+knowledge be written as it is known, a default with its exceptions, and
+lets the exceptions be data, a qualifier on a record or an evidence code,
+rather than special cases in code.</p>
+<p><strong>The graph answers questions about commitment, not only about content.</strong>
+What would follow if this were asserted; is this record coherent given
+what we know; does this denial hold against the closure; which of two
+attributions can stand with the dates. These are the questions asked while
+knowledge is being made, and they are hypothetical, conditional, or
+negative, so no store can ask them of its contents. A base over the store
+answers them in milliseconds at ten million triples.</p>
+<p><strong>Disagreement becomes representable.</strong> Two catalogues that attribute one
+object differently are not a data error to be resolved before loading;
+they are two positions over a shared background, each with its own
+commitments. The semantics of the RDF layer has a place for them, positions
+as pairs of accepted and rejected graphs (<code>def:contententailment</code>), where
+the graph model has only one graph. Provenance stops being metadata and
+becomes entitlement: who is committed, on what evidence, to what.</p>
+<p><strong>Coherence becomes a conversation rather than a gate.</strong> Validation reports
+violations after the fact and stops. Scorekeeping asks, of each position,
+what it commits its holder to and where it is precluded, and treats an
+incoherence as a challenge that a defeater might answer. This is the
+coupling to dialogue (Section 1.1) that the extension was written for, and
+it is why the locality of positions matters: a position is a participant's
+stake, not the whole store.</p>
+<p><strong>The store stays the store.</strong> None of this replaces SPARQL, SHACL, or the
+triplestore. The base delegates the closure and the lookups to them and
+adds the consequence relation on top, so the interactive cost is theirs
+plus microseconds.</p>
+<h3 id="91-the-practice-stated-as-a-game">9.1 The practice, stated as a game<a class="headerlink" href="#91-the-practice-stated-as-a-game" title="Permanent link">&para;</a></h3>
+<p>Put the six gains together and the practice has a familiar shape: it is
+Brandom's game of giving and asking for reasons, played with a knowledge
+graph as the scorekeeper's ledger. The game has two moves, asserting and
+challenging, and a scorekeeper who tracks what each player is committed
+to and entitled to. In the graph:</p>
+<ul>
+<li><strong>Assertions</strong> are <code>assert_</code> and <code>deny</code> on a <code>Position</code>: what a holder has
+  said, over the store as background, in order. Reading a stored record
+  aloud (<code>Position.of</code>) is adopting an earlier speaker's account as one's
+  own.</li>
+<li><strong>Challenges</strong> are <code>commits_to</code>, <code>precludes</code>, and <code>coherent</code>: questions
+  that leave the position as it is. A position's commitments are what it
+  has asserted plus what the base makes follow, which is why a challenge
+  can succeed against something the holder never said. A failed
+  <code>coherent</code> names the entry or rule that refutes the position and the
+  defeaters that would rescue it, which is the next round's agenda.</li>
+<li><strong>The scorekeeper</strong> is the base: the regime for what everyone is held to,
+  the material entries for what the domain licenses and forbids, and the
+  store for what has already been settled. Attribution to the position is
+  what keeps a refutation about the player's stake rather than about the
+  state of the database.</li>
+<li><strong>Entitlement</strong> is what survives challenge. A position that has come back
+  in bounds under the probes put to it is entitled to its commitments;
+  <code>commit</code> is the move that makes them common ground. So the store is not
+  a collection of facts someone loaded but the sediment of commitments
+  that held up, with the holder and the moves as its provenance, and the
+  knowledge base improves over time rather than merely growing.</li>
+<li><strong>The rules of the game are revisable too.</strong> When a challenge is answered
+  by a defeater the entries did not carry, "a posthumous impression", the
+  expert has found an exception the domain knowledge should hold, and the
+  right move is to add it as a defeater or promote the inference to an
+  entry. Knowledge engineering on this view accumulates both: commitments
+  that held, and inferences with their exceptions that held. Only the
+  regime stays fixed, because it is what the community shares.</li>
+</ul>
+<p>Played adversarially, with a respondent building a position and an
+opponent probing it for incoherence, this is the Elenchus loop of
+Section 1.1, and the runs on the Amsterdam Museum store replay one round
+of it in a few milliseconds a probe over six million triples: the etcher
+credit asserted, the anachronism named with its rescue, the rescue tried
+and withdrawn, the record read aloud and defended. What an opponent agent
+still needs is to generate probes rather than only answer them, an
+enumeration of the incompatibilities and unacknowledged defaults a
+position partly satisfies, and an explicit record of entitlement beside
+commitment.</p>
+<p>All of this coexists with the existing tooling by construction. The graph
+stays RDF, since positions, entries, and moves live beside it; the store
+stays the store, materialising the regime with its own engine and
+answering SPARQL unchanged; the regime is recovered exactly
+(<code>thm:closure</code>), so every classical conclusion is one the base draws; and
+SHACL keeps validating, a report being a backlog of records to read aloud
+and defend, a defended position being one a shape will pass. The
+<code>NOT EXISTS</code> clauses and scripts that carry a community's defaults today
+are the source from which its entries are written down, and keep working
+meanwhile. The one deployment condition is a store the reasoner can read
+closure from.</p>
+<p>What the runs on real data say must be true before this is a practice
+rather than an argument: positions bounded to the record they are about,
+so that one contradictory record does not make every other record
+incoherent; material entries written as patterns rather than ground
+instances, since every entry worth writing on real data was an instance
+of an obvious rule; and values in rules and defeaters, since dates,
+evidence codes, and qualifiers are literals. Those are engineering. The
+reason to do them is that with them, an RDF graph stops being a
+description someone must interpret and becomes a body of commitments that
+can be reasoned with, challenged, and extended by the people and systems
+that hold it.</p>
+<h2 id="10-assumptions-and-open-questions">10. Assumptions and Open Questions<a class="headerlink" href="#10-assumptions-and-open-questions" title="Permanent link">&para;</a></h2>
 <h3 id="assumptions">Assumptions<a class="headerlink" href="#assumptions" title="Permanent link">&para;</a></h3>
 <ol>
 <li>
@@ -2179,7 +2396,7 @@
 <p><strong>Scaling properties</strong>: The lazy evaluation strategy avoids combinatorial explosion in schema grounding, but the proof search itself has exponential worst-case complexity (due to the multi-premise Ketonen rules for [L-&gt;], [L|], [R&amp;]). Measurements (the <code>bench/</code> suite, records under <code>bench/results/</code>) now separate the two costs. Since v0.7 the cost of a query is independent of the size of the antecedent and of the number of registered schemas: an atomic query against 8,001 atoms and a guarded schema takes about 7 µs, and a schema hit or miss against 100,000 schemas about 6 µs, where v0.6 took 507 ms and 4.4 ms respectively. Proof cost grows as roughly 2.17^k in the number of connectives k in the query, a tautology with k = 8 taking about 9 ms, and no base-side indexing changes that curve. For the RDF layer, per-query cost is flat from 20,000 to 200,000 triples while the one-time in-process closure grows linearly (39 s at 200,000 triples), which is why closure belongs in the store at scale. The remaining O(|Γ|) paths are the non-exact <code>range</code>, <code>domain</code>, and incompatibility schemas, which must find a partner atom somewhere in Γ; heuristics for those, and for ordering rule application in the closure step, are open.</p>
 </li>
 </ol>
-<h2 id="10-references">10. References<a class="headerlink" href="#10-references" title="Permanent link">&para;</a></h2>
+<h2 id="11-references">11. References<a class="headerlink" href="#11-references" title="Permanent link">&para;</a></h2>
 <ul>
 <li>
 <p>Brandom, R. B. (1994). <em>Making It Explicit: Reasoning, Representing, and Discursive Commitment</em>. Harvard University Press.</p>

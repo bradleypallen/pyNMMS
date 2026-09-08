@@ -813,6 +813,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../api/rdf-position/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RDF Positions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../api/rdf-rules/" class="md-nav__link">
         
   
@@ -1778,7 +1806,11 @@ singleton set). A pair <code>⟨Γ, Δ⟩</code> is good in <code>𝔅_{R,I}</co
 </li>
 </ol>
 <p>Policies map onto clause 3: <code>monotone</code> is <code>E = ∅</code>; <code>guarded</code> is <code>E</code> as
-given; <code>exact</code> adds <code>Γ ⊆ cl_R(A)</code>, an antecedent <code>R</code>-equivalent to <code>A</code>.</p>
+given; <code>exact</code> adds <code>Γ ⊆ cl_R(A)</code>, an antecedent <code>R</code>-equivalent to <code>A</code>.
+An entry with an empty consequent, <code>⟨A, ∅; E⟩</code>, is an incompatibility:
+when <code>A ⊆ cl_R(Γ)</code> and no defeater is derivable, <code>Γ</code> is materially
+incoherent and <code>⟨Γ, Δ⟩</code> is good for every <code>Δ</code>, matching the propositional
+core and the explosion of <code>𝔅_R</code>.</p>
 <p><strong>Properties.</strong> Containment holds through clause 2, since <code>Γ ⊆ cl_R(Γ)</code>, so
 <code>𝔅_{R,I}</code> is a base in the sense of <code>def:fitness</code> and Chapter 3's metatheory
 applies to NMMS over it. With <code>I</code> empty it is <code>𝔅_R</code>. There is still no Cut
@@ -1798,6 +1830,22 @@ compared on the same base. A store adapter needs exactly three operations
 to serve clause 3, <code>ASK</code> for the antecedent, <code>NOT EXISTS</code> for the defeaters,
 and <code>ASK</code> over the closure extended by <code>D</code> for the consequent, which is why
 this definition precedes the adapter work.</p>
+<p><strong>Attribution.</strong> A base over a real store meets a fact the definition does
+not address: the store itself may be <code>R</code>-inconsistent, or may satisfy the
+antecedent of an incompatibility, and <code>𝔅_R</code> is explosive by <code>def:fitness</code>,
+so one contradiction anywhere would make every position over the store
+incoherent. On the Gene Ontology 394 curated negations are contradicted by
+the closure; a museum record carries two production dates. The
+implementation therefore attributes incoherence to a position: a ⊥, or an
+incompatibility's antecedent, counts against <code>⟨Γ, Δ⟩</code> only when its
+derivation uses a triple the position contributed, and the store's own
+contradictions are reported separately as background inventory. The
+consequence relation stays global; only the commitments are local. A
+position may also be taken <em>over</em> the store as background,
+<code>include_graph="background"</code>, so that its own record is <code>Γ</code> and the store
+supplies the closure, which is how a stored record is checked for
+coherence without blaming every other record. <code>RegimeBase.attribution =
+"global"</code> restores the explosive reading of <code>def:fitness</code> exactly.</p>
 <p><em>Implementation.</em> <code>RegimeBase.is_axiom</code> implements the three clauses, with
 <code>cl_R(Γ)</code> computed once per query and <code>cl_R(Γ ∪ D)</code> as its semi-naive
 extension by <code>D</code>. <code>tests/test_rdf_material.py</code> holds the eight cases of the

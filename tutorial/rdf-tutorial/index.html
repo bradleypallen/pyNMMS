@@ -643,6 +643,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#positions-as-speech-acts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Positions as speech acts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#how-the-closure-is-split" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -984,6 +995,34 @@
     
   
     RDF Bases
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/rdf-position/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RDF Positions
   
 
     
@@ -1455,6 +1494,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#positions-as-speech-acts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Positions as speech acts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#how-the-closure-is-split" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1638,6 +1688,14 @@ one (<code>prop:incoherence</code> and the paper's discussion).</p>
 with <code>G</code> as a <code>GraphView</code>: a reference to the backend plus the few atoms the
 proof rules add. Pass <code>include_graph=False</code> to reason over the listed
 sentences alone.</p>
+<p>A third form, <code>include_graph="background"</code>, makes Γ the listed triples
+alone while the store still supplies the closure: a position over a
+background. This is how one record of a large graph is checked for
+coherence. Incoherence is attributed to the position that derives it, so a
+contradiction elsewhere in the store does not make every query explode;
+<code>RegimeBase.background_inconsistent()</code> reports the store's own, and
+<code>RegimeBase.attribution = "global"</code> restores the explosive regime base of
+the paper.</p>
 <p>Explicit material inferences with robustness policies work as in the
 propositional core, with triple atoms as the sentences:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pynmms.rdf</span><span class="w"> </span><span class="kn">import</span> <span class="n">TripleAtom</span>
@@ -1682,6 +1740,34 @@ question is whether the accepted graphs are incoherent.</p>
 triples is in the closure; under exact or guarded entries the conjunction
 form is what keeps the joint combinations honest, which is why
 <code>position()</code> expands ground graphs rather than using a pattern atom.</p>
+<h2 id="positions-as-speech-acts">Positions as speech acts<a class="headerlink" href="#positions-as-speech-acts" title="Permanent link">&para;</a></h2>
+<p>A position is what a holder has said. <code>Position</code> keeps the atoms asserted,
+the graphs denied, and the order of the moves, and checks them over the
+store as background; it speaks for the subjects it asserts about, so their
+stored records are set aside while it is checked, and reading a record
+aloud is <code>Position.of</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pynmms.rdf</span><span class="w"> </span><span class="kn">import</span> <span class="n">Position</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="n">pos</span> <span class="o">=</span> <span class="n">Position</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">holder</span><span class="o">=</span><span class="s2">&quot;curator&quot;</span><span class="p">)</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="n">pos</span><span class="o">.</span><span class="n">assert_</span><span class="p">(</span><span class="s2">&quot;&lt;am:proxy-52227 am:etchedBy am:p-10974&gt;&quot;</span><span class="p">)</span>
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="n">v</span> <span class="o">=</span> <span class="n">pos</span><span class="o">.</span><span class="n">coherent</span><span class="p">()</span>            <span class="c1"># Verdict: bool(v), v.reason, v.rescue</span>
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="n">pos</span><span class="o">.</span><span class="n">commits_to</span><span class="p">(</span><span class="s2">&quot;&lt;am:proxy-52227 am:objectName am:t-11421&gt;&quot;</span><span class="p">)</span>
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="n">pos</span><span class="o">.</span><span class="n">precludes</span><span class="p">(</span><span class="s2">&quot;&lt;am:proxy-52227 am:madeBy am:p-10974&gt;&quot;</span><span class="p">)</span>
+<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="n">pos</span><span class="o">.</span><span class="n">deny</span><span class="p">([(</span><span class="n">s</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">o</span><span class="p">)])</span>         <span class="c1"># a rejected graph, its triples jointly</span>
+<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a><span class="n">pos</span><span class="o">.</span><span class="n">withdraw</span><span class="p">(</span><span class="s2">&quot;&lt;...&gt;&quot;</span><span class="p">)</span>
+<a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a><span class="n">pos</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>                  <span class="c1"># TELL: the assertions become background</span>
+<a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a>
+<a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a><span class="n">record</span> <span class="o">=</span> <span class="n">Position</span><span class="o">.</span><span class="n">of</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="s2">&quot;am:proxy-31227&quot;</span><span class="p">)</span>   <span class="c1"># the stored record as a position</span>
+</code></pre></div>
+<p><code>coherent()</code> asks whether ⟨accepted, rejected⟩ is in bounds
+(<code>def:contententailment</code>): out of bounds iff the accepted graphs entail a
+rejected one, or, with nothing rejected, iff they are incoherent. A failed
+verdict names the entry or rule responsible and the defeaters that would
+rescue it. The REPL is a client: <code>tell</code> asserts into the session's
+position, <code>ask</code> challenges it, <code>deny</code>, <code>withdraw</code>, <code>coherent</code>, <code>position</code>,
+and <code>commit</code> are the other moves, and <code>save</code> commits before writing.
+<code>python -m bench.replay_dialogue</code> replays a scripted dialogue with
+predictions against a persisted store.</p>
 <h2 id="how-the-closure-is-split">How the closure is split<a class="headerlink" href="#how-the-closure-is-split" title="Permanent link">&para;</a></h2>
 <p>The regime base checks <code>Γ |~ Δ</code> as "Γ is inconsistent or Δ meets <code>cl_R(Γ)</code>".
 The backend holds <code>cl_R(G)</code> for the stored graph; the per-node extras (the
@@ -1732,9 +1818,9 @@ on-disk store records which regime it holds, so reopening it skips the
 closure altogether. On the command line, <code>--oxigraph DIR</code> opens or creates
 such a store; <code>-g</code> files are loaded into it once, and later runs need only
 the directory:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>pynmms<span class="w"> </span>rdf<span class="w"> </span>ask<span class="w"> </span>--oxigraph<span class="w"> </span>./kb<span class="w"> </span>-g<span class="w"> </span>ontology.ttl<span class="w"> </span>-g<span class="w"> </span>data.ttl<span class="w"> </span>--regime<span class="w"> </span>rdfs<span class="w"> </span><span class="s2">&quot;&lt;ex:tweety a ex:Bird&gt;&quot;</span>
-<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>pynmms<span class="w"> </span>rdf<span class="w"> </span>ask<span class="w"> </span>--oxigraph<span class="w"> </span>./kb<span class="w"> </span>--regime<span class="w"> </span>rdfs<span class="w"> </span>--prefix<span class="w"> </span><span class="nv">ex</span><span class="o">=</span>http://ex.org/<span class="w"> </span><span class="s2">&quot;&lt;ex:tweety a ex:Bird&gt;&quot;</span>
-<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>pynmms<span class="w"> </span>rdf<span class="w"> </span>tell<span class="w"> </span>--oxigraph<span class="w"> </span>./kb<span class="w"> </span>--regime<span class="w"> </span>rdfs<span class="w"> </span>--prefix<span class="w"> </span><span class="nv">ex</span><span class="o">=</span>http://ex.org/<span class="w"> </span><span class="s2">&quot;&lt;ex:polly a ex:Sparrow&gt;&quot;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>pynmms<span class="w"> </span>rdf<span class="w"> </span>ask<span class="w"> </span>--oxigraph<span class="w"> </span>./kb<span class="w"> </span>-g<span class="w"> </span>ontology.ttl<span class="w"> </span>-g<span class="w"> </span>data.ttl<span class="w"> </span>--regime<span class="w"> </span>rdfs<span class="w"> </span><span class="s2">&quot;&lt;ex:tweety a ex:Bird&gt;&quot;</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>pynmms<span class="w"> </span>rdf<span class="w"> </span>ask<span class="w"> </span>--oxigraph<span class="w"> </span>./kb<span class="w"> </span>--regime<span class="w"> </span>rdfs<span class="w"> </span>--prefix<span class="w"> </span><span class="nv">ex</span><span class="o">=</span>http://ex.org/<span class="w"> </span><span class="s2">&quot;&lt;ex:tweety a ex:Bird&gt;&quot;</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>pynmms<span class="w"> </span>rdf<span class="w"> </span>tell<span class="w"> </span>--oxigraph<span class="w"> </span>./kb<span class="w"> </span>--regime<span class="w"> </span>rdfs<span class="w"> </span>--prefix<span class="w"> </span><span class="nv">ex</span><span class="o">=</span>http://ex.org/<span class="w"> </span><span class="s2">&quot;&lt;ex:polly a ex:Sparrow&gt;&quot;</span>
 </code></pre></div>
 <p><code>tell</code> extends the closure incrementally and persists it. An on-disk store
 below two million asserted triples computes the closure in a temporary
@@ -1742,13 +1828,13 @@ in-memory store and bulk-loads the result, which costs about 600 bytes of
 memory per closure triple; above that it runs the rule updates directly on
 disk, slower but with no memory cost (<code>in_memory=</code> overrides the choice).
 In Python:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pynmms.rdf</span><span class="w"> </span><span class="kn">import</span> <span class="n">RDFS</span><span class="p">,</span> <span class="n">RegimeBase</span>
-<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pynmms.rdf.backends</span><span class="w"> </span><span class="kn">import</span> <span class="n">OxigraphBackend</span>
-<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>
-<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="k">with</span> <span class="n">OxigraphBackend</span><span class="p">(</span><span class="s2">&quot;./kb&quot;</span><span class="p">,</span> <span class="n">regime</span><span class="o">=</span><span class="n">RDFS</span><span class="p">,</span> <span class="n">prefixes</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;ex&quot;</span><span class="p">:</span> <span class="s2">&quot;http://ex.org/&quot;</span><span class="p">})</span> <span class="k">as</span> <span class="n">backend</span><span class="p">:</span>
-<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>    <span class="n">backend</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;ontology.ttl&quot;</span><span class="p">,</span> <span class="n">materialize</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>    <span class="n">backend</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;data.ttl&quot;</span><span class="p">)</span>            <span class="c1"># materialises once, in the store</span>
-<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>    <span class="n">base</span> <span class="o">=</span> <span class="n">RegimeBase</span><span class="p">(</span><span class="n">backend</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pynmms.rdf</span><span class="w"> </span><span class="kn">import</span> <span class="n">RDFS</span><span class="p">,</span> <span class="n">RegimeBase</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pynmms.rdf.backends</span><span class="w"> </span><span class="kn">import</span> <span class="n">OxigraphBackend</span>
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="k">with</span> <span class="n">OxigraphBackend</span><span class="p">(</span><span class="s2">&quot;./kb&quot;</span><span class="p">,</span> <span class="n">regime</span><span class="o">=</span><span class="n">RDFS</span><span class="p">,</span> <span class="n">prefixes</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;ex&quot;</span><span class="p">:</span> <span class="s2">&quot;http://ex.org/&quot;</span><span class="p">})</span> <span class="k">as</span> <span class="n">backend</span><span class="p">:</span>
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>    <span class="n">backend</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;ontology.ttl&quot;</span><span class="p">,</span> <span class="n">materialize</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>    <span class="n">backend</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;data.ttl&quot;</span><span class="p">)</span>            <span class="c1"># materialises once, in the store</span>
+<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>    <span class="n">base</span> <span class="o">=</span> <span class="n">RegimeBase</span><span class="p">(</span><span class="n">backend</span><span class="p">)</span>
 </code></pre></div>
 <p>Rules with a Python guard or a procedural body (the OWL 2 RL list rules)
 run in process against the store between rounds, so every shipped regime

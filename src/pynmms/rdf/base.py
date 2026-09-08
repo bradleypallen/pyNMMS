@@ -144,17 +144,22 @@ class RDFBase(MaterialBase):
         consequent: Iterable[str] = (),
         *,
         include_graph: bool | str = True,
+        aside: Iterable[str] = (),
     ) -> Sequent:
         """Build ``G, antecedent ⇒ consequent`` (or just ``antecedent ⇒ consequent``).
 
         *include_graph* ``True`` puts the stored graph into Γ; ``False`` leaves the
         store out altogether; ``"background"`` makes Γ the antecedent alone while
         the store still supplies the closure (a position over a background).
+        *aside* names stored atoms the background must not supply for this
+        sequent (a position speaks for its subjects, so their stored record is
+        set aside; asserting one of them puts it back as a commitment).
         """
         ga, gc = _partition_canonical(antecedent, self.resolver, antecedent=True)
         da, dc = _partition_canonical(consequent, self.resolver, antecedent=False)
         if include_graph == "background":
-            return Sequent(self.view(background=True).with_added_all(ga), gc, AtomSet(da), dc)
+            view = GraphView(self.backend, removed=frozenset(aside), background=True)
+            return Sequent(view.with_added_all(ga), gc, AtomSet(da), dc)
         if include_graph:
             return Sequent(self.view().with_added_all(ga), gc, AtomSet(da), dc)
         return Sequent(AtomSet(ga), gc, AtomSet(da), dc)
@@ -286,6 +291,10 @@ class RegimeBase(RDFBase):
         # (background_inconsistent()). "global": the base B_R of def:fitness, where a
         # R-inconsistent store makes every pair good.
         self.attribution: str = "position"
+        #: Why the last successful axiom check succeeded, and the defeaters of the
+        #: entry responsible (what would have rescued the position); for reports.
+        self.last_reason: str | None = None
+        self.last_rescue: tuple[str, ...] = ()
         self._entry_closure_cache: dict[frozenset[str], set[Triple]] = {}
 
     def clear_caches(self) -> None:
@@ -307,9 +316,11 @@ class RegimeBase(RDFBase):
         """
         view = gamma if isinstance(gamma, GraphView) and gamma.backend is self.backend else None
         over_graph = view is not None
+        hidden: frozenset[str] = frozenset()
         if view is not None:
             if view.removed:
-                logger.debug("regime check with removed atoms: %d", len(view.removed))
+                hidden = view.removed - view.added
+                logger.debug("regime check with %d atoms set aside", len(hidden))
             extras = frozenset(view.added)
             store_inconsistent = (
                 self.attribution == "global" and not view.background
@@ -322,31 +333,42 @@ class RegimeBase(RDFBase):
         derived, bottom = self._closure_of_extras(extras, over_graph)
         if store_inconsistent or bottom:
             logger.debug("regime %s: Γ is inconsistent", self.regime)
+            self.last_reason = f"⊥ from the regime {self.regime.name}"
+            self.last_rescue = ()
             return True
-        if self._delta_meets(delta, derived, over_graph, "cl(Γ)"):
+        if self._delta_meets(delta, derived, over_graph, "cl(Γ)", hidden):
             return True
         if not self._consequences:
             return False
 
         def in_cl(t: Triple) -> bool:
-            return t in derived or (over_graph and self.backend.closure_contains(t))
+            if t in derived:
+                return True
+            return over_graph and TripleAtom(*t) not in hidden and self.backend.closure_contains(t)
 
-        return self._material_check(gamma, delta, extras, derived, over_graph, in_cl)
+        return self._material_check(gamma, delta, extras, derived, over_graph, in_cl, hidden)
 
     def _delta_meets(
-        self, delta: AtomsView, derived: set[Triple], over_graph: bool, what: str
+        self, delta: AtomsView, derived: set[Triple], over_graph: bool, what: str,
+        hidden: frozenset[str] = frozenset(),
     ) -> bool:
         """Δ ∩ closure ≠ ∅, where the closure is the store's plus *derived*."""
         for d in delta:
             t = TripleAtom.coerce(d)
             if t is not None:
-                if t.triple in derived or (over_graph and self.backend.closure_contains(t.triple)):
+                if t.triple in derived or (
+                    over_graph and t not in hidden and self.backend.closure_contains(t.triple)
+                ):
                     logger.debug("regime %s: %s in %s", self.regime, t, what)
+                    self.last_reason = f"{t} ∈ {what}"
+                    self.last_rescue = ()
                     return True
                 continue
             pat = PatternAtom.coerce(d)
             if pat is not None and self._matches(pat, derived, over_graph):
                 logger.debug("regime %s: pattern %s has a witness in %s", self.regime, pat, what)
+                self.last_reason = f"witness for {pat} in {what}"
+                self.last_rescue = ()
                 return True
         return False
 
@@ -358,6 +380,7 @@ class RegimeBase(RDFBase):
         derived: set[Triple],
         over_graph: bool,
         in_cl: Callable[[Triple], bool],
+        hidden: frozenset[str] = frozenset(),
     ) -> bool:
         """Clause (iii): one entry whose antecedent is derivable, whose defeaters are
         not, and whose consequent, elaborated by the regime, meets Δ."""
@@ -411,14 +434,20 @@ class RegimeBase(RDFBase):
                 if rob.is_exact and len(delta) > 0:
                     continue
                 logger.debug("entry %s |~ ∅ fires: Γ materially incoherent [%s]", set(a_set), rob)
+                self.last_reason = f"incompatibility {sorted(a_set)} |~ ∅ [{rob.kind}]"
+                self.last_rescue = tuple(sorted(rob.left))
                 return True
             if self.elaborate_consequent:
                 elaborated = self._closure_of_extras_plus(extras, derived, d_set, over_graph)
-                if self._delta_meets(delta, elaborated, over_graph, "cl(Γ ∪ D)"):
+                if self._delta_meets(delta, elaborated, over_graph, "cl(Γ ∪ D)", hidden):
                     logger.debug("entry %s |~ %s fires [%s]", set(a_set), set(d_set), rob)
+                    self.last_reason = f"entry {sorted(a_set)} |~ {sorted(d_set)} [{rob.kind}]"
+                    self.last_rescue = tuple(sorted(rob.left))
                     return True
             elif any(x in delta for x in d_set):
                 logger.debug("entry %s |~ %s fires literally [%s]", set(a_set), set(d_set), rob)
+                self.last_reason = f"entry {sorted(a_set)} |~ {sorted(d_set)} [{rob.kind}]"
+                self.last_rescue = tuple(sorted(rob.left))
                 return True
         return False
 

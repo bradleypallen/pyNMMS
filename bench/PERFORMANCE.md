@@ -469,3 +469,24 @@ attribution by derivation blames a position for every incompatibility its
 own commitments take part in. That is the principle working as stated,
 and a prediction made on a looser reading of it; the query file records
 both.
+
+**A curator's session** (2026-09-07, `bench/replay_dialogue.py` with
+`bench/queries/am_dialogue.txt`; records `20260908T052512Z-*` and
+`*T052639Z-*`). The position API (`pynmms.rdf.position`) replayed a
+scripted session over the same store: read the Luyken etching's record
+aloud (78 triples, 10 ms), check it is in bounds, ask what it commits the
+curator to, assert the etcher credit and watch the position go out of
+bounds with the anachronism named and "posthumous impression" offered as
+the rescue, assert the rescue, withdraw it, withdraw the credit, deny the
+making credit (in bounds) and then deny the propagated object name (out of
+bounds), then read the chalice aloud (189 triples), find it out of bounds,
+withdraw one date, and find it in bounds while still committed to the
+rest of its record. Fourteen questions, each answered in 2.5 to 10 ms
+over the six-million-triple background. The first run held twelve of
+fourteen predictions; both failures were one wrong guess about the data
+(a thesaurus term that is not a broader term of the record's object
+name), corrected in the file and noted there; the second run held all
+fourteen. This is the locality the chalice needed, done the way the
+speech-act reading says: the position speaks for the subjects it asserts
+about, so their stored record is set aside while it is checked, and one
+asserted date is coherent where the record read aloud with two is not.

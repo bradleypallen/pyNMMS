@@ -140,6 +140,9 @@ class GraphView(AbstractSet[str]):
         if x in self:
             return self
         if x in self._removed:
+            if self._background:
+                # Set aside from the background and now asserted: a commitment.
+                return GraphView(self._backend, self._added | {x}, self._removed - {x}, True)
             return GraphView(self._backend, self._added, self._removed - {x}, self._background)
         return GraphView(self._backend, self._added | {x}, self._removed, self._background)
 

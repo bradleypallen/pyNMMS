@@ -207,6 +207,39 @@ triples is in the closure; under exact or guarded entries the conjunction
 form is what keeps the joint combinations honest, which is why
 `position()` expands ground graphs rather than using a pattern atom.
 
+## Positions as speech acts
+
+A position is what a holder has said. `Position` keeps the atoms asserted,
+the graphs denied, and the order of the moves, and checks them over the
+store as background; it speaks for the subjects it asserts about, so their
+stored records are set aside while it is checked, and reading a record
+aloud is `Position.of`:
+
+```python
+from pynmms.rdf import Position
+
+pos = Position(base, holder="curator")
+pos.assert_("<am:proxy-52227 am:etchedBy am:p-10974>")
+v = pos.coherent()            # Verdict: bool(v), v.reason, v.rescue
+pos.commits_to("<am:proxy-52227 am:objectName am:t-11421>")
+pos.precludes("<am:proxy-52227 am:madeBy am:p-10974>")
+pos.deny([(s, p, o)])         # a rejected graph, its triples jointly
+pos.withdraw("<...>")
+pos.commit()                  # TELL: the assertions become background
+
+record = Position.of(base, "am:proxy-31227")   # the stored record as a position
+```
+
+`coherent()` asks whether ⟨accepted, rejected⟩ is in bounds
+(`def:contententailment`): out of bounds iff the accepted graphs entail a
+rejected one, or, with nothing rejected, iff they are incoherent. A failed
+verdict names the entry or rule responsible and the defeaters that would
+rescue it. The REPL is a client: `tell` asserts into the session's
+position, `ask` challenges it, `deny`, `withdraw`, `coherent`, `position`,
+and `commit` are the other moves, and `save` commits before writing.
+`python -m bench.replay_dialogue` replays a scripted dialogue with
+predictions against a persisted store.
+
 ## How the closure is split
 
 The regime base checks `Γ |~ Δ` as "Γ is inconsistent or Δ meets `cl_R(Γ)`".

@@ -1,0 +1,317 @@
+{
+  "timestamp": "2026-09-08T05:25:12+00:00",
+  "git_sha": "5249a14-dirty",
+  "quick": false,
+  "env": {
+    "pynmms": "0.11.0",
+    "python": "3.11.11",
+    "implementation": "CPython",
+    "platform": "macOS-26.6.2-arm64-arm-64bit",
+    "machine": "arm64"
+  },
+  "sections": [
+    {
+      "name": "dialogue:moves",
+      "columns": [
+        "#",
+        "move",
+        "text",
+        "answer",
+        "expect",
+        "ok",
+        "ms",
+        "reason",
+        "rescue"
+      ],
+      "rows": [
+        [
+          3,
+          "holder",
+          "curator@amsterdammuseum.nl",
+          "",
+          "n/a",
+          "n/a",
+          0.0,
+          "",
+          ""
+        ],
+        [
+          7,
+          "read",
+          "am:proxy-52227",
+          "78 asserted",
+          "n/a",
+          "n/a",
+          9.637,
+          "",
+          ""
+        ],
+        [
+          8,
+          "coherent?",
+          "",
+          true,
+          1,
+          true,
+          9.504,
+          "",
+          ""
+        ],
+        [
+          10,
+          "commits?",
+          "<am:proxy-52227 am:objectName am:t-11421>",
+          false,
+          1,
+          false,
+          2.731,
+          "",
+          ""
+        ],
+        [
+          12,
+          "commits?",
+          "<am:proxy-52227 am:etchedBy am:p-10974>",
+          true,
+          1,
+          true,
+          2.793,
+          "entry [TripleAtom('<http://purl.org/collections/nl/am/proxy-52227 http://purl.org/collections/nl/am/maker https://pynmms.dev/.well-known/genid/Nbeaaf6d873ed427bb6df02e7e6e24699>'), TripleAtom('<https://pynmms.dev/.well-known/genid/Nbeaaf6d873ed427bb6df02e7e6e24699 http://www.w3.org/1999/02/22-rdf-syntax-ns#value http://purl.org/collections/nl/am/p-10974>')] |~ [TripleAtom('<http://purl.org/collections/nl/am/proxy-52227 http://purl.org/collections/nl/am/etchedBy http://purl.org/collections/nl/am/p-10974>')] [guarded]",
+          ""
+        ],
+        [
+          13,
+          "commits?",
+          "<am:proxy-52227 am:madeBy am:p-10974>",
+          false,
+          0,
+          true,
+          2.698,
+          "",
+          ""
+        ],
+        [
+          16,
+          "assert",
+          "<am:proxy-52227 am:etchedBy am:p-10974>",
+          "79 asserted",
+          "n/a",
+          "n/a",
+          0.023,
+          "",
+          ""
+        ],
+        [
+          17,
+          "coherent?",
+          "",
+          false,
+          0,
+          true,
+          3.039,
+          "incompatibility [TripleAtom('<http://purl.org/collections/nl/am/p-10974 http://purl.org/collections/nl/am/deathDateEnd \"1712-04-05\">'), TripleAtom('<http://purl.org/collections/nl/am/proxy-52227 http://purl.org/collections/nl/am/etchedBy http://purl.org/collections/nl/am/p-10974>'), TripleAtom('<http://purl.org/collections/nl/am/proxy-52227 http://purl.org/collections/nl/am/productionDateStart \"1727\">')] |~ \u2205 [guarded]",
+          "<http://purl.org/collections/nl/am/proxy-52227 http://purl.org/collections/nl/am/posthumousImpression \"yes\">"
+        ],
+        [
+          19,
+          "assert",
+          "<am:proxy-52227 am:posthumousImpression \"yes\">",
+          "80 asserted",
+          "n/a",
+          "n/a",
+          0.026,
+          "",
+          ""
+        ],
+        [
+          20,
+          "coherent?",
+          "",
+          true,
+          1,
+          true,
+          7.053,
+          "",
+          ""
+        ],
+        [
+          21,
+          "withdraw",
+          "<am:proxy-52227 am:posthumousImpression \"yes\">",
+          "79 asserted",
+          "n/a",
+          "n/a",
+          0.03,
+          "",
+          ""
+        ],
+        [
+          22,
+          "coherent?",
+          "",
+          false,
+          0,
+          true,
+          2.591,
+          "",
+          ""
+        ],
+        [
+          23,
+          "withdraw",
+          "<am:proxy-52227 am:etchedBy am:p-10974>",
+          "78 asserted",
+          "n/a",
+          "n/a",
+          0.02,
+          "",
+          ""
+        ],
+        [
+          24,
+          "coherent?",
+          "",
+          true,
+          1,
+          true,
+          2.464,
+          "",
+          ""
+        ],
+        [
+          27,
+          "deny",
+          "<am:proxy-52227 am:madeBy am:p-10974>",
+          "1 denied",
+          "n/a",
+          "n/a",
+          0.033,
+          "",
+          ""
+        ],
+        [
+          28,
+          "coherent?",
+          "",
+          true,
+          1,
+          true,
+          2.469,
+          "",
+          ""
+        ],
+        [
+          30,
+          "deny",
+          "<am:proxy-52227 am:objectName am:t-11421>",
+          "2 denied",
+          "n/a",
+          "n/a",
+          0.024,
+          "",
+          ""
+        ],
+        [
+          31,
+          "coherent?",
+          "",
+          true,
+          0,
+          false,
+          2.859,
+          "",
+          ""
+        ],
+        [
+          34,
+          "read",
+          "am:proxy-31227",
+          "189 asserted",
+          "n/a",
+          "n/a",
+          12.823,
+          "",
+          ""
+        ],
+        [
+          35,
+          "coherent?",
+          "",
+          false,
+          0,
+          true,
+          10.461,
+          "incompatibility [TripleAtom('<http://purl.org/collections/nl/am/proxy-31227 http://purl.org/collections/nl/am/productionDateStart \"1632\">'), TripleAtom('<http://purl.org/collections/nl/am/proxy-31227 http://purl.org/collections/nl/am/productionDateStart \"1780\">')] |~ \u2205 [monotone]",
+          ""
+        ],
+        [
+          36,
+          "withdraw",
+          "<am:proxy-31227 am:productionDateStart \"1632\">",
+          "188 asserted",
+          "n/a",
+          "n/a",
+          0.03,
+          "",
+          ""
+        ],
+        [
+          37,
+          "coherent?",
+          "",
+          true,
+          1,
+          true,
+          8.609,
+          "",
+          ""
+        ],
+        [
+          39,
+          "commits?",
+          "<am:proxy-31227 am:productionDateEnd \"1800\">",
+          true,
+          1,
+          true,
+          6.633,
+          "",
+          ""
+        ],
+        [
+          41,
+          "commits?",
+          "<am:proxy-31227 am:productionDateStart \"1900\">",
+          false,
+          0,
+          true,
+          6.999,
+          "",
+          ""
+        ]
+      ],
+      "notes": "store /private/tmp/pynmms-am/store; regime rdfs+am_prop.txt; 7 entries"
+    },
+    {
+      "name": "dialogue:summary",
+      "columns": [
+        "questions",
+        "predicted",
+        "holder",
+        "asserted",
+        "denied",
+        "moves"
+      ],
+      "rows": [
+        [
+          14,
+          "12/14",
+          "curator@amsterdammuseum.nl",
+          188,
+          0,
+          2
+        ]
+      ],
+      "notes": ""
+    }
+  ]
+}

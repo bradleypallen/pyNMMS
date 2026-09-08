@@ -38,12 +38,18 @@ REGIME_CHOICES = ["simple", "rdfs", "owl2rl"]
 _FORMATS = {".ttl": "turtle", ".nt": "nt", ".n3": "n3", ".xml": "xml", ".rdf": "xml",
             ".jsonld": "json-ld", ".trig": "trig", ".nq": "nquads"}
 
-REPL_HELP = """Commands:
-  ask <query>              antecedent => consequent, or a consequent
-  tell <t1>, <t2>, ...     add triples to the graph (in memory; 'save' to write)
-  load <file>              load another RDF file
-  save [file]              write the graph back (default: the first -g file)
-  show                     graph size, regime, prefixes
+REPL_HELP = """The session is a position over the stored graph as background.
+Commands:
+  ask <query>              challenge the position: antecedent => consequent, or a consequent
+  tell <t1>, <t2>, ...     assert triples into the position (not yet in the graph)
+  deny <t1>, <t2>, ...     reject a graph (its triples jointly); blank nodes are existential
+  withdraw <t1>, ...       take assertions back
+  coherent                 is the position in bounds? names what fails and what would rescue it
+  position                 the position's commitments, denials, and history
+  commit                   write the position's assertions to the graph (closure extended)
+  load <file>              load another RDF file into the graph
+  save [file]              commit, then write the graph (default: the first -g file)
+  show                     graph size, regime, prefixes, position summary
   trace on|off             show proof traces
   help                     this help
   quit                     exit
@@ -235,10 +241,10 @@ def _parse_triples(base: RegimeBase, text: str) -> list:  # type: ignore[type-ar
 
 
 def _ask_one(base: RegimeBase, reasoner: NMMSReasoner, query: str, *,
-             json_mode: bool, quiet: bool, trace: bool) -> int:
+             json_mode: bool, quiet: bool, trace: bool, position: Any = None) -> int:
     ant, con = _split_query(query)
     try:
-        seq = base.sequent(ant, con)
+        seq = position.sequent(ant, con) if position is not None else base.sequent(ant, con)
         result = reasoner.derives_sequent(seq)
     except ValueError as e:
         emit_error(str(e), json_mode=json_mode, quiet=quiet)
@@ -434,12 +440,16 @@ def _run_repl(args: argparse.Namespace) -> int:
     except (OSError, ValueError, ImportError) as e:
         emit_error(str(e))
         return EXIT_ERROR
+    from pynmms.rdf.position import Position
+
     mem: Any = backend  # MemoryBackend or OxigraphBackend
     base = RegimeBase(mem, regime=regime)
     reasoner = NMMSReasoner(base, persistent_cache=True)
+    position = Position(base, holder="repl")
     default_file = args.graph[0] if args.graph else None
     show_trace = False
-    print(f"pyNMMS RDF REPL: {mem.size()} triples, regime {regime}. Type 'help' for commands.\n")
+    print(f"pyNMMS RDF REPL: {mem.size()} triples, regime {regime}; the session is a position "
+          f"over them. Type 'help' for commands.\n")
 
     while True:
         try:
@@ -455,7 +465,9 @@ def _run_repl(args: argparse.Namespace) -> int:
             print(REPL_HELP)
         elif line == "show":
             print(f"Triples: {mem.size()}  closure: {mem.closure_size()}  regime: {regime}"
-                  f"{'  INCONSISTENT' if mem.is_inconsistent() else ''}")
+                  f"{'  background INCONSISTENT' if mem.is_inconsistent() else ''}")
+            print(f"Position: {len(position.accepted)} asserted, {len(position.rejected)} denied, "
+                  f"{len(position.log)} moves")
             nsm = mem.resolver.nsm
             for prefix, ns in (nsm.namespaces() if nsm is not None else []):
                 if prefix and not prefix.startswith(("brick", "csvw", "dc", "foaf", "odrl", "org",
@@ -467,13 +479,48 @@ def _run_repl(args: argparse.Namespace) -> int:
             show_trace = line[6:].strip() == "on"
             print(f"Trace: {'ON' if show_trace else 'OFF'}")
         elif line.startswith("ask "):
-            _ask_one(base, reasoner, line[4:], json_mode=False, quiet=False, trace=show_trace)
+            _ask_one(base, reasoner, line[4:], json_mode=False, quiet=False, trace=show_trace,
+                     position=position)
         elif line.startswith("tell "):
             try:
-                n = mem.add(_parse_triples(base, line[5:]))
-                print(f"Added {n} triple(s); {mem.size()} total")
+                before = len(position.accepted)
+                position.assert_(*_parse_triples(base, line[5:]))
+                n = len(position.accepted) - before
+                print(f"Added {n} triple(s) to the position; {len(position.accepted)} asserted")
             except ValueError as e:
                 print(f"Error: {e}")
+        elif line.startswith("deny "):
+            try:
+                position.deny(_parse_triples(base, line[5:]))
+                print(f"Denied; {len(position.rejected)} rejected graph(s)")
+            except ValueError as e:
+                print(f"Error: {e}")
+        elif line.startswith("withdraw "):
+            try:
+                position.withdraw(*_parse_triples(base, line[9:]))
+                print(f"Withdrawn; {len(position.accepted)} asserted")
+            except ValueError as e:
+                print(f"Error: {e}")
+        elif line == "coherent":
+            v = position.coherent()
+            if v:
+                print("COHERENT")
+            else:
+                print(f"OUT OF BOUNDS: {v.reason}")
+                if v.rescue:
+                    print("  would be rescued by: " + ", ".join(v.rescue))
+        elif line == "position":
+            print(f"Holder: {position.holder or '-'}")
+            for a in sorted(position.accepted):
+                print(f"  + {a}")
+            for r in position.rejected:
+                print(f"  - {r}")
+            for i, m in enumerate(position.log, 1):
+                note = f" {m.note}" if m.note else ""
+                print(f"  {i}. {m.kind} {', '.join(sorted(m.atoms))}{note}")
+        elif line == "commit":
+            n = position.commit()
+            print(f"Committed {n} new triple(s); {mem.size()} in the graph")
         elif line.startswith("load "):
             try:
                 n = mem.load(line[5:].strip())
@@ -485,6 +532,9 @@ def _run_repl(args: argparse.Namespace) -> int:
             if not target:
                 print("Error: no file given and none loaded")
                 continue
+            if position.accepted:
+                n = position.commit()
+                print(f"Committed {n} new triple(s)")
             if isinstance(mem, MemoryBackend):
                 fmt = _FORMATS.get(Path(target).suffix.lower(), "turtle")
                 mem.graph.serialize(destination=target, format=fmt)

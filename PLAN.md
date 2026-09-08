@@ -655,7 +655,7 @@ only mode, timeouts and retries with logging, thread-safe memos, and a
 and REPL stay research-grade; a service wrapper is out of scope for this
 phase and would be a thin layer over `RegimeBase` when wanted.
 
-#### H. Positions as speech acts: the position API
+#### H. Positions as speech acts: the position API — DONE 2026-09-07 (`pynmms.rdf.position`, REPL client, `bench/replay_dialogue.py`, `bench/queries/am_dialogue.txt`)
 
 The real-data runs of 2026-09-07 (F0 on GO and on the Amsterdam Museum)
 settled what a position is. It is not a region of the graph; it is what

@@ -1,0 +1,10 @@
+# Material entries for the GO + human GAF store (tell syntax; prefixes as in go_rdfs.txt).
+# A transcription factor is in the nucleus unless the curators say it is not.
+<up:P04637 go:enables obo:GO_0003700> |~ <up:P04637 go:located_in obo:GO_0005634> unless <up:P04637 go:not_located_in obo:GO_0005634>
+<up:Q_tf go:enables obo:GO_0003700> |~ <up:Q_tf go:located_in obo:GO_0005634> unless <up:Q_tf go:not_located_in obo:GO_0005634>
+# WDR91: ubiquitin-dependent catabolism (GO:0006511) would follow from protein catabolic
+# process regulation by the usual default, but the curators annotated NOT.
+<up:A4D1P6 go:involved_in obo:GO_0042176> |~ <up:A4D1P6 go:involved_in obo:GO_0006511> unless <up:A4D1P6 go:not_involved_in obo:GO_0006511>
+<up:A4D1P6 go:involved_in obo:GO_0042176> |~ <up:A4D1P6 go:involved_in obo:GO_0009057> unless <up:A4D1P6 go:not_involved_in obo:GO_0009057>
+# CYP2D7: the GAF carries both enables and NOT enables aromatase activity (GO:0070330).
+<up:A0A087X1C5 go:enables obo:GO_0016712> |~ <up:A0A087X1C5 go:enables obo:GO_0070330> unless <up:A0A087X1C5 go:not_enables obo:GO_0070330>

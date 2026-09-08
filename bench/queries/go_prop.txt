@@ -1,0 +1,15 @@
+# Annotation propagation: a gene product related to a class is related to
+# its superclasses. Written for pynmms rdf --rules; prefixes bound by the CLI.
+?g http://pynmms.dev/go/enables ?c, ?c rdfs:subClassOf ?d -> ?g http://pynmms.dev/go/enables ?d
+?g http://pynmms.dev/go/involved_in ?c, ?c rdfs:subClassOf ?d -> ?g http://pynmms.dev/go/involved_in ?d
+?g http://pynmms.dev/go/located_in ?c, ?c rdfs:subClassOf ?d -> ?g http://pynmms.dev/go/located_in ?d
+?g http://pynmms.dev/go/part_of ?c, ?c rdfs:subClassOf ?d -> ?g http://pynmms.dev/go/part_of ?d
+?g http://pynmms.dev/go/is_active_in ?c, ?c rdfs:subClassOf ?d -> ?g http://pynmms.dev/go/is_active_in ?d
+?g http://pynmms.dev/go/contributes_to ?c, ?c rdfs:subClassOf ?d -> ?g http://pynmms.dev/go/contributes_to ?d
+?g http://pynmms.dev/go/colocalizes_with ?c, ?c rdfs:subClassOf ?d -> ?g http://pynmms.dev/go/colocalizes_with ?d
+?g http://pynmms.dev/go/acts_upstream_of ?c, ?c rdfs:subClassOf ?d -> ?g http://pynmms.dev/go/acts_upstream_of ?d
+?g http://pynmms.dev/go/acts_upstream_of_or_within ?c, ?c rdfs:subClassOf ?d -> ?g http://pynmms.dev/go/acts_upstream_of_or_within ?d
+?g http://pynmms.dev/go/acts_upstream_of_positive_effect ?c, ?c rdfs:subClassOf ?d -> ?g http://pynmms.dev/go/acts_upstream_of_positive_effect ?d
+?g http://pynmms.dev/go/acts_upstream_of_negative_effect ?c, ?c rdfs:subClassOf ?d -> ?g http://pynmms.dev/go/acts_upstream_of_negative_effect ?d
+?g http://pynmms.dev/go/acts_upstream_of_or_within_positive_effect ?c, ?c rdfs:subClassOf ?d -> ?g http://pynmms.dev/go/acts_upstream_of_or_within_positive_effect ?d
+?g http://pynmms.dev/go/acts_upstream_of_or_within_negative_effect ?c, ?c rdfs:subClassOf ?d -> ?g http://pynmms.dev/go/acts_upstream_of_or_within_negative_effect ?d

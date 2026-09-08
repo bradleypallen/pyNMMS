@@ -1,0 +1,623 @@
+{
+  "timestamp": "2026-09-08T02:28:24+00:00",
+  "git_sha": "4d102a0-dirty",
+  "quick": false,
+  "env": {
+    "pynmms": "0.11.0",
+    "python": "3.11.11",
+    "implementation": "CPython",
+    "platform": "macOS-26.6.2-arm64-arm-64bit",
+    "machine": "arm64"
+  },
+  "sections": [
+    {
+      "name": "compare_rdfs:atomic",
+      "columns": [
+        "query",
+        "rdfs",
+        "nmms",
+        "nmms+I",
+        "agree",
+        "ask_ms",
+        "nmms_cold_ms",
+        "nmms_ms",
+        "nodes",
+        "round_trips"
+      ],
+      "rows": [
+        [
+          "<up:P04637 go:enables obo:GO_0003677>",
+          true,
+          true,
+          true,
+          true,
+          0.021875021047890186,
+          0.09374995715916157,
+          0.006750051397830248,
+          1,
+          1
+        ],
+        [
+          "<up:P04637 go:enables obo:GO_0003676>",
+          true,
+          true,
+          true,
+          true,
+          0.02091604983434081,
+          0.08304195944219828,
+          0.015270488802343607,
+          1,
+          2
+        ],
+        [
+          "<up:P04637 go:enables obo:GO_0005488>",
+          true,
+          true,
+          true,
+          true,
+          0.020645500626415014,
+          0.021042069420218468,
+          0.014833465684205294,
+          1,
+          2
+        ],
+        [
+          "<up:P04637 go:enables obo:GO_0003674>",
+          true,
+          true,
+          true,
+          true,
+          0.020500505343079567,
+          0.0213750172406435,
+          0.014666991773992777,
+          1,
+          2
+        ],
+        [
+          "<up:P04637 go:located_in obo:GO_0005634>",
+          true,
+          true,
+          true,
+          true,
+          0.02058298559859395,
+          0.010541989468038082,
+          0.006249989382922649,
+          1,
+          1
+        ],
+        [
+          "<up:P04637 go:located_in obo:GO_0043226>",
+          true,
+          true,
+          true,
+          true,
+          0.02039596438407898,
+          0.019458006136119366,
+          0.014000048395246267,
+          1,
+          2
+        ],
+        [
+          "<up:P04637 go:located_in obo:GO_0005575>",
+          true,
+          true,
+          true,
+          true,
+          0.020415987819433212,
+          0.02041610423475504,
+          0.014749995898455381,
+          1,
+          2
+        ],
+        [
+          "<up:P04637 go:enables obo:GO_0005634>",
+          false,
+          false,
+          false,
+          true,
+          0.02054101787507534,
+          0.02395804040133953,
+          0.015479512512683868,
+          1,
+          2
+        ],
+        [
+          "<up:P04637 go:involved_in obo:GO_0003677>",
+          false,
+          false,
+          false,
+          true,
+          0.02095848321914673,
+          0.02350006252527237,
+          0.01452048309147358,
+          1,
+          2
+        ],
+        [
+          "<up:P38398 go:enables obo:GO_0003677>",
+          true,
+          true,
+          true,
+          true,
+          0.020499981474131346,
+          0.014499993994832039,
+          0.006187532562762499,
+          1,
+          1
+        ],
+        [
+          "<up:P38398 go:enables obo:GO_0005488>",
+          true,
+          true,
+          true,
+          true,
+          0.02070807386189699,
+          0.020749983377754688,
+          0.014437537174671888,
+          1,
+          2
+        ],
+        [
+          "<up:P38398 go:located_in obo:GO_0005634>",
+          true,
+          true,
+          true,
+          true,
+          0.02072902861982584,
+          0.010040937922894955,
+          0.006166461389511824,
+          1,
+          1
+        ],
+        [
+          "<up:P04637 a go:GeneProduct>",
+          true,
+          true,
+          true,
+          true,
+          0.020541949197649956,
+          0.011625001206994057,
+          0.005958019755780697,
+          1,
+          1
+        ],
+        [
+          "<obo:GO_0003677 rdfs:subClassOf obo:GO_0003676>",
+          true,
+          true,
+          true,
+          true,
+          0.020854524336755276,
+          0.06474996916949749,
+          0.006458023563027382,
+          1,
+          1
+        ],
+        [
+          "<obo:GO_0003677 rdfs:subClassOf obo:GO_0003674>",
+          true,
+          true,
+          true,
+          true,
+          0.020541949197649956,
+          0.020249979570508003,
+          0.013896031305193901,
+          1,
+          2
+        ],
+        [
+          "<obo:GO_0003677 rdfs:subClassOf obo:GO_0008150>",
+          false,
+          false,
+          false,
+          true,
+          0.02050003968179226,
+          0.01979200169444084,
+          0.01489551505073905,
+          1,
+          2
+        ],
+        [
+          "<obo:GO_0005634 rdfs:subClassOf obo:GO_0043226>",
+          true,
+          true,
+          true,
+          true,
+          0.020687526557594538,
+          0.09175005834549665,
+          0.013499520719051361,
+          1,
+          2
+        ],
+        [
+          "<up:nobody go:enables obo:GO_0003677>",
+          false,
+          false,
+          false,
+          true,
+          0.01991650788113475,
+          0.023667002096772194,
+          0.014437478967010975,
+          1,
+          2
+        ]
+      ],
+      "notes": ""
+    },
+    {
+      "name": "compare_rdfs:pattern",
+      "columns": [
+        "query",
+        "rdfs",
+        "nmms",
+        "nmms+I",
+        "agree",
+        "ask_ms",
+        "nmms_cold_ms",
+        "nmms_ms",
+        "nodes",
+        "round_trips"
+      ],
+      "rows": [
+        [
+          "<{ up:P04637 go:enables _:c . _:c rdfs:subClassOf obo:GO_0003676 }>",
+          true,
+          true,
+          true,
+          true,
+          0.0281875254586339,
+          0.8370830910280347,
+          0.07272901711985469,
+          1,
+          1
+        ],
+        [
+          "<{ up:P04637 go:located_in _:c . _:c rdfs:subClassOf obo:GO_0005739 }>",
+          true,
+          true,
+          true,
+          true,
+          0.1612290507182479,
+          0.21541700698435307,
+          0.20022946409881115,
+          1,
+          1
+        ],
+        [
+          "<{ _:a go:gene_product up:P04637 . _:a go:class obo:GO_0003677 . _:a go:evidence \"IDA\" }>",
+          true,
+          true,
+          true,
+          true,
+          3.1740415142849088,
+          3.2719169976189733,
+          3.2294164411723614,
+          1,
+          1
+        ],
+        [
+          "<{ _:a go:gene_product up:P04637 . _:a go:class obo:GO_0003677 . _:a go:evidence \"NAS\" }>",
+          false,
+          false,
+          false,
+          true,
+          4.12362499628216,
+          4.239041940309107,
+          4.214250482618809,
+          1,
+          1
+        ],
+        [
+          "<{ _:g go:not_enables obo:GO_0070330 . _:g go:enables obo:GO_0070330 }>",
+          true,
+          true,
+          true,
+          true,
+          0.028146023396402597,
+          0.10662502609193325,
+          0.07070851279422641,
+          1,
+          1
+        ]
+      ],
+      "notes": ""
+    },
+    {
+      "name": "compare_rdfs:logical",
+      "columns": [
+        "query",
+        "rdfs",
+        "nmms",
+        "nmms+I",
+        "agree",
+        "ask_ms",
+        "nmms_cold_ms",
+        "nmms_ms",
+        "nodes",
+        "round_trips"
+      ],
+      "rows": [
+        [
+          "<up:P04637 go:enables obo:GO_0003677> -> <up:P04637 go:enables obo:GO_0005488>",
+          "n/a",
+          true,
+          true,
+          "n/a",
+          "n/a",
+          0.05962501745671034,
+          0.023062515538185835,
+          2,
+          3
+        ],
+        [
+          "<up:P04637 go:enables obo:GO_0005488> -> <up:P04637 go:enables obo:GO_0003677>",
+          "n/a",
+          true,
+          true,
+          "n/a",
+          "n/a",
+          0.021792016923427582,
+          0.014645978808403015,
+          2,
+          2
+        ],
+        [
+          "<up:P04637 go:located_in obo:GO_0005634> | <up:P04637 go:located_in obo:GO_0005576>",
+          "n/a",
+          true,
+          true,
+          "n/a",
+          "n/a",
+          0.017749960534274578,
+          0.011041993275284767,
+          2,
+          1
+        ],
+        [
+          "<up:P04637 go:located_in obo:GO_0005576> | <up:P04637 go:located_in obo:GO_0009986>",
+          "n/a",
+          false,
+          false,
+          "n/a",
+          "n/a",
+          0.03608304541558027,
+          0.02893793862313032,
+          2,
+          4
+        ],
+        [
+          "(<up:P04637 go:enables obo:GO_0003677> & <up:P04637 go:enables obo:GO_0003700>) -> (<up:P04637 go:enables obo:GO_0005488> | <up:P04637 go:enables obo:GO_0016301>)",
+          "n/a",
+          true,
+          true,
+          "n/a",
+          "n/a",
+          0.05249993409961462,
+          0.038207974284887314,
+          4,
+          5
+        ],
+        [
+          "<up:Q_new go:enables obo:GO_0003677> => <up:Q_new go:enables obo:GO_0005488>",
+          "n/a",
+          true,
+          true,
+          "n/a",
+          "n/a",
+          1.486291061155498,
+          1.1508959578350186,
+          1,
+          44
+        ],
+        [
+          "<up:Q_new go:enables obo:GO_0003677> => <up:Q_new go:enables obo:GO_0003674> & <up:Q_new go:enables obo:GO_0003676>",
+          "n/a",
+          true,
+          true,
+          "n/a",
+          "n/a",
+          1.1679580202326179,
+          1.1809165589511395,
+          4,
+          47
+        ],
+        [
+          "<up:Q_new go:located_in obo:GO_0005634> => <up:Q_new go:enables obo:GO_0003677>",
+          "n/a",
+          false,
+          false,
+          "n/a",
+          "n/a",
+          2.3523749550804496,
+          2.1473124506883323,
+          1,
+          80
+        ]
+      ],
+      "notes": ""
+    },
+    {
+      "name": "compare_rdfs:material",
+      "columns": [
+        "query",
+        "rdfs",
+        "nmms",
+        "nmms+I",
+        "agree",
+        "ask_ms",
+        "nmms_cold_ms",
+        "nmms_ms",
+        "nodes",
+        "round_trips"
+      ],
+      "rows": [
+        [
+          "<up:A0A087X1C5 go:enables obo:GO_0016712> => <up:A0A087X1C5 go:enables obo:GO_0070330>",
+          "n/a",
+          true,
+          true,
+          "n/a",
+          "n/a",
+          0.012292061001062393,
+          0.006146030500531197,
+          1,
+          1
+        ],
+        [
+          "<up:A0A087X1C5 go:enables obo:GO_0070330>",
+          true,
+          true,
+          true,
+          true,
+          0.021833518985658884,
+          0.010165967978537083,
+          0.006166985258460045,
+          1,
+          1
+        ],
+        [
+          "<up:A4D1P6 go:involved_in obo:GO_0006511>",
+          false,
+          false,
+          false,
+          true,
+          0.020625011529773474,
+          0.026082969270646572,
+          0.014395976904779673,
+          1,
+          2
+        ],
+        [
+          "<up:A4D1P6 go:involved_in obo:GO_0042176> => <up:A4D1P6 go:involved_in obo:GO_0006511>",
+          "n/a",
+          false,
+          false,
+          "n/a",
+          "n/a",
+          0.01991703175008297,
+          0.014291494153439999,
+          1,
+          2
+        ],
+        [
+          "<up:A4D1P6 go:involved_in obo:GO_0042176> => <up:A4D1P6 go:involved_in obo:GO_0009057>",
+          "n/a",
+          false,
+          true,
+          "n/a",
+          "n/a",
+          0.019749975763261318,
+          0.014374498277902603,
+          1,
+          2
+        ],
+        [
+          "<up:P04637 go:enables obo:GO_0003700> => <up:P04637 go:located_in obo:GO_0005634>",
+          "n/a",
+          true,
+          true,
+          "n/a",
+          "n/a",
+          0.009833951480686665,
+          0.006207963451743126,
+          1,
+          1
+        ],
+        [
+          "<up:Q_tf go:enables obo:GO_0003700> => <up:Q_tf go:located_in obo:GO_0005634>",
+          "n/a",
+          false,
+          true,
+          "n/a",
+          "n/a",
+          1.4363339869305491,
+          1.3515204773284495,
+          1,
+          52
+        ],
+        [
+          "<up:Q_tf go:enables obo:GO_0003700>, <up:Q_tf go:not_located_in obo:GO_0005634> => <up:Q_tf go:located_in obo:GO_0005634>",
+          "n/a",
+          false,
+          false,
+          "n/a",
+          "n/a",
+          1.4944999711588025,
+          1.487750036176294,
+          1,
+          58
+        ]
+      ],
+      "notes": ""
+    },
+    {
+      "name": "compare_rdfs:summary",
+      "columns": [
+        "group",
+        "queries",
+        "agree",
+        "ask_ms",
+        "nmms_cold_ms",
+        "nmms_ms",
+        "overhead_x"
+      ],
+      "rows": [
+        [
+          "atomic",
+          18,
+          "18/18",
+          0.020562467398121953,
+          0.020896026398986578,
+          0.014218763681128621,
+          0.6914911234060983
+        ],
+        [
+          "pattern",
+          5,
+          "5/5",
+          0.1612290507182479,
+          0.8370830910280347,
+          0.20022946409881115,
+          1.2418944551668765
+        ],
+        [
+          "logical",
+          8,
+          "n/a",
+          "n/a",
+          0.05606247577816248,
+          0.03357295645400882,
+          "n/a"
+        ],
+        [
+          "material",
+          8,
+          "2/2",
+          0.02122926525771618,
+          0.019833503756672144,
+          0.014332996215671301,
+          0.6751527215696597
+        ]
+      ],
+      "notes": "store /private/tmp/pynmms-go/store; regime rdfs+go_prop.txt; 5 material entries; reopen 0.010 s; reps 20"
+    },
+    {
+      "name": "compare_rdfs:session",
+      "columns": [
+        "reopen_s",
+        "asserted",
+        "regime",
+        "entries"
+      ],
+      "rows": [
+        [
+          0.009706082986667752,
+          6410896,
+          "rdfs+go_prop.txt",
+          5
+        ]
+      ],
+      "notes": ""
+    }
+  ]
+}

@@ -276,3 +276,88 @@ SPARQL-speaking backends now order a join's patterns by selectivity
 (`sparql_rules.order_bgp`: most bound terms first, `rdf:type` scans last),
 which brought the NMMS figure to 66 µs; the classical column is left as the
 user wrote it.
+
+## 9. F0 on real data: the Gene Ontology with the human GAF
+
+Run 2026-09-07 (record `bench/results/20260908T022824Z-*`). Data: `go.owl`
+from current.geneontology.org (1,445,043 triples after Oxigraph's RDF/XML
+parse, of which 862,029 carried blank nodes and were Skolemized) and
+`goa_human.gaf.gz` (906,445 annotation rows for 38,924 gene products,
+1,501 of them `NOT`), converted by `bench/gaf_to_nt.py` to 4,965,853
+distinct triples: each annotation a gene product related to a GO class by
+its qualifier (`go:enables`, `go:involved_in`, ... and `go:not_<qualifier>`
+for the curators' negative assertions), plus a record per annotation with
+evidence code and reference. Regime: RDFS plus thirteen annotation
+propagation rules, one per qualifier, `?g go:r ?c, ?c rdfs:subClassOf ?d
+-> ?g go:r ?d`, which is what GO's own tooling does for positive
+annotations.
+
+**Import.** 6,410,896 asserted triples closed to 10,571,108 in five rounds
+of 27 store-side rules, 26 minutes on the direct-on-disk path (57 s of
+parsing before it, peak resident memory 8.6 GB, store 5.4 GB on disk after
+compaction). Reopening the store takes 10 ms.
+
+**The harness** (`bench/queries/go_rdfs.txt`, `go_entries.txt`, 39 queries,
+5 material entries):
+
+| Group | Queries | Agreement | Classical `ASK` | NMMS cold | NMMS warm | Store calls |
+|---|---|---|---|---|---|---|
+| atomic | 18 | 18/18 | 21 µs | 21 µs | 14 µs | 1 to 2 |
+| pattern | 5 | 5/5 | 28 µs to 4.1 ms | 0.8 ms | 0.2 ms | 1 |
+| logical | 8 | not expressible | — | 56 µs | 34 µs; 1.2 to 2.1 ms with new triples in the antecedent | 1 to 80 |
+| material | 8 | 2/2 on atomic-form rows | 21 µs | 20 µs | 14 µs | 1 to 58 |
+
+The atomic rows include propagation at work on real depth: TP53 `enables`
+DNA binding (asserted), nucleic acid binding, binding, and the
+molecular-function root (all derived), and BRCA1 likewise; the misses are
+a wrong qualifier for a right class and an unknown protein. The pattern
+rows walk the hierarchy and the annotation records (TP53's DNA binding
+with IDA evidence exists, with NAS evidence does not); the two record
+queries cost 3 to 4 ms in both columns, which is the store joining about
+a thousand annotation records for TP53. The logical rows with a fresh
+protein `Q_new` in the antecedent show the extras closure propagating a
+new annotation up the hierarchy in process, at one to two milliseconds
+and up to 80 store calls.
+
+**What the curators' NOT annotations say.** The store was materialised
+without a false-concluding rule, so that queries would not explode; the
+incompatibility `?g go:r ?c, ?g go:not_r ?c -> false` was then evaluated
+by SPARQL over the closure, per qualifier:
+
+| Qualifier | NOT annotations | Contradicted by the closure | Of which already in the asserted data |
+|---|---|---|---|
+| enables | 537 | 179 | 151 |
+| involved_in | 591 | 144 | 114 |
+| located_in | 201 | 62 | 61 |
+| part_of | 21 | 8 | 8 |
+| other five | 33 | 1 | 1 |
+| total | 1,383 | 394 | 335 |
+
+So 394 of the 1,383 negative assertions in the human GAF are contradicted
+by the positive closure, and 335 of those are contradicted by the asserted
+data itself: the GAF carries both `enables` and `NOT enables` for the same
+protein and class, each with its own evidence and reference (CYP2D7 and
+aromatase activity, both IDA, is one). The remaining 59 arise only through
+propagation, where a positive annotation to a subclass reaches the class
+the curator denied, which is the case GO's documentation says `NOT` exists
+for. A classical RDFS reasoner materialises all 394 without comment. Under
+`prop:incoherence` each is an incoherent position, and had the rule been
+in the regime the whole store would be R-inconsistent and NMMS would
+derive everything, which is the correct verdict of a monotone logic and a
+useless one for a working biologist. That is the case for the defeasible
+reading: the material rows show it in ground form. WDR91 is annotated
+`involved_in` regulation of protein catabolic process and `NOT involved_in`
+ubiquitin-dependent protein catabolic process; the entry that would infer
+the latter by default is defeated by the `NOT` annotation read through
+the regime, while the sibling entry without a `NOT` fires. The pattern
+generalisation of that entry, `?g involved_in ?c ⊢ ?g involved_in ?d
+unless ?g not_involved_in ?d`, is workstream D, and the 394 contradictions
+are its test set.
+
+**Against the Phase 6 target.** A real biomedical knowledge base of 10⁷
+closure triples, imported once in half an hour, then queried
+interactively in microseconds for what the closure knows and in
+milliseconds for what it does not, with the reasoner and the classical
+answer agreeing wherever both exist. What is not yet there: OWL 2 RL over
+GO (the `owl:someValuesFrom` axioms, the disjoint roots), the pattern
+form of material entries, and the import hour on disk.

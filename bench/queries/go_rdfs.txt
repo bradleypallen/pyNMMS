@@ -1,0 +1,51 @@
+# F0 queries for the GO + human GAF store (bench/gaf_to_nt.py; regime rdfs + go_prop.txt).
+# Prefixes: obo = http://purl.obolibrary.org/obo/, go = http://pynmms.dev/go/,
+# up = http://identifiers.org/uniprotkb/. Gene products: TP53 = up:P04637, BRCA1 = up:P38398,
+# CYP2D7 = up:A0A087X1C5, WDR91 = up:A4D1P6.
+
+# --- atomic: asserted annotations, propagated annotations, ontology axioms, misses ---
+<up:P04637 go:enables obo:GO_0003677>
+<up:P04637 go:enables obo:GO_0003676>
+<up:P04637 go:enables obo:GO_0005488>
+<up:P04637 go:enables obo:GO_0003674>
+<up:P04637 go:located_in obo:GO_0005634>
+<up:P04637 go:located_in obo:GO_0043226>
+<up:P04637 go:located_in obo:GO_0005575>
+<up:P04637 go:enables obo:GO_0005634>
+<up:P04637 go:involved_in obo:GO_0003677>
+<up:P38398 go:enables obo:GO_0003677>
+<up:P38398 go:enables obo:GO_0005488>
+<up:P38398 go:located_in obo:GO_0005634>
+<up:P04637 a go:GeneProduct>
+<obo:GO_0003677 rdfs:subClassOf obo:GO_0003676>
+<obo:GO_0003677 rdfs:subClassOf obo:GO_0003674>
+<obo:GO_0003677 rdfs:subClassOf obo:GO_0008150>
+<obo:GO_0005634 rdfs:subClassOf obo:GO_0043226>
+<up:nobody go:enables obo:GO_0003677>
+
+# --- pattern: witnesses over the hierarchy and the annotation records ---
+<{ up:P04637 go:enables _:c . _:c rdfs:subClassOf obo:GO_0003676 }>
+<{ up:P04637 go:located_in _:c . _:c rdfs:subClassOf obo:GO_0005739 }>
+<{ _:a go:gene_product up:P04637 . _:a go:class obo:GO_0003677 . _:a go:evidence "IDA" }>
+<{ _:a go:gene_product up:P04637 . _:a go:class obo:GO_0003677 . _:a go:evidence "NAS" }>
+<{ _:g go:not_enables obo:GO_0070330 . _:g go:enables obo:GO_0070330 }>
+
+# --- logical: conditionals and disjunctions over the closure ---
+<up:P04637 go:enables obo:GO_0003677> -> <up:P04637 go:enables obo:GO_0005488>
+<up:P04637 go:enables obo:GO_0005488> -> <up:P04637 go:enables obo:GO_0003677>
+<up:P04637 go:located_in obo:GO_0005634> | <up:P04637 go:located_in obo:GO_0005576>
+<up:P04637 go:located_in obo:GO_0005576> | <up:P04637 go:located_in obo:GO_0009986>
+(<up:P04637 go:enables obo:GO_0003677> & <up:P04637 go:enables obo:GO_0003700>) -> (<up:P04637 go:enables obo:GO_0005488> | <up:P04637 go:enables obo:GO_0016301>)
+<up:Q_new go:enables obo:GO_0003677> => <up:Q_new go:enables obo:GO_0005488>
+<up:Q_new go:enables obo:GO_0003677> => <up:Q_new go:enables obo:GO_0003674> & <up:Q_new go:enables obo:GO_0003676>
+<up:Q_new go:located_in obo:GO_0005634> => <up:Q_new go:enables obo:GO_0003677>
+
+# --- material: the curators' NOT as defeater and as incompatibility (entries file) ---
+material: <up:A0A087X1C5 go:enables obo:GO_0016712> => <up:A0A087X1C5 go:enables obo:GO_0070330>
+material: <up:A0A087X1C5 go:enables obo:GO_0070330>
+material: <up:A4D1P6 go:involved_in obo:GO_0006511>
+material: <up:A4D1P6 go:involved_in obo:GO_0042176> => <up:A4D1P6 go:involved_in obo:GO_0006511>
+material: <up:A4D1P6 go:involved_in obo:GO_0042176> => <up:A4D1P6 go:involved_in obo:GO_0009057>
+material: <up:P04637 go:enables obo:GO_0003700> => <up:P04637 go:located_in obo:GO_0005634>
+material: <up:Q_tf go:enables obo:GO_0003700> => <up:Q_tf go:located_in obo:GO_0005634>
+material: <up:Q_tf go:enables obo:GO_0003700>, <up:Q_tf go:not_located_in obo:GO_0005634> => <up:Q_tf go:located_in obo:GO_0005634>

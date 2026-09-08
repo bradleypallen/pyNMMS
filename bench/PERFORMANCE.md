@@ -229,3 +229,50 @@ hypothetical closure planned for workstream A.3 removes them. `TELL` rose
 from 1.7 ms to 4.3 ms at 10⁷, the only column that moved, since each
 insert now lands in a much larger RocksDB tree.
 
+## 8. F0: NMMS against classical RDFS entailment over one persisted store
+
+`python -m bench.compare_rdfs` (2026-09-07; records
+`bench/results/20260907T2233*` and `*T2235*`) on the 10⁷ store of section 7,
+with the query file `bench/queries/synthetic_rdfs.txt` (31 queries) and the
+four material entries of `synthetic_entries.txt`. The classical column is a
+SPARQL `ASK` against the closure graph, which by `thm:closure` is RDFS
+entailment; the NMMS column is proof search over `RegimeBase` on the same
+store, with the extras-closure cache cleared before every run. Medians over
+20 runs after one cold run; the cold column is that first run after
+reopening the store.
+
+| Group | Queries | Agreement | Classical `ASK` | NMMS cold | NMMS warm | Store calls per query |
+|---|---|---|---|---|---|---|
+| atomic (ground triple) | 11 | 11/11 | 20 µs | 29 µs | 14 µs | 1 to 2 |
+| pattern (blank nodes as witnesses) | 3 | 3/3 | 27 µs, and one at 2.8 s | 0.7 ms | 66 µs | 1 |
+| logical (negation, conditional, disjunction, incoherence) | 11 | not expressible | — | 1.1 ms | 1.1 ms | 3 to 89 |
+| material (guarded and monotone entries) | 6 | 4/4 on the atomic-form rows | 19 µs | 58 µs | 14 µs | 2 |
+
+Reopening the store took 21 ms.
+
+What the table says. Where the closure can answer, NMMS agrees on every
+query, which is `thm:closure` exercised at 40 million closure triples, and
+costs no more than the lookup: the warm NMMS figure is below the `ASK`
+because the reasoner reads the store through its quad index while the
+`ASK` pays a SPARQL parse. The cold figures are the RocksDB block cache
+filling, not the calculus. The logical group is what the closure cannot
+express at all: the negation `Γ, A ⇒ ¬B` costs about a millisecond and up
+to 89 store calls, because the one extra triple it moves into the
+antecedent is closed in process with a store call per rule firing; the
+conditionals and disjunctions over triples already in the closure cost
+tens of microseconds and a handful of calls. The material rows are the
+regime-relative base at work on a store this size: `i0 a Flies` is false
+for the closure and for the plain base and true with the entry, the
+derived antecedent `i2 a C2` fires its entry, `Grounded` defeats, and
+`Flies` does not chain to `HasWings`.
+
+The one slow row is instructive. The pattern `_:x a C2 . _:x p j7` took
+2.8 s as a classical `ASK` because Oxigraph evaluates a basic graph pattern
+left to right and has no statistics planner, so it scanned every instance
+of `C2` before touching the selective triple; the reverse order takes
+0.4 ms. The first run of the harness paid the same 2.8 s on the NMMS side,
+since the witness search hands the whole pattern to the store. Both
+SPARQL-speaking backends now order a join's patterns by selectivity
+(`sparql_rules.order_bgp`: most bound terms first, `rdf:type` scans last),
+which brought the NMMS figure to 66 µs; the classical column is left as the
+user wrote it.

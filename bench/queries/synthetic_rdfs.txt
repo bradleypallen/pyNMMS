@@ -1,0 +1,42 @@
+# Queries for the synthetic RDFS store of bench/rdf_scale (C0 ⊑ C1 ⊑ C2, p with range C1,
+# individuals i<n> typed C0 with p-links to j<n>) plus the Alive/Dead incompatibility rule.
+# Prefix ex = http://ex.org/.
+
+# --- atomic: the closure answers these; NMMS must agree ---
+<ex:i0 a ex:C0>
+<ex:i0 a ex:C1>
+<ex:i0 a ex:C2>
+<ex:j0 a ex:C1>
+<ex:j0 a ex:C2>
+<ex:i0 a ex:Zed>
+<ex:j0 a ex:C0>
+<ex:i4999 ex:p ex:j4999>
+<ex:i4999 ex:p ex:j4998>
+<ex:C0 rdfs:subClassOf ex:C2>
+<ex:nobody a ex:C2>
+
+# --- pattern: blank nodes as existential witnesses; the closure answers these too ---
+<{ ex:i0 ex:p _:x . _:x a ex:C1 }>
+<{ ex:i0 ex:p _:x . _:x a ex:C0 }>
+<{ _:x a ex:C2 . _:x ex:p ex:j7 }>
+
+# --- logical: no classical counterpart ---
+<ex:i0 a ex:Alive> => ~<ex:i0 a ex:Dead>
+=> ~<ex:i0 a ex:Dead>
+<ex:i0 a ex:C0> -> <ex:i0 a ex:C2>
+<ex:i0 a ex:Zed> -> <ex:i0 a ex:C2>
+<ex:i0 a ex:C2> -> <ex:i0 a ex:Zed>
+(<ex:i0 a ex:C0> & <ex:i0 a ex:C1>) -> (<ex:i0 a ex:C2> | <ex:i0 a ex:Zed>)
+<ex:i0 a ex:C2> | <ex:i0 a ex:Zed>
+<ex:i0 a ex:Zed> | <ex:i0 a ex:Zog>
+<ex:i0 a ex:Alive>, <ex:i0 a ex:Dead> =>
+<ex:i0 a ex:Alive>, <ex:i0 a ex:Dead> => <ex:i0 a ex:Zed>
+<ex:new1 a ex:C0>, <ex:new2 a ex:C0> => <ex:new1 a ex:C2> & <ex:new2 a ex:C2>
+
+# --- material: read through the entries file ---
+material: <ex:i0 a ex:Flies>
+material: <ex:i0 a ex:Grounded> => <ex:i0 a ex:Flies>
+material: <ex:i1 a ex:Flies>
+material: <ex:i2 ex:q ex:z>
+material: <ex:i0 a ex:Flies> -> <ex:i0 a ex:HasWings>
+material: <ex:i0 a ex:HasWings>

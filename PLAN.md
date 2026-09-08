@@ -584,7 +584,7 @@ once the variables are bound.
 
 #### F. Evaluation on real data, with oracles
 
-- **F0. NMMS versus RDFS over one persisted materialisation.** The first
+- **F0. NMMS versus RDFS over one persisted materialisation** (harness and synthetic run DONE 2026-09-07; GO pending). The first
   evaluation needs no external store: an on-disk Oxigraph store holding a
   graph and its RDFS closure serves as both reasoners. The classical RDFS
   answer to a ground triple is one `ASK` against the closure graph

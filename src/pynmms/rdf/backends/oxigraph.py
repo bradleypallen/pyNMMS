@@ -211,6 +211,14 @@ class OxigraphBackend:
         return self._path
 
     @property
+    def materialised(self) -> bool:
+        """Does the store hold ``cl_R(G)`` for this regime? (Always true without one.)"""
+        if not self._materialising:
+            return True
+        assert self._regime is not None
+        return self._recorded_regime() == self._regime.name
+
+    @property
     def _materialising(self) -> bool:
         return self._regime is not None and bool(self._regime.rules or self._regime.axioms)
 
@@ -252,7 +260,10 @@ class OxigraphBackend:
                 return names[x]
             return x.n3()  # type: ignore[no-any-return]
 
-        bgp = " . ".join(f"{term(s)} {term(p)} {term(o)}" for s, p, o in patterns)
+        from pynmms.rdf.sparql_rules import order_bgp
+
+        bgp = " . ".join(f"{term(s)} {term(p)} {term(o)}"
+                         for s, p, o in order_bgp(patterns, bindings))
         if not free:
             yield from ([dict(bindings)] if bool(self._query(f"ASK {{ {bgp} }}")) else [])
             return

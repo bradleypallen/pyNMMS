@@ -171,7 +171,10 @@ class SPARQLBackend:
                 return names[x]
             return x.n3()  # type: ignore[no-any-return]
 
-        bgp = " . ".join(f"{term(s)} {term(p)} {term(o)}" for s, p, o in patterns)
+        from pynmms.rdf.sparql_rules import order_bgp
+
+        bgp = " . ".join(f"{term(s)} {term(p)} {term(o)}"
+                         for s, p, o in order_bgp(patterns, bindings))
         select = " ".join(names[v] for v in free) or "*"
         query = f"SELECT DISTINCT {select} WHERE {{ {bgp} }}"
         key = (tuple(patterns), tuple(sorted(bindings.items(), key=lambda kv: str(kv[0]))))

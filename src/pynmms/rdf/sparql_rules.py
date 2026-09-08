@@ -48,6 +48,38 @@ def bgp(premises: tuple[tuple[Any, Any, Any], ...]) -> str:
     return " . ".join(pattern_n3(p) for p in premises)
 
 
+def order_bgp(patterns: list[Any], bindings: dict[Any, Any]) -> list[Any]:
+    """Order a basic graph pattern for a store without a statistics planner.
+
+    Oxigraph evaluates a BGP left to right, so ``?x a ex:C2 . ?x ex:p ex:j7``
+    scans every instance of the class before touching the selective triple
+    (2.8 s against 0.4 ms on a 10⁷ graph). Most bound terms first, an
+    ``rdf:type`` pattern with an unbound subject last, and among equals a
+    pattern sharing a variable with an earlier one before one that does not.
+    """
+    from rdflib import RDF
+
+    def bound(t: Any) -> bool:
+        return not isinstance(t, Var) or t in bindings
+
+    remaining = list(patterns)
+    ordered: list[Any] = []
+    seen: set[Any] = set()
+    while remaining:
+        def key(p: Any) -> tuple[int, int, int]:
+            s, pr, o = p
+            n_bound = sum(bound(t) for t in p)
+            type_scan = int(bound(pr) and pr == RDF.type and not bound(s))
+            joins = int(any(isinstance(t, Var) and t in seen for t in p))
+            return (-n_bound, type_scan, -joins)
+
+        best = min(remaining, key=key)
+        remaining.remove(best)
+        ordered.append(best)
+        seen.update(t for t in best if isinstance(t, Var))
+    return ordered
+
+
 def translatable(rule: RuleLike) -> bool:
     """Can *rule* run as one SPARQL update or ASK?
 

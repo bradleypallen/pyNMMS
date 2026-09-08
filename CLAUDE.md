@@ -150,7 +150,7 @@ Implements Allen, "Implication-Space Semantics for RDF" (unpublished manuscript)
 
 ## Test Suite
 
-718 tests across 27 test files:
+724 tests across 28 test files:
 
 **Propositional core (390 tests, 15 files):**
 - `test_syntax.py` — parser unit tests, strict atom grammar, quoted atoms, split helpers
@@ -178,16 +178,17 @@ Implements Allen, "Implication-Space Semantics for RDF" (unpublished manuscript)
 - `test_onto_legacy_equivalence.py` — propositional backward compat, medical concept/role, ontology schema equivalence
 - `test_onto_logging.py` — ontology schema registration logging, proof traces
 
-**RDF extension (103 tests, 5 files):**
+**RDF extension (109 tests, 6 files):**
 - `test_rdf.py` — TripleAtom/PatternAtom, GraphView, ClosureEngine, RegimeBase (RDFS and OWL 2 RL incl. list rules), Skolemization, owlrl oracles (`thm:closure`), converters, `pynmms rdf ask/tell/repl` CLI; skipped entirely if rdflib is absent
 - `test_rdf_sparql.py` — SPARQLBackend against an in-process rdflib-endpoint server (membership, probe, extras closure, batched `join()` round-trip count, chunked `add()` via UPDATE); skipped if `rdflib-endpoint`/`uvicorn` are absent
 - `test_rdf_extras_oracle.py` — Hypothesis oracle: `cl_R(G) ∪ extend(G, extras) == close(G ∪ extras)` (same ⊥ verdict) under RDFS and OWL 2 RL with an incompatibility rule and list constructs, batched and per-lookup; the check that the semi-naive extras step is right
 - `test_rdf_material.py` — the regime-relative material base B_{R,I}: material entries read through the regime (antecedent derivable, no defeater derivable, consequent elaborated; `elaborate_consequent` flag), no material chaining, empty-I regression against `ClosureEngine.close` and owlrl, Containment; runs over MemoryBackend and OxigraphBackend
 - `test_rdf_oxigraph.py` — OxigraphBackend: rule translation (`sparql_rules.partition`), term round trips, closure in the store equal to MemoryBackend's on random RDFS and OWL 2 RL graphs (lists included), owlrl oracle, ⊥ rules, incremental `add()`, `join()`, on-disk reopen skips materialisation, Skolemization and prefix capture on `load()`, bounded round trips, `--oxigraph` CLI; skipped if pyoxigraph is absent
+- `test_compare_rdfs.py` — the F0 harness on a small on-disk store: atomic and pattern rows agree with the closure, logical rows are marked not expressible, material rows differ only with entries, an unmaterialised store is refused, a record is written; skipped if pyoxigraph is absent
 
 ## Benchmarks
 
-`bench/` is a stdlib-only benchmark package (`python -m bench`, `make bench`). Sections: `antecedent_scaling` (query cost vs |Γ|), `schema_scaling` (axiom-check cost vs number of ontology schemas), `query_complexity` (proof cost vs connectives in the query). Every run writes a JSON record with timestamp, git SHA, and environment to `bench/results/`; those records are the regression baseline and are committed. Reasoner DEBUG logging is silenced during timing runs.
+`bench/` is a stdlib-only benchmark package (`python -m bench`, `make bench`). `python -m bench.compare_rdfs --store DIR --queries FILE [--entries FILE]` is the Phase 6 F0 harness: NMMS proof search against classical RDFS entailment (one SPARQL `ASK` on the closure, `thm:closure`) over one persisted Oxigraph store, grouped atomic / pattern / logical / material, with agreement, cold and warm latency, nodes, and round trips; query and entry files under `bench/queries/`. Sections: `antecedent_scaling` (query cost vs |Γ|), `schema_scaling` (axiom-check cost vs number of ontology schemas), `query_complexity` (proof cost vs connectives in the query). Every run writes a JSON record with timestamp, git SHA, and environment to `bench/results/`; those records are the regression baseline and are committed. Reasoner DEBUG logging is silenced during timing runs.
 
 ## Logging
 

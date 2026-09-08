@@ -1,0 +1,9 @@
+# Material entries for the synthetic store (tell syntax; prefix ex = http://ex.org/).
+# i0 is a C0 in the graph: Flies unless Grounded (the guarded reading).
+<ex:i0 a ex:C0> |~ <ex:i0 a ex:Flies> unless <ex:i0 a ex:Grounded>
+# i1 is a C0 too but the entry needs it to be a C9, which nothing derives.
+<ex:i1 a ex:C9> |~ <ex:i1 a ex:Flies> unless <ex:i1 a ex:Grounded>
+# i2 a C2 is not asserted but derived; a derived antecedent fires the entry.
+<ex:i2 a ex:C2> |~ <ex:i2 ex:q ex:z> monotone
+# No Cut between entries: Flies does not chain to HasWings.
+<ex:i0 a ex:Flies> |~ <ex:i0 a ex:HasWings> monotone

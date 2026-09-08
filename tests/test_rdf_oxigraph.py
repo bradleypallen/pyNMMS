@@ -84,6 +84,19 @@ class TestTranslation:
         with pytest.raises(ValueError):
             rule_to_update(r)
 
+    def test_order_bgp_puts_selective_patterns_first(self):
+        from pynmms.rdf.sparql_rules import order_bgp
+
+        x = Var("x")
+        scan = (x, RDF.type, EX.C2)
+        selective = (x, EX.p, EX.j7)
+        assert order_bgp([scan, selective], {}) == [selective, scan]
+        # With x bound both are point lookups and the order is immaterial.
+        assert set(order_bgp([scan, selective], {x: EX.i0})) == {scan, selective}
+        y = Var("y")
+        chain = [(x, EX.p, y), (y, EX.q, EX.z), (x, RDF.type, EX.C2)]
+        assert order_bgp(chain, {})[0] == (y, EX.q, EX.z)
+
     def test_owl2rl_partition(self):
         rules = partition(OWL2RL, skip=frozenset({"rdfs1", "rdfD1"}))
         assert rules.asks and rules.updates

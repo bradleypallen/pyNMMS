@@ -1,0 +1,527 @@
+{
+  "timestamp": "2026-09-07T22:35:35+00:00",
+  "git_sha": "cb5d399-dirty",
+  "quick": false,
+  "env": {
+    "pynmms": "0.11.0",
+    "python": "3.11.11",
+    "implementation": "CPython",
+    "platform": "macOS-26.6.2-arm64-arm-64bit",
+    "machine": "arm64"
+  },
+  "sections": [
+    {
+      "name": "compare_rdfs:atomic",
+      "columns": [
+        "query",
+        "rdfs",
+        "nmms",
+        "nmms+I",
+        "agree",
+        "ask_ms",
+        "nmms_cold_ms",
+        "nmms_ms",
+        "nodes",
+        "round_trips"
+      ],
+      "rows": [
+        [
+          "<ex:i0 a ex:C0>",
+          true,
+          true,
+          true,
+          true,
+          0.02068805042654276,
+          0.08629204239696264,
+          0.00666698906570673,
+          1,
+          1
+        ],
+        [
+          "<ex:i0 a ex:C1>",
+          true,
+          true,
+          true,
+          true,
+          0.020333565771579742,
+          0.03662507515400648,
+          0.01368753146380186,
+          1,
+          2
+        ],
+        [
+          "<ex:i0 a ex:C2>",
+          true,
+          true,
+          true,
+          true,
+          0.02012500772252679,
+          0.019083963707089424,
+          0.012854463420808315,
+          1,
+          2
+        ],
+        [
+          "<ex:j0 a ex:C1>",
+          true,
+          true,
+          true,
+          true,
+          0.019708008039742708,
+          0.06166601087898016,
+          0.014062505215406418,
+          1,
+          2
+        ],
+        [
+          "<ex:j0 a ex:C2>",
+          true,
+          true,
+          true,
+          true,
+          0.01977098872885108,
+          0.018874998204410076,
+          0.013458484318107367,
+          1,
+          2
+        ],
+        [
+          "<ex:i0 a ex:Zed>",
+          false,
+          false,
+          false,
+          true,
+          0.01912500010803342,
+          0.02379098441451788,
+          0.014228979125618935,
+          1,
+          2
+        ],
+        [
+          "<ex:j0 a ex:C0>",
+          false,
+          false,
+          false,
+          true,
+          0.01933303428813815,
+          0.029374961741268635,
+          0.013999990187585354,
+          1,
+          2
+        ],
+        [
+          "<ex:i4999 ex:p ex:j4999>",
+          true,
+          true,
+          true,
+          true,
+          0.019791012164205313,
+          0.05804200191050768,
+          0.006249989382922649,
+          1,
+          1
+        ],
+        [
+          "<ex:i4999 ex:p ex:j4998>",
+          false,
+          false,
+          false,
+          true,
+          0.019749975763261318,
+          0.020666979253292084,
+          0.013792014215141535,
+          1,
+          2
+        ],
+        [
+          "<ex:C0 rdfs:subClassOf ex:C2>",
+          true,
+          true,
+          true,
+          true,
+          0.019041530322283506,
+          0.07333292160183191,
+          0.01291697844862938,
+          1,
+          2
+        ],
+        [
+          "<ex:nobody a ex:C2>",
+          false,
+          false,
+          false,
+          true,
+          0.018979539163410664,
+          0.024290988221764565,
+          0.014208024367690086,
+          1,
+          2
+        ]
+      ],
+      "notes": ""
+    },
+    {
+      "name": "compare_rdfs:pattern",
+      "columns": [
+        "query",
+        "rdfs",
+        "nmms",
+        "nmms+I",
+        "agree",
+        "ask_ms",
+        "nmms_cold_ms",
+        "nmms_ms",
+        "nodes",
+        "round_trips"
+      ],
+      "rows": [
+        [
+          "<{ ex:i0 ex:p _:x . _:x a ex:C1 }>",
+          true,
+          true,
+          true,
+          true,
+          0.02654152922332287,
+          0.6612089928239584,
+          0.06910448428243399,
+          1,
+          1
+        ],
+        [
+          "<{ ex:i0 ex:p _:x . _:x a ex:C0 }>",
+          false,
+          false,
+          false,
+          true,
+          0.026124995201826096,
+          0.07187493611127138,
+          0.06335449870675802,
+          1,
+          1
+        ],
+        [
+          "<{ _:x a ex:C2 . _:x ex:p ex:j7 }>",
+          true,
+          true,
+          true,
+          true,
+          2785.576041438617,
+          1.3008750975131989,
+          0.06585399387404323,
+          1,
+          1
+        ]
+      ],
+      "notes": ""
+    },
+    {
+      "name": "compare_rdfs:logical",
+      "columns": [
+        "query",
+        "rdfs",
+        "nmms",
+        "nmms+I",
+        "agree",
+        "ask_ms",
+        "nmms_cold_ms",
+        "nmms_ms",
+        "nodes",
+        "round_trips"
+      ],
+      "rows": [
+        [
+          "<ex:i0 a ex:Alive> => ~<ex:i0 a ex:Dead>",
+          "n/a",
+          true,
+          true,
+          "n/a",
+          "n/a",
+          2.4874169612303376,
+          2.1972079994156957,
+          2,
+          89
+        ],
+        [
+          "=> ~<ex:i0 a ex:Dead>",
+          "n/a",
+          false,
+          false,
+          "n/a",
+          "n/a",
+          1.088084070943296,
+          1.1146250180900097,
+          2,
+          45
+        ],
+        [
+          "<ex:i0 a ex:C0> -> <ex:i0 a ex:C2>",
+          "n/a",
+          true,
+          true,
+          "n/a",
+          "n/a",
+          0.03687501884996891,
+          0.021665997337549925,
+          2,
+          3
+        ],
+        [
+          "<ex:i0 a ex:Zed> -> <ex:i0 a ex:C2>",
+          "n/a",
+          true,
+          true,
+          "n/a",
+          "n/a",
+          1.113708014599979,
+          1.094375445973128,
+          2,
+          46
+        ],
+        [
+          "<ex:i0 a ex:C2> -> <ex:i0 a ex:Zed>",
+          "n/a",
+          false,
+          false,
+          "n/a",
+          "n/a",
+          0.03854196984320879,
+          0.027687521651387215,
+          2,
+          4
+        ],
+        [
+          "(<ex:i0 a ex:C0> & <ex:i0 a ex:C1>) -> (<ex:i0 a ex:C2> | <ex:i0 a ex:Zed>)",
+          "n/a",
+          true,
+          true,
+          "n/a",
+          "n/a",
+          0.06154191214591265,
+          0.047833018470555544,
+          4,
+          7
+        ],
+        [
+          "<ex:i0 a ex:C2> | <ex:i0 a ex:Zed>",
+          "n/a",
+          true,
+          true,
+          "n/a",
+          "n/a",
+          0.03341608680784702,
+          0.02600002335384488,
+          2,
+          4
+        ],
+        [
+          "<ex:i0 a ex:Zed> | <ex:i0 a ex:Zog>",
+          "n/a",
+          false,
+          false,
+          "n/a",
+          "n/a",
+          0.034125056117773056,
+          0.02779200440272689,
+          2,
+          4
+        ],
+        [
+          "<ex:i0 a ex:Alive>, <ex:i0 a ex:Dead> =>",
+          "n/a",
+          true,
+          true,
+          "n/a",
+          "n/a",
+          5.033917026594281,
+          2.1794374915771186,
+          1,
+          88
+        ],
+        [
+          "<ex:i0 a ex:Alive>, <ex:i0 a ex:Dead> => <ex:i0 a ex:Zed>",
+          "n/a",
+          true,
+          true,
+          "n/a",
+          "n/a",
+          2.218457986600697,
+          2.218458044808358,
+          1,
+          89
+        ],
+        [
+          "<ex:new1 a ex:C0>, <ex:new2 a ex:C0> => <ex:new1 a ex:C2> & <ex:new2 a ex:C2>",
+          "n/a",
+          true,
+          true,
+          "n/a",
+          "n/a",
+          1.883624936453998,
+          1.5970625099726021,
+          4,
+          68
+        ]
+      ],
+      "notes": ""
+    },
+    {
+      "name": "compare_rdfs:material",
+      "columns": [
+        "query",
+        "rdfs",
+        "nmms",
+        "nmms+I",
+        "agree",
+        "ask_ms",
+        "nmms_cold_ms",
+        "nmms_ms",
+        "nodes",
+        "round_trips"
+      ],
+      "rows": [
+        [
+          "<ex:i0 a ex:Flies>",
+          false,
+          false,
+          true,
+          true,
+          0.019083439838141203,
+          0.026499968953430653,
+          0.014437478967010975,
+          1,
+          2
+        ],
+        [
+          "<ex:i0 a ex:Grounded> => <ex:i0 a ex:Flies>",
+          "n/a",
+          false,
+          false,
+          "n/a",
+          "n/a",
+          1.3073330046609044,
+          1.0856459848582745,
+          1,
+          45
+        ],
+        [
+          "<ex:i1 a ex:Flies>",
+          false,
+          false,
+          false,
+          true,
+          0.018728955183178186,
+          0.08620903827250004,
+          0.014291959814727306,
+          1,
+          2
+        ],
+        [
+          "<ex:i2 ex:q ex:z>",
+          false,
+          false,
+          true,
+          true,
+          0.018270511645823717,
+          0.030082999728620052,
+          0.013312557712197304,
+          1,
+          2
+        ],
+        [
+          "<ex:i0 a ex:Flies> -> <ex:i0 a ex:HasWings>",
+          "n/a",
+          false,
+          true,
+          "n/a",
+          "n/a",
+          1.098125008866191,
+          1.0925419628620148,
+          2,
+          46
+        ],
+        [
+          "<ex:i0 a ex:HasWings>",
+          false,
+          false,
+          false,
+          true,
+          0.018874998204410076,
+          0.021541956812143326,
+          0.013791956007480621,
+          1,
+          2
+        ]
+      ],
+      "notes": ""
+    },
+    {
+      "name": "compare_rdfs:summary",
+      "columns": [
+        "group",
+        "queries",
+        "agree",
+        "ask_ms",
+        "nmms_cold_ms",
+        "nmms_ms",
+        "overhead_x"
+      ],
+      "rows": [
+        [
+          "atomic",
+          11,
+          "11/11",
+          0.019749975763261318,
+          0.029374961741268635,
+          0.01368753146380186,
+          0.6930404182704494
+        ],
+        [
+          "pattern",
+          3,
+          "3/3",
+          0.02654152922332287,
+          0.6612089928239584,
+          0.06585399387404323,
+          2.481168033685688
+        ],
+        [
+          "logical",
+          11,
+          "n/a",
+          "n/a",
+          1.088084070943296,
+          1.094375445973128,
+          "n/a"
+        ],
+        [
+          "material",
+          6,
+          "4/4",
+          0.01880197669379413,
+          0.058146019000560045,
+          0.01436471939086914,
+          0.764000489140614
+        ]
+      ],
+      "notes": "store /private/tmp/pynmms-10m/store; regime rdfs+ad; 4 material entries; reopen 0.021 s; reps 20"
+    },
+    {
+      "name": "compare_rdfs:session",
+      "columns": [
+        "reopen_s",
+        "asserted",
+        "regime",
+        "entries"
+      ],
+      "rows": [
+        [
+          0.02110987505875528,
+          10000015,
+          "rdfs+ad",
+          4
+        ]
+      ],
+      "notes": ""
+    }
+  ]
+}

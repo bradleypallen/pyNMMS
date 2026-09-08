@@ -362,6 +362,27 @@ clauses. The three must agree on what is flagged; what only the third
 column has is the rescue, the defaults, and a hypothetical fix accepted
 without writing.
 
+## The Elenchus loop
+
+`Dialogue` holds the dialectical state `⟨[C : D], T, I⟩` of Allen's
+Elenchus protocol over a store: the position, the open tensions (sequents
+`Γ |~ Δ` over the holder's own atoms that the opponent claims incoherent,
+with the rescue that would answer each), and the material implications
+from accepted tensions. The respondent's moves are `commit`, `deny`,
+`withdraw`, `accept(tension, retract=... | refine=(old, new))`, and
+`contest(tension, exception=...)`; a positum given at construction cannot
+be withdrawn. The opponent is computed from the base, so every tension it
+raises is one the base licenses: accepting one endorses the base, and
+contesting one with an exception revises it, adding the exception as a
+defeater of the responsible entry. A tension may also come from outside,
+`propose_tension`, an oracle or a colleague; accepted, it enters the base
+as a material implication. `status()` is `coherent`, `tensions open`, or
+`aporia` (out of bounds, every tension's own atoms in the positum, no
+rescue left). `save` and `load` persist the state as JSON, and
+`commit_to_store` writes the commitments that held. `play(script)` runs a
+scripted respondent with predictions, and `python -m
+bench.elenchus_session` does so over a persisted store.
+
 ## How the closure is split
 
 The regime base checks `Γ |~ Δ` as "Γ is inconsistent or Δ meets `cl_R(Γ)`".

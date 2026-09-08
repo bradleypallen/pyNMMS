@@ -1,0 +1,251 @@
+{
+  "timestamp": "2026-09-08T20:06:30+00:00",
+  "git_sha": "a1e4280-dirty",
+  "quick": false,
+  "env": {
+    "pynmms": "0.14.1",
+    "python": "3.11.11",
+    "implementation": "CPython",
+    "platform": "macOS-26.6.2-arm64-arm-64bit",
+    "machine": "arm64"
+  },
+  "sections": [
+    {
+      "name": "elenchus:moves",
+      "columns": [
+        "#",
+        "line",
+        "answer",
+        "expect",
+        "ok"
+      ],
+      "rows": [
+        [
+          1,
+          "status?",
+          "tensions open",
+          "tensions open",
+          true
+        ],
+        [
+          2,
+          "tensions?",
+          1,
+          "1",
+          true
+        ],
+        [
+          3,
+          "contest 1 unless <am:proxy-52227 am:posthumousImpression \"yes\">",
+          "",
+          "",
+          null
+        ],
+        [
+          4,
+          "status?",
+          "tensions open",
+          "tensions open",
+          true
+        ],
+        [
+          5,
+          "commit <am:proxy-52227 am:posthumousImpression \"yes\">",
+          "",
+          "",
+          null
+        ],
+        [
+          6,
+          "status?",
+          "coherent",
+          "coherent",
+          true
+        ],
+        [
+          7,
+          "tensions?",
+          0,
+          "0",
+          true
+        ],
+        [
+          8,
+          "commit <am:proxy-52227 am:productionDateStart \"1700\">",
+          "",
+          "",
+          null
+        ],
+        [
+          9,
+          "status?",
+          "tensions open",
+          "tensions open",
+          true
+        ],
+        [
+          10,
+          "tensions?",
+          1,
+          "1",
+          true
+        ],
+        [
+          11,
+          "accept 1 retract <am:proxy-52227 am:productionDateStart \"1700\">",
+          "",
+          "",
+          null
+        ],
+        [
+          12,
+          "status?",
+          "coherent",
+          "coherent",
+          true
+        ],
+        [
+          13,
+          "propose <am:proxy-52227 am:productionDateStart \"1719\">, <am:proxy-52227 am:maker sk:Nbeaaf6d873ed427",
+          "",
+          "",
+          null
+        ],
+        [
+          14,
+          "status?",
+          "tensions open",
+          "tensions open",
+          true
+        ],
+        [
+          15,
+          "accept 1",
+          "",
+          "",
+          null
+        ],
+        [
+          16,
+          "status?",
+          "coherent",
+          "coherent",
+          true
+        ]
+      ],
+      "notes": "store /private/tmp/pynmms-am/store; holder curator@amsterdammuseum.nl; positum 2"
+    },
+    {
+      "name": "elenchus:transcript",
+      "columns": [
+        "n",
+        "actor",
+        "move",
+        "args",
+        "tensions",
+        "probes",
+        "status",
+        "ms"
+      ],
+      "rows": [
+        [
+          1,
+          "respondent",
+          "commit",
+          "<http://purl.org/collections/nl/am/proxy-52227 http://purl.org/collections/nl/am",
+          1,
+          1,
+          "tensions open",
+          10.2
+        ],
+        [
+          2,
+          "respondent",
+          "contest",
+          "184c9ccd, <http://purl.org/collections/nl/am/proxy-52227 http://purl.org/collect",
+          0,
+          1,
+          "tensions open",
+          2.4
+        ],
+        [
+          3,
+          "respondent",
+          "commit",
+          "<http://purl.org/collections/nl/am/proxy-52227 http://purl.org/collections/nl/am",
+          0,
+          1,
+          "coherent",
+          7.5
+        ],
+        [
+          4,
+          "respondent",
+          "commit",
+          "<http://purl.org/collections/nl/am/proxy-52227 http://purl.org/collections/nl/am",
+          1,
+          1,
+          "tensions open",
+          11.2
+        ],
+        [
+          5,
+          "respondent",
+          "accept",
+          "ac7073c9, -<http://purl.org/collections/nl/am/proxy-52227 http://purl.org/collec",
+          0,
+          1,
+          "coherent",
+          1.6
+        ],
+        [
+          6,
+          "opponent",
+          "propose",
+          "<http://purl.org/collections/nl/am/proxy-52227 http://purl.org/collections/nl/am",
+          1,
+          0,
+          "tensions open",
+          0.0
+        ],
+        [
+          7,
+          "respondent",
+          "accept",
+          "149ff676",
+          0,
+          2,
+          "coherent",
+          2.2
+        ]
+      ],
+      "notes": ""
+    },
+    {
+      "name": "elenchus:summary",
+      "columns": [
+        "questions",
+        "predicted",
+        "status",
+        "open",
+        "accepted",
+        "contested",
+        "proposals",
+        "moves"
+      ],
+      "rows": [
+        [
+          10,
+          "10/10",
+          "coherent",
+          0,
+          2,
+          1,
+          1,
+          7
+        ]
+      ],
+      "notes": ""
+    }
+  ]
+}

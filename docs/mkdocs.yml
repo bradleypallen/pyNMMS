@@ -45,6 +45,7 @@ nav:
       - RDF Bases: api/rdf-base.md
       - RDF Positions: api/rdf-position.md
       - RDF Provenance: api/rdf-provenance.md
+      - RDF Dialogue: api/rdf-dialogue.md
       - RDF Rules and Regimes: api/rdf-rules.md
       - RDF Closure: api/rdf-closure.md
       - RDF Backends: api/rdf-backends.md

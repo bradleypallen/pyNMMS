@@ -24,6 +24,7 @@ from pynmms.rdf.atoms import PatternAtom, Resolver, TripleAtom
 from pynmms.rdf.base import RDFBase, RegimeBase
 from pynmms.rdf.convert import onto_to_graph, onto_to_rules
 from pynmms.rdf.defeasible import DefeasibleRule, parse_defeasible_rule
+from pynmms.rdf.dialogue import Dialogue, Tension
 from pynmms.rdf.position import Challenge, Move, Position, Report, Round, Verdict
 from pynmms.rdf.provenance import PROV, Ground, RecordPattern
 from pynmms.rdf.rules import OWL2RL, RDFS, SIMPLE, Regime, Rule, Var, parse_rule
@@ -53,6 +54,8 @@ __all__ = [
     "RecordPattern",
     "PROV",
     "DefeasibleRule",
+    "Dialogue",
+    "Tension",
     "parse_defeasible_rule",
     "Verdict",
     "Move",

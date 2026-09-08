@@ -761,14 +761,16 @@ has to be true, in the order each unblocks the next:
    `bench/PERFORMANCE.md` section 13). What remains of the step is the
    part no harness supplies: a curator rather than the author as
    respondent.
-6. **Scorekeeping and dialogue.** Positions per participant, commitments and
-   preclusions tracked as assertions accumulate, challenges as incoherence
-   queries. `Position.challenges()` (DONE 2026-09-08) generates the
-   opponent's probes from the base: refutations, incompatibilities and ⊥
-   rules the position partly satisfies, unacknowledged defaults, each with
-   its rescue. What remains is the turn structure, explicit entitlement,
-   and a termination rule: the Elenchus work, its own project once 1, 4,
-   and 5 exist.
+6. **Scorekeeping and dialogue** — DONE 2026-09-08 as the Elenchus loop of
+   the AIAA4KE paper over a store (`pynmms.rdf.dialogue`): the dialectical
+   state `⟨[C : D], T, I⟩`, tensions as sequents over the holder's own
+   atoms with their rescue, accept by retraction or refinement, contest
+   with an exception that revises the base, external tensions from an
+   oracle entering the base when accepted, positum protection, aporia as
+   the stopping rule, JSON persistence, and a scripted respondent
+   (`bench/elenchus_session.py`, `bench/queries/am_elenchus.txt`). The
+   opponent is computed from the base, which inverts the paper's oracle;
+   an LLM respondent is the natural next client, and a curator the test.
 
 Alongside: the second paper (outline below), since the implementation is
 now ahead of the text in exactly the places where negation and

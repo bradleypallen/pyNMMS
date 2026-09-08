@@ -1,0 +1,39 @@
+# An Elenchus session over the Amsterdam Museum store (regime rdfs + am_prop.txt, entries
+# am_curation_entries.txt: three incompatibilities, the anachronism with its defeaters).
+# Predictions written before the run of 2026-09-08. Prefixes as in am_rdfs.txt.
+holder curator@amsterdammuseum.nl
+
+# The positum: the curator stands by the etching's date and its etcher, Jan Luyken
+# (died 1712-04-05). The etching is proxy-52227, dated 1727.
+positum <am:proxy-52227 am:productionDateStart "1727">, <am:proxy-52227 am:maker sk:Nbeaaf6d873ed427bb6df02e7e6e24699>
+
+# The opponent finds the anachronism at once: the etcher record names Luyken, dead fifteen
+# years before. One tension, with the record's five defeaters as the rescue.
+status? ## tensions open
+tensions? ## 1
+
+# The curator contests: the impression is posthumous. The exception is one of the entry's
+# defeaters already, so the tension dissolves once the exception is held.
+contest 1 unless <am:proxy-52227 am:posthumousImpression "yes">
+status? ## tensions open
+commit <am:proxy-52227 am:posthumousImpression "yes">
+status? ## coherent
+tensions? ## 0
+
+# A second commitment: the curator also dates the etching 1700. Two starts is an
+# incompatibility with no defeaters; the opponent raises it.
+commit <am:proxy-52227 am:productionDateStart "1700">
+status? ## tensions open
+tensions? ## 1
+
+# The curator accepts, by retracting the new date (1727 is the positum and cannot go).
+accept 1 retract <am:proxy-52227 am:productionDateStart "1700">
+status? ## coherent
+
+# A colleague proposes a tension from outside the base: an etching after Luyken cannot have
+# been printed before 1720. The curator accepts it, retracting nothing (the position already
+# satisfies it), and it enters the base as a material implication.
+propose <am:proxy-52227 am:productionDateStart "1719">, <am:proxy-52227 am:maker sk:Nbeaaf6d873ed427bb6df02e7e6e24699> |~
+status? ## tensions open
+accept 1
+status? ## coherent

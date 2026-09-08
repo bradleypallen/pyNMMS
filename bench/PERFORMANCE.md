@@ -665,3 +665,49 @@ what would answer the challenge, what the record commits its holder to
 by default, and whether an edit would hold before it is made. Whether a
 curator wants those columns is the question the harness cannot answer,
 and it is the last step of the plan.
+
+## 14. The Elenchus loop over a store
+
+Run 2026-09-08 (`python -m bench.elenchus_session`, record
+`20260908T200630Z-*`). `pynmms.rdf.dialogue` implements the dialectical
+state `⟨[C : D], T, I⟩` of Allen's AIAA4KE Elenchus paper over the
+Amsterdam Museum store, with the opponent computed from the base rather
+than prompted from a model: every tension it raises is one the base
+licenses, so accepting a computed tension endorses the base and contesting
+one with an exception revises it. A session file scripted the respondent
+with predictions (`bench/queries/am_elenchus.txt`, ten questions, all
+held):
+
+1. The positum is the etching's date, 1727, and its etcher record naming
+   Jan Luyken, dead in 1712. The opponent raises the anachronism at once
+   as one tension over the two positum atoms, with the entry's five
+   defeaters as the rescue.
+2. The curator contests it, proposing a posthumous impression as the
+   exception. The exception is already a defeater of the entry, so the
+   proposal is recorded and the tension stays open until the exception
+   is held; committing it makes the position coherent.
+3. A second date, 1700, raises the two-starts incompatibility, which has
+   no defeaters; the curator accepts by retracting the new date, since
+   1727 is the positum and cannot go, and the tension joins `I`.
+4. A colleague proposes a tension from outside the base, "an etching after
+   Luyken dated before 1720 is incoherent"; the curator accepts it with no
+   retraction, since the position already satisfies it, and the sequent
+   enters the base as a material implication.
+
+Each move cost 2 to 11 ms over six million triples, most of it the
+participant search: which of the holder's own atoms take part in a
+refutation is found by withdrawing each in turn, one coherence check per
+atom, which human scale keeps cheap. The transcript records every move
+with the tensions raised, the probes open, and the status after it, and
+the state saves and loads as JSON.
+
+Against the paper's figure, the loop is complete: load state, wait for a
+speech act, update and check coherence, add tensions to `T`, resolve by
+retraction or refinement into `I` or by contestation, record, probe. Two
+things differ by design. The opponent's judgements are exact rather than
+defeasible, so contestation is not a filter for spurious tensions but a
+revision of the base, which is where the paper's "consequence relation
+constructed through play" now lives. And tensions may involve the
+background, since the base reasons over a knowledge graph: the positum's
+anachronism needed the person's death date, which is the store's, not the
+curator's, and attribution puts only the curator's atoms in `Γ`.

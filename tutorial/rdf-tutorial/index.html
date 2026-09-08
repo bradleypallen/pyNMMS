@@ -704,6 +704,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#the-curation-loop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The curation loop
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#how-the-closure-is-split" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1633,6 +1644,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#the-curation-loop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The curation loop
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#how-the-closure-is-split" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1981,6 +2003,22 @@ are patterns and evidence codes an ordering:</p>
 </code></pre></div>
 <p>The REPL's <code>defend</code> and <code>entitlement</code> commands and the replay script's
 <code>defend</code>, <code>entitled?</code>, and <code>score?</code> moves expose the same score.</p>
+<h2 id="the-curation-loop">The curation loop<a class="headerlink" href="#the-curation-loop" title="Permanent link">&para;</a></h2>
+<p><code>Position.propose()</code> assesses a position as a proposal and writes nothing:
+whether it is in bounds with the refutation and the rescue, the opponent's
+probes, its commitments (asserted, inherited, and the defaults it is
+committed to), what it is precluded from accepting, its entitlement score,
+and the proof trace. The loop is propose, take the rescue or edit, propose
+again, commit. The REPL's <code>propose</code> command prints the report's summary
+and the replay script's <code>propose?</code> move records it.</p>
+<p><code>python -m bench.curation_loop</code> runs the same records through SHACL
+(pySHACL over each record's neighbourhood, with SHACL-SPARQL constraints),
+the shapes' own SPARQL run natively on the store, and NMMS <code>propose</code> on the
+record read aloud, with the constraints stated once as shapes and once as
+pattern incompatibilities whose defeaters are the shapes' <code>NOT EXISTS</code>
+clauses. The three must agree on what is flagged; what only the third
+column has is the rescue, the defaults, and a hypothetical fix accepted
+without writing.</p>
 <h2 id="how-the-closure-is-split">How the closure is split<a class="headerlink" href="#how-the-closure-is-split" title="Permanent link">&para;</a></h2>
 <p>The regime base checks <code>Γ |~ Δ</code> as "Γ is inconsistent or Δ meets <code>cl_R(Γ)</code>".
 The backend holds <code>cl_R(G)</code> for the stored graph; the per-node extras (the

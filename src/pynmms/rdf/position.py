@@ -350,6 +350,34 @@ class Position:
                         continue  # fully satisfied: ⊥ already, reported as the refutation
                     out.append(Challenge("incoherence", tuple(asks), str(rule)))
 
+        # Pattern entries, anchored on the position's own triples.
+        if base.pattern_rules:
+            from pynmms.rdf.defeasible import Matcher, apply, as_atom
+
+            matcher = Matcher(base.pattern_rules, base._lookup(derived, True, hidden))
+            for rule in base.pattern_rules:
+                for b0 in matcher.anchored(rule, own_triples):
+                    complete = [b for b in matcher.complete(rule, b0)]
+                    if complete:
+                        for b in complete:
+                            if matcher.defeated(rule, b) is not None:
+                                continue
+                            if rule.is_incompatibility:
+                                if v.value:
+                                    out.append(Challenge("refutation", (), f"{rule}",
+                                                         matcher.rescue(rule, b)))
+                            else:
+                                concl = apply(rule.conclusion, b)  # type: ignore[arg-type]
+                                atom = as_atom(concl)
+                                if not in_cl(atom):
+                                    out.append(Challenge("default", (atom,), f"{rule}",
+                                                         matcher.rescue(rule, b)))
+                    elif rule.is_incompatibility:
+                        missing = tuple(matcher.missing(rule, b0))
+                        if missing and matcher.defeated(rule, b0) is None:
+                            out.append(Challenge("incompatibility", missing, f"{rule}",
+                                                 matcher.rescue(rule, b0)))
+
         order = {"refutation": 0, "incompatibility": 1, "incoherence": 1, "default": 2}
         seen: set[tuple[str, tuple[str, ...], str]] = set()
         unique: list[Challenge] = []

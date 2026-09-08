@@ -521,3 +521,41 @@ both sides; with the first four characters of any date read as a year,
 1,556 objects have a maker who died before they were made, most of them
 posthumous editions and impressions, which is the population the
 attribution defeaters of the position API are for.
+
+## 11. Workstream D on GO: propagation as defeasible entries defeated by the curators' NOT
+
+Run 2026-09-08 (`python -m bench.defeasible_go`, record
+`bench/results/20260908T141806Z-*`). The Gene Ontology with the human GAF
+was materialised again under plain RDFS, with no annotation propagation
+(6,410,896 asserted to 8,227,042 closure triples, 20.0 min on the
+direct-on-disk path), and the thirteen propagation rules of section 9
+became pattern entries, one per qualifier:
+
+    ?g go:r ?c, ?c rdfs:subClassOf ?d |~ ?g go:r ?d unless ?g go:not_r ?d
+
+Every gene product with a `NOT` annotation was then read aloud as a
+position (`Position.of`) and asked whether it is committed to the class
+the curators denied. Predictions, written before the run against the
+counts of section 9: the 335 annotations whose class is also asserted
+positively for the same gene product stay committed, because the data
+itself contradicts and no default can retract an assertion; every other
+`NOT`, the 59 that monotone propagation reached and the rest it did not,
+is not committed to; and a sample of 400 propagations with no `NOT` still
+fires.
+
+| NOT annotations | Also asserted | Committed | Of which asserted | Committed by propagation | Sample propagations | Fired |
+|---|---|---|---|---|---|---|
+| 1,384 | 335 | 335 | 335 | 0 | 400 | 400 |
+
+All three predictions held, at 1.5 to 47 ms per position over ten
+million closure triples. Read against section 9: the monotone regime
+committed 394 gene products to a class their curators denied, 59 of them
+by propagation alone; the defeasible reading commits none by propagation
+and leaves exactly the 335 contradictions that are in the asserted data,
+which are incoherent positions for a curator to resolve rather than
+inferences. This is the oracle workstream D was given, "recover every
+curated exception and keep every uncontradicted default", met on the
+dataset it was set on. The two settings differ only in where the
+propagation rule lives: in the regime it is monotone and the `NOT` is
+inert; as a material entry it is a default and the `NOT` is its defeater,
+which is what the GO documentation says `NOT` is for.

@@ -716,11 +716,13 @@ unblocks the next:
 
 1. **Positions as speech acts** (H above; the small design decision that
    everything else depends on). A week, with the REPL client.
-2. **Material entries as patterns** (D). Every entry worth writing on real
-   data was an instance of a rule with variables and defeaters. Test set:
-   the 394 contradicted `NOT` annotations and the 137 posthumous makings;
-   oracle: the defeasible reading recovers every curated exception and
-   keeps every uncontradicted default. Two weeks.
+2. **Material entries as patterns** (D) — DONE 2026-09-08
+   (`pynmms.rdf.defeasible`: `DefeasibleRule` with pattern defeaters and
+   value guards, matched by unification at the leaf, attribution for
+   incompatibilities, probes from patterns; `bench/defeasible_go.py` runs
+   GO's propagation as defeasible entries defeated by `NOT` over a plain
+   RDFS store). The ontology extension as a surface syntax for it, and
+   retiring its matcher, remain.
 3. **Values in rules and defeaters** (C) — rules DONE 2026-09-08
    (`pynmms.rdf.values`: guards as `[...]` among premises, evaluated as
    `FILTER` in the store and in Python, cross-checked; `year`, `num`,

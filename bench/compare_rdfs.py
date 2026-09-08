@@ -161,12 +161,17 @@ def read_entries(path: Path, base: Any) -> int:
         atom = TripleAtom.coerce(name, base.resolver)
         return str(atom) if atom is not None else name
 
+    from pynmms.rdf.defeasible import is_pattern_entry, parse_defeasible_rule
     from pynmms.robustness import split_robustness_clause
 
     n = 0
     for raw in path.read_text().splitlines():
         line = raw.strip()
         if not line or line.startswith("#"):
+            continue
+        if is_pattern_entry(line):
+            base.add_rule(parse_defeasible_rule(line, base.resolver))
+            n += 1
             continue
         body, rob = split_robustness_clause(line)
         if "|~" not in body:

@@ -37,7 +37,7 @@ from __future__ import annotations
 import logging
 from collections.abc import Callable, Iterable, Iterator
 from pathlib import Path
-from typing import Union
+from typing import Any, Union
 
 from rdflib import BNode, Graph
 from rdflib.term import Node
@@ -296,10 +296,85 @@ class RegimeBase(RDFBase):
         self.last_reason: str | None = None
         self.last_rescue: tuple[str, ...] = ()
         self._entry_closure_cache: dict[frozenset[str], set[Triple]] = {}
+        #: Material entries with variables (workstream D), see :mod:`pynmms.rdf.defeasible`.
+        self._pattern_rules: list[Any] = []
 
     def clear_caches(self) -> None:
         self._extras_cache.clear()
         self._entry_closure_cache.clear()
+
+    def add_rule(self, rule: Any) -> None:
+        """Add a :class:`~pynmms.rdf.defeasible.DefeasibleRule` (a pattern entry)."""
+        self._pattern_rules.append(rule)
+        self._generation += 1
+        self.clear_caches()
+
+    @property
+    def pattern_rules(self) -> list[Any]:
+        return list(self._pattern_rules)
+
+    def _lookup(self, derived: set[Triple], over_graph: bool, hidden: frozenset[str]) -> Any:
+        """The closure as a lookup: the store (atoms set aside excluded) plus *derived*."""
+        index = _TripleIndex()
+        for t in derived:
+            index.add(t)
+
+        def lookup(pattern: tuple[Node | None, Node | None, Node | None]) -> Iterator[Triple]:
+            if over_graph:
+                for t in self.backend.closure_triples(pattern):
+                    if not hidden or TripleAtom(*t) not in hidden:
+                        yield t
+            yield from index.match(pattern)
+
+        return lookup
+
+    def _pattern_check(
+        self, delta: AtomsView, extras: frozenset[str], derived: set[Triple],
+        over_graph: bool, in_cl: Callable[[Triple], bool], hidden: frozenset[str],
+    ) -> bool:
+        """Clause (iii) for pattern entries: match by unification at the leaf."""
+        from pynmms.rdf.defeasible import Matcher, apply
+
+        matcher = Matcher(self._pattern_rules, self._lookup(derived, over_graph, hidden))
+        own: set[Triple] = set(derived)
+        for a in extras:
+            t = TripleAtom.coerce(a)
+            if t is not None:
+                own.add(t.triple)
+        # (a) a Δ atom the conclusion of an entry unifies with
+        delta_triples = [t.triple for t in (TripleAtom.coerce(d) for d in delta) if t]
+        for dt in delta_triples:
+            for rule, b0 in matcher.for_conclusion(dt):
+                for b in matcher.complete(rule, b0):
+                    if matcher.defeated(rule, b) is not None:
+                        continue
+                    at = {k.name: str(v) for k, v in b.items()}
+                    self.last_reason = f"entry {rule} at {at}"
+                    self.last_rescue = matcher.rescue(rule, b)
+                    logger.debug("pattern entry fires: %s", self.last_reason)
+                    return True
+        # (b) incompatibilities and elaborated conclusions, anchored on the position's own triples
+        conclusions: list[Triple] = []
+        for rule in self._pattern_rules:
+            for b0 in matcher.anchored(rule, own):
+                for b in matcher.complete(rule, b0):
+                    if matcher.defeated(rule, b) is not None:
+                        continue
+                    if rule.is_incompatibility:
+                        at = {k.name: str(v) for k, v in b.items()}
+                        self.last_reason = f"incompatibility {rule} at {at}"
+                        self.last_rescue = matcher.rescue(rule, b)
+                        logger.debug("pattern incompatibility fires: %s", self.last_reason)
+                        return True
+                    if self.elaborate_consequent and rule.conclusion is not None:
+                        conclusions.append(apply(rule.conclusion, b))  # type: ignore[arg-type]
+        if conclusions and len(delta) > 0:
+            d_set = frozenset(str(TripleAtom(*c)) for c in conclusions)
+            elaborated = self._closure_of_extras_plus(extras, derived, d_set, over_graph)
+            if self._delta_meets(delta, elaborated, over_graph, "cl(Γ ∪ D)", hidden):
+                self.last_reason = f"pattern entries elaborated: {sorted(d_set)[:3]}"
+                return True
+        return False
 
     @property
     def material_entries(self) -> list[tuple[frozenset[str], frozenset[str], Robustness]]:
@@ -338,7 +413,7 @@ class RegimeBase(RDFBase):
             return True
         if self._delta_meets(delta, derived, over_graph, "cl(Γ)", hidden):
             return True
-        if not self._consequences:
+        if not self._consequences and not self._pattern_rules:
             return False
 
         def in_cl(t: Triple) -> bool:
@@ -346,7 +421,13 @@ class RegimeBase(RDFBase):
                 return True
             return over_graph and TripleAtom(*t) not in hidden and self.backend.closure_contains(t)
 
-        return self._material_check(gamma, delta, extras, derived, over_graph, in_cl, hidden)
+        if self._consequences and self._material_check(
+            gamma, delta, extras, derived, over_graph, in_cl, hidden
+        ):
+            return True
+        if self._pattern_rules:
+            return self._pattern_check(delta, extras, derived, over_graph, in_cl, hidden)
+        return False
 
     def _delta_meets(
         self, delta: AtomsView, derived: set[Triple], over_graph: bool, what: str,

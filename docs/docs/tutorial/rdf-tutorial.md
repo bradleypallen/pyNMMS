@@ -231,6 +231,28 @@ file declares an ordering for `rank`. A guard is not uniform under
 substitution, so a guarded rule is an admitted exception to
 `def:entailmentregime`; see the theory page.
 
+## Material entries as patterns
+
+A material entry may have variables, and its defeaters may be patterns
+with their own variables and value guards:
+
+```
+?x am:maker ?m, ?m rdf:value ?p |~ ?x am:madeBy ?p unless ?m am:creatorQualifier "naar"
+?g go:involved_in ?c, ?c rdfs:subClassOf ?d |~ ?g go:involved_in ?d unless ?g go:not_involved_in ?d
+?x am:maker ?m, ?m rdf:value ?p, ?p am:deathDateEnd ?d, ?x am:productionDateStart ?s,
+    [year(?s) > year(?d)] |~ false unless ?x am:posthumousImpression "yes"
+?x a ex:Bird |~ ?x a ex:HasWings monotone
+```
+
+`parse_defeasible_rule(text, resolver)` gives a `DefeasibleRule`, and
+`RegimeBase.add_rule` installs it. It fires for a substitution when its
+premises join against the closure (guards included), no defeater has a
+solution, and its conclusion, elaborated by the regime, meets Δ; `false`
+concludes an incompatibility, counted against a position only when the
+position's own triples take part. Alternatives are separated by `;`.
+Entries do not chain. The harness entry files accept these lines beside
+ground ones, and `Position.challenges()` generates probes from them.
+
 ## Positions as speech acts
 
 A position is what a holder has said. `Position` keeps the atoms asserted,

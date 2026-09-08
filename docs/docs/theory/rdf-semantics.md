@@ -284,6 +284,16 @@ to serve clause 3, `ASK` for the antecedent, `NOT EXISTS` for the defeaters,
 and `ASK` over the closure extended by `D` for the consequent, which is why
 this definition precedes the adapter work.
 
+**Patterns.** The definition's entries are ground. The implementation
+also admits entries with variables, `⟨A(x̄), D(x̄); E(x̄, ȳ)⟩`, fired for a
+substitution under which the premises are derivable and no defeater has a
+solution in the closure, a defeater being a conjunction of patterns with
+its own variables and value guards. Uniform substitution is what makes
+an entry with variables one implication schema rather than many entries,
+and the second paper has to give patterns implicational roles of their
+own (the range of subjunctive robustness of a schema is the intersection
+over its instances).
+
 **Attribution.** A base over a real store meets a fact the definition does
 not address: the store itself may be `R`-inconsistent, or may satisfy the
 antecedent of an incompatibility, and `𝔅_R` is explosive by `def:fitness`,

@@ -23,22 +23,23 @@ entries on the :class:`~pynmms.rdf.base.RDFBase` instead.
 from __future__ import annotations
 
 import logging
-from collections.abc import Iterable
+import re
+from collections.abc import Callable, Iterable
 from typing import Any
 
-from rdflib import Graph, Namespace, URIRef
+from rdflib import Graph, Literal, Namespace, URIRef
 from rdflib.namespace import OWL, RDF, RDFS
 
 from pynmms.onto.base import OntoMaterialBase
 from pynmms.rdf.atoms import TripleAtom
-from pynmms.rdf.rules import Rule, Var
+from pynmms.rdf.rules import Pattern, Rule, Var
 
 logger = logging.getLogger(__name__)
 
 DEFAULT_NS = Namespace("http://pynmms.dev/onto/")
 
-_CONCEPT_RE = __import__("re").compile(r"^(\w+)\((\w+)\)$")
-_ROLE_RE = __import__("re").compile(r"^(\w+)\((\w+),(\w+)\)$")
+_CONCEPT_RE = re.compile(r"^(\w+)\((\w+)\)$")
+_ROLE_RE = re.compile(r"^(\w+)\((\w+),(\w+)\)$")
 
 
 def _iri(name: str, ns: Namespace) -> URIRef:
@@ -87,7 +88,7 @@ def onto_to_graph(
             notes.append(f"jointCommitment({e.arg1} -> {e.arg2}) needs a rule; see onto_to_rules")
         if e.annotation:
             subj = _iri(e.arg1.split(",")[0], ns)
-            g.add((subj, RDFS.comment, __import__("rdflib").Literal(e.annotation)))
+            g.add((subj, RDFS.comment, Literal(e.annotation)))
         if e.robustness.kind != "monotone" and e.type != "jointCommitment":
             notes.append(
                 f"{e.type}({e.arg1}, {e.arg2}) is {e.robustness}; RDF schema triples are monotone"
@@ -100,20 +101,51 @@ def onto_to_graph(
 def onto_to_rules(base: OntoMaterialBase, ns: Namespace = DEFAULT_NS) -> list[Rule]:
     """Rules for the schemas a regime cannot read from triples (jointCommitment).
 
-    Guarded jointCommitments become unguarded rules; the defeaters are logged.
+    The jointCommitment entries of :func:`onto_to_defeasible` as plain regime
+    rules: guarded jointCommitments become unguarded rules; the defeaters are
+    logged.
     """
-    x = Var("x")
     rules: list[Rule] = []
-    for e in base.onto_schemas:
-        if e.type != "jointCommitment":
+    for r in onto_to_defeasible(base, ns):
+        if not r.name.startswith("jointCommitment:"):
             continue
-        premises = tuple((x, RDF.type, _iri(c, ns)) for c in e.concepts)
-        rules.append(Rule(f"jointCommitment:{e.arg1}->{e.arg2}", premises,
-                          (x, RDF.type, _iri(e.arg2, ns))))
-        if e.robustness.kind == "guarded":
-            logger.info("onto_to_rules: defeaters %s of %s dropped", sorted(e.robustness.left),
-                        rules[-1].name)
+        rules.append(Rule(r.name, r.premises, r.conclusion))
+        if r.defeaters:
+            logger.info("onto_to_rules: defeaters %s of %s dropped",
+                        [str(d) for d in r.defeaters], r.name)
     return rules
+
+
+# --- Schema shapes -------------------------------------------------------------
+#
+# Each schema type as the premises and conclusion of one pattern entry over the
+# individuals ?x (and ?y for roles), built from the IRIs of its arguments: the
+# antecedent concepts ``cs`` (one for every type but jointCommitment) and the
+# consequent ``d``. The last field is the separator of the entry's name.
+
+_X, _Y = Var("x"), Var("y")
+_Shape = tuple[
+    Callable[[list[URIRef], URIRef], tuple[Pattern, ...]],
+    Callable[[list[URIRef], URIRef], Pattern | None],
+    tuple[Var, ...],
+    str,
+]
+_SCHEMA_SHAPES: dict[str, _Shape] = {
+    "subClassOf": (lambda cs, d: ((_X, RDF.type, cs[0]),),
+                   lambda cs, d: (_X, RDF.type, d), (_X,), "->"),
+    "range": (lambda cs, d: ((_X, cs[0], _Y),),
+              lambda cs, d: (_Y, RDF.type, d), (_X, _Y), "->"),
+    "domain": (lambda cs, d: ((_X, cs[0], _Y),),
+               lambda cs, d: (_X, RDF.type, d), (_X, _Y), "->"),
+    "subPropertyOf": (lambda cs, d: ((_X, cs[0], _Y),),
+                      lambda cs, d: (_X, d, _Y), (_X, _Y), "->"),
+    "disjointWith": (lambda cs, d: ((_X, RDF.type, cs[0]), (_X, RDF.type, d)),
+                     lambda cs, d: None, (_X,), "/"),
+    "disjointProperties": (lambda cs, d: ((_X, cs[0], _Y), (_X, d, _Y)),
+                           lambda cs, d: None, (_X, _Y), "/"),
+    "jointCommitment": (lambda cs, d: tuple((_X, RDF.type, c) for c in cs),
+                        lambda cs, d: (_X, RDF.type, d), (_X,), "->"),
+}
 
 
 def onto_to_defeasible(base: OntoMaterialBase, ns: Namespace = DEFAULT_NS,
@@ -132,51 +164,17 @@ def onto_to_defeasible(base: OntoMaterialBase, ns: Namespace = DEFAULT_NS,
     and logged, with ``exact="skip"`` it is left out.
     """
     from pynmms.rdf.defeasible import DefeasibleRule, Defeater
-    from pynmms.rdf.rules import Var
 
-    x, y = Var("x"), Var("y")
     rules: list[Any] = []
     for e in base.onto_schemas:
-        t = e.type
-        premises: tuple[tuple[Any, Any, Any], ...]
-        if t == "subClassOf":
-            premises = ((x, RDF.type, _iri(e.arg1, ns)),)
-            conclusion: Any = (x, RDF.type, _iri(e.arg2, ns))
-            individuals: tuple[Var, ...] = (x,)
-            name = f"subClassOf:{e.arg1}->{e.arg2}"
-        elif t == "range":
-            premises = ((x, _iri(e.arg1, ns), y),)
-            conclusion = (y, RDF.type, _iri(e.arg2, ns))
-            individuals = (x, y)
-            name = f"range:{e.arg1}->{e.arg2}"
-        elif t == "domain":
-            premises = ((x, _iri(e.arg1, ns), y),)
-            conclusion = (x, RDF.type, _iri(e.arg2, ns))
-            individuals = (x, y)
-            name = f"domain:{e.arg1}->{e.arg2}"
-        elif t == "subPropertyOf":
-            premises = ((x, _iri(e.arg1, ns), y),)
-            conclusion = (x, _iri(e.arg2, ns), y)
-            individuals = (x, y)
-            name = f"subPropertyOf:{e.arg1}->{e.arg2}"
-        elif t == "disjointWith":
-            premises = ((x, RDF.type, _iri(e.arg1, ns)), (x, RDF.type, _iri(e.arg2, ns)))
-            conclusion = None
-            individuals = (x,)
-            name = f"disjointWith:{e.arg1}/{e.arg2}"
-        elif t == "disjointProperties":
-            premises = ((x, _iri(e.arg1, ns), y), (x, _iri(e.arg2, ns), y))
-            conclusion = None
-            individuals = (x, y)
-            name = f"disjointProperties:{e.arg1}/{e.arg2}"
-        elif t == "jointCommitment":
-            premises = tuple((x, RDF.type, _iri(c, ns)) for c in e.concepts)
-            conclusion = (x, RDF.type, _iri(e.arg2, ns))
-            individuals = (x,)
-            name = f"jointCommitment:{e.arg1}->{e.arg2}"
-        else:  # pragma: no cover - the extension has seven types
-            logger.warning("onto_to_defeasible: unknown schema type %s", t)
+        shape = _SCHEMA_SHAPES.get(e.type)
+        if shape is None:  # pragma: no cover - the extension has seven types
+            logger.warning("onto_to_defeasible: unknown schema type %s", e.type)
             continue
+        make_premises, make_conclusion, individuals, sep = shape
+        cs, d = [_iri(c, ns) for c in e.concepts], _iri(e.arg2, ns)
+        premises, conclusion = make_premises(cs, d), make_conclusion(cs, d)
+        name = f"{e.type}:{e.arg1}{sep}{e.arg2}"
         rob = e.robustness
         if rob.is_exact:
             if exact == "skip":
@@ -187,12 +185,14 @@ def onto_to_defeasible(base: OntoMaterialBase, ns: Namespace = DEFAULT_NS,
             rules.append(DefeasibleRule(name, premises, conclusion, (), "monotone"))
             continue
         defeaters: list[Defeater] = []
-        for d in sorted(rob.left):
+        for dft in sorted(rob.left):
             for ind in individuals:
-                defeaters.append(Defeater(((ind, RDF.type, _iri(d, ns)),)))
+                defeaters.append(Defeater(((ind, RDF.type, _iri(dft, ns)),)))
         for xs, _ys in rob.exclusions:
             for ind in individuals:
-                defeaters.append(Defeater(tuple((ind, RDF.type, _iri(d, ns)) for d in sorted(xs))))
+                defeaters.append(
+                    Defeater(tuple((ind, RDF.type, _iri(dft, ns)) for dft in sorted(xs)))
+                )
         rules.append(DefeasibleRule(name, premises, conclusion, tuple(defeaters),
                                     "guarded" if defeaters else "monotone"))
     return rules
@@ -220,24 +220,15 @@ def consequences_to_triples(
     The policy's defeaters are translated too, so a guarded entry keeps its
     defeaters as triple atoms.
     """
-    from pynmms.robustness import Robustness
 
     def tr(name: str) -> str:
         return str(atom_to_triple(name, ns))
 
     for gamma, delta in base.consequences:
-        rob = base.robustness_of(gamma, delta)
-        rob = Robustness(
-            rob.kind,
-            frozenset(tr(a) for a in rob.left),
-            frozenset(tr(a) for a in rob.right),
-            frozenset((frozenset(tr(a) for a in xs), frozenset(tr(a) for a in ys))
-                      for xs, ys in rob.exclusions),
-        )
         yield (
             frozenset(atom_to_triple(a, ns) for a in gamma),
             frozenset(atom_to_triple(a, ns) for a in delta),
-            rob,
+            base.robustness_of(gamma, delta).map_atoms(tr),
         )
 
 

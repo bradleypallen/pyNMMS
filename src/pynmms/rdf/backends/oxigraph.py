@@ -244,31 +244,15 @@ class OxigraphBackend:
         return self._inconsistent
 
     def join(self, patterns: list[Any], bindings: dict[Any, Node]) -> Iterator[dict[Any, Node]]:
-        """One ``SELECT`` over the closure for the whole conjunction."""
-        from pynmms.rdf.rules import Var
+        """One ``SELECT`` over the closure for the whole conjunction (an ``ASK``
+        when every term is bound)."""
+        from pynmms.rdf.sparql_rules import build_select
 
-        names: dict[Any, str] = {}
-        free: list[Any] = []
-
-        def term(x: Any) -> str:
-            if isinstance(x, Var):
-                if x in bindings:
-                    return bindings[x].n3()
-                if x not in names:
-                    names[x] = f"?v{len(names)}"
-                    free.append(x)
-                return names[x]
-            return x.n3()  # type: ignore[no-any-return]
-
-        from pynmms.rdf.sparql_rules import order_bgp
-
-        bgp = " . ".join(f"{term(s)} {term(p)} {term(o)}"
-                         for s, p, o in order_bgp(patterns, bindings))
+        bgp, query, free, names = build_select(patterns, bindings)
         if not free:
             yield from ([dict(bindings)] if bool(self._query(f"ASK {{ {bgp} }}")) else [])
             return
-        select = " ".join(names[v] for v in free)
-        for row in self._query(f"SELECT DISTINCT {select} WHERE {{ {bgp} }}"):
+        for row in self._query(query):
             b = dict(bindings)
             for v in free:
                 val = row[names[v][1:]]
@@ -326,18 +310,24 @@ class OxigraphBackend:
     def materialize(self) -> None:
         """Recompute ``cl_R(G)`` in the store from the asserted graph.
 
-        An on-disk store computes the closure in a temporary in-memory store
-        and bulk-loads the result: RocksDB writes made the rule updates
+        An in-memory store runs the rules in place. An on-disk store does so
+        too when ``in_memory=False`` was given, or when it was left to choose
+        and holds more than :data:`IN_MEMORY_LIMIT` asserted triples;
+        otherwise it computes the closure in a temporary in-memory store and
+        bulk-loads the result, since RocksDB writes made the rule updates
         five times slower than in memory, slower than the Python engine at
         two million closure triples.
         """
         if not self._materialising:
             self._generation += 1
             return
-        in_memory = self.in_memory
-        if in_memory is None:
-            in_memory = self._path is None or self.size() <= IN_MEMORY_LIMIT
-        if self._path is None or not in_memory:
+        if self._path is None:
+            scratch_in_memory = False
+        elif self.in_memory is not None:
+            scratch_in_memory = self.in_memory
+        else:
+            scratch_in_memory = self.size() <= IN_MEMORY_LIMIT
+        if not scratch_in_memory:
             self._reset_closure()
             self._materialize()
             return
@@ -354,7 +344,7 @@ class OxigraphBackend:
             self._store = scratch
             try:
                 self._asserted, asserted_on_disk = self._default, self._asserted
-                self._materialize(asserted=self._count(self._default))
+                self._materialize(asserted=self._count(self._default), record=False)
             finally:
                 self._store, self._asserted = disk, asserted_on_disk
             scratch.dump(str(dump), format=ox.RdfFormat.N_TRIPLES, from_graph=self._default)
@@ -427,12 +417,14 @@ class OxigraphBackend:
         return len(added)
 
     # --- Materialisation in the store ---
-    def _materialize(self, asserted: int | None = None) -> None:
+    def _materialize(self, asserted: int | None = None, *, record: bool = True) -> None:
         """Run the regime to a fixpoint inside the store.
 
         Pattern rules run as SPARQL updates; guarded and procedural rules run
         in process against the store between rounds, until neither adds a
-        triple. ⊥ rules are ASKs (``prop:incoherence``).
+        triple. ⊥ rules are ASKs (``prop:incoherence``). With ``record=False``
+        the meta graph is left to the caller (the scratch store of
+        :meth:`materialize` is discarded, so recording there is wasted).
         """
         from pynmms.rdf.sparql_rules import partition
 
@@ -450,7 +442,8 @@ class OxigraphBackend:
         )
         self._inconsistent = bottom
         self._generation += 1
-        self._record_meta()
+        if record:
+            self._record_meta()
         logger.info(
             "Materialised %s closure in the store: %d asserted -> %d triples%s in %d round(s), "
             "%.1f ms (%d store-side rules, %d in process%s)",

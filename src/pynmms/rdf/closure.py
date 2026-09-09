@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Callable, Iterable, Iterator
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from rdflib import Literal
 from rdflib.namespace import RDF
@@ -102,8 +102,19 @@ class _TripleIndex:
                 yield t
 
 
-def _unify(pattern: Pattern, t: Triple, bindings: Bindings) -> Bindings | None:
-    b = dict(bindings)
+# --- Unification and substitution ---------------------------------------------
+#
+# The one implementation shared by the closure engine, the pattern-entry matcher
+# (``pynmms.rdf.defeasible``) and the position's probes.
+
+
+def unify(pattern: Pattern, t: Triple, bindings: Bindings | None = None) -> Bindings | None:
+    """Extend *bindings* so that *pattern* matches the ground triple *t*, or ``None``.
+
+    A variable already bound to a different term fails the match; the input
+    bindings are not modified.
+    """
+    b: Bindings = dict(bindings) if bindings else {}
     for term, value in zip(pattern, t):
         if isinstance(term, Var):
             bound = b.get(term)
@@ -116,15 +127,31 @@ def _unify(pattern: Pattern, t: Triple, bindings: Bindings) -> Bindings | None:
     return b
 
 
-def _instantiate(pattern: Pattern, b: Bindings) -> tuple[Node | None, Node | None, Node | None]:
+def apply(pattern: Pattern, b: Bindings) -> tuple[Any, Any, Any]:
+    """Substitute *b* into *pattern*; unbound variables stay variables.
+
+    The result is loosely typed: callers narrow it with :func:`is_ground`
+    before treating it as a triple.
+    """
+    return tuple(b.get(x, x) if isinstance(x, Var) else x for x in pattern)  # type: ignore[return-value]
+
+
+def is_ground(pattern: Pattern) -> bool:
+    """Does *pattern* have no variables?"""
+    return not any(isinstance(x, Var) for x in pattern)
+
+
+def instantiate(pattern: Pattern, b: Bindings) -> tuple[Node | None, Node | None, Node | None]:
+    """Substitute *b* into *pattern* as a lookup key; unbound variables become ``None``."""
     out: list[Node | None] = []
     for term in pattern:
         out.append(b.get(term) if isinstance(term, Var) else term)  # type: ignore[arg-type]
     return (out[0], out[1], out[2])
 
 
-def _ground(pattern: Pattern, b: Bindings) -> Triple:
-    t = _instantiate(pattern, b)
+def ground(pattern: Pattern, b: Bindings) -> Triple:
+    """Substitute *b* into a pattern every variable of which *b* binds."""
+    t = instantiate(pattern, b)
     assert None not in t, "range restriction guarantees ground conclusions"
     return t  # type: ignore[return-value]
 
@@ -155,7 +182,7 @@ class ClosureEngine:
         if isinstance(rule, ProceduralRule):
             yield from rule.fire(t, lookup)
             return
-        b0 = _unify(rule.premises[i], t, {})
+        b0 = unify(rule.premises[i], t, {})
         if b0 is None:
             return
         rest = [p for j, p in enumerate(rule.premises) if j != i]
@@ -164,8 +191,8 @@ class ClosureEngine:
             if k == len(rest):
                 yield b
                 return
-            for cand in lookup(_instantiate(rest[k], b)):
-                b2 = _unify(rest[k], cand, b)
+            for cand in lookup(instantiate(rest[k], b)):
+                b2 = unify(rest[k], cand, b)
                 if b2 is not None:
                     yield from join(k + 1, b2)
 
@@ -183,7 +210,7 @@ class ClosureEngine:
         once. ``new`` and the store are disjoint, so the subsets partition the
         space and nothing is derived twice.
         """
-        b0 = _unify(rule.premises[i], t, {})
+        b0 = unify(rule.premises[i], t, {})
         if b0 is None:
             return
         rest = [p for j, p in enumerate(rule.premises) if j != i]
@@ -202,8 +229,8 @@ class ClosureEngine:
                             yield b
                         return
                     pat = rest[from_new[idx]]
-                    for cand in new.match(_instantiate(pat, b)):
-                        b2 = _unify(pat, cand, b)
+                    for cand in new.match(instantiate(pat, b)):
+                        b2 = unify(pat, cand, b)
                         if b2 is not None:
                             yield from go(idx + 1, b2)
 
@@ -216,7 +243,7 @@ class ClosureEngine:
         for b in bindings:
             if rule.guard is not None and not rule.guard(b):
                 continue
-            yield None if rule.conclusion is None else _ground(rule.conclusion, b)
+            yield None if rule.conclusion is None else ground(rule.conclusion, b)
 
     def extend(
         self,
@@ -323,8 +350,8 @@ def join_patterns(
         if k == len(patterns):
             yield b
             return
-        for cand in lookup(_instantiate(patterns[k], b)):
-            b2 = _unify(patterns[k], cand, b)
+        for cand in lookup(instantiate(patterns[k], b)):
+            b2 = unify(patterns[k], cand, b)
             if b2 is not None:
                 yield from go(k + 1, b2)
 
@@ -343,8 +370,8 @@ def match_patterns(patterns: Iterable[Pattern], lookup: Lookup) -> Bindings | No
     def go(k: int, b: Bindings) -> Bindings | None:
         if k == len(pats):
             return b
-        for cand in lookup(_instantiate(pats[k], b)):
-            b2 = _unify(pats[k], cand, b)
+        for cand in lookup(instantiate(pats[k], b)):
+            b2 = unify(pats[k], cand, b)
             if b2 is not None:
                 found = go(k + 1, b2)
                 if found is not None:

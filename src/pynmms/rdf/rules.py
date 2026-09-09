@@ -25,13 +25,12 @@ from collections.abc import Callable, Iterable, Iterator
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
-from rdflib import Literal, URIRef
+from rdflib import Literal
 from rdflib.namespace import OWL, RDF
 from rdflib.namespace import RDFS as RDFSNS
 from rdflib.term import Node
 
 from pynmms.rdf.atoms import Resolver, _tokens, content_to_term
-from pynmms.syntax import split_top_level
 
 if TYPE_CHECKING:
     from pynmms.rdf.atoms import Triple
@@ -86,10 +85,6 @@ class Rule:
             if self.guard is None:
                 object.__setattr__(self, "guard", self.guard_expr.evaluate)
 
-    @property
-    def is_false_concluding(self) -> bool:
-        return self.conclusion is None
-
     def __str__(self) -> str:
         prem = ", ".join(" ".join(str(t) for t in p) for p in self.premises)
         if self.guard_expr is not None:
@@ -116,10 +111,6 @@ class ProceduralRule:
     name: str
     triggers: tuple[Node | None, ...]
     fire: Callable[[Triple, Lookup], Iterator[Triple | None]]
-
-    @property
-    def is_false_concluding(self) -> bool:
-        return False  # may derive ⊥ dynamically; not statically known
 
     def __str__(self) -> str:
         return f"{self.name} (procedural)"
@@ -156,23 +147,69 @@ def _parse_pattern(text: str, resolver: Resolver | None) -> Pattern:
     return (term(toks[0]), term(toks[1], True), term(toks[2]))
 
 
+def split_premises(text: str) -> list[str]:
+    """Split a premise list on commas outside ``[guards]``, ``(...)``, ``"..."`` and ``<iri>``.
+
+    A guard may contain ``<`` (``[?a < ?b]``), so the quoted-atom rule of
+    :func:`pynmms.syntax.split_top_level` cannot apply inside brackets.
+    Parts are stripped; empty parts are dropped.
+    """
+    parts: list[str] = []
+    depth = bracket = 0
+    quote = ""
+    start = 0
+    for i, ch in enumerate(text):
+        if quote:
+            if ch == quote:
+                quote = ""
+            continue
+        if ch == '"' or (ch == "<" and not bracket):
+            quote = '"' if ch == '"' else ">"
+        elif ch == "[":
+            bracket += 1
+        elif ch == "]" and bracket:
+            bracket -= 1
+        elif ch == "(":
+            depth += 1
+        elif ch == ")" and depth:
+            depth -= 1
+        elif ch == "," and not depth and not bracket:
+            parts.append(text[start:i])
+            start = i + 1
+    parts.append(text[start:])
+    return [p.strip() for p in parts if p.strip()]
+
+
+def _is_guard(part: str) -> bool:
+    return part.startswith("[") and part.endswith("]")
+
+
+def parse_premises(text: str, resolver: Resolver | None) -> tuple[tuple[Pattern, ...], Any]:
+    """Parse a premise list ``p1, p2, [guard], ...`` into its patterns and one guard.
+
+    Several ``[...]`` guards are conjoined; the result's guard is ``None``
+    when there is none (a :class:`pynmms.rdf.values.Guard` otherwise).
+    """
+    parts = split_premises(text)
+    guards = [p[1:-1].strip() for p in parts if _is_guard(p)]
+    patterns = tuple(_parse_pattern(p, resolver) for p in parts if not _is_guard(p))
+    guard = None
+    if guards:
+        from pynmms.rdf.values import parse_guard
+
+        guard = parse_guard(" && ".join(f"({g})" for g in guards) if len(guards) > 1
+                            else guards[0])
+    return patterns, guard
+
+
 def parse_rule(text: str, resolver: Resolver | None = None, name: str | None = None) -> Rule:
     """Parse ``p1, p2, ... -> conclusion`` where conclusion is a pattern or ``false``."""
     if "->" not in text:
         raise ValueError(f"Rule must contain '->': {text!r}")
     left, right = text.split("->", 1)
-    parts = [p.strip() for p in split_top_level(left, ",") if p.strip()]
-    guard_texts = [p[1:-1].strip() for p in parts if p.startswith("[") and p.endswith("]")]
-    premises = tuple(_parse_pattern(p, resolver) for p in parts
-                     if not (p.startswith("[") and p.endswith("]")))
+    premises, guard_expr = parse_premises(left, resolver)
     if not premises:
         raise ValueError(f"Rule has no premises: {text!r}")
-    guard_expr = None
-    if guard_texts:
-        from pynmms.rdf.values import parse_guard
-
-        guard_expr = parse_guard(" && ".join(f"({g})" for g in guard_texts)
-                                 if len(guard_texts) > 1 else guard_texts[0])
     right = right.strip()
     conclusion = None if right.lower() in ("false", "⊥", "bottom") else _parse_pattern(
         right, resolver
@@ -180,20 +217,27 @@ def parse_rule(text: str, resolver: Resolver | None = None, name: str | None = N
     return Rule(name or text.strip(), premises, conclusion, guard_expr=guard_expr)
 
 
+def content_lines(text: str) -> Iterator[str]:
+    """The lines of a rules or entries file that carry a rule or an entry.
+
+    Blank lines and ``#`` comments are skipped; ``ordering name: a < b`` lines
+    are consumed (the ordering is declared for ``rank`` guards, see
+    :func:`pynmms.rdf.values.parse_ordering_line`) and not yielded. Lines
+    are stripped.
+    """
+    from pynmms.rdf.values import parse_ordering_line
+
+    for ln in text.splitlines():
+        line = ln.strip()
+        if not line or line.startswith("#") or parse_ordering_line(line):
+            continue
+        yield line
+
+
 def parse_rules_text(text: str, resolver: Resolver | None = None) -> list[Rule]:
     """Parse a rules file: one rule per line, ``#`` comments, and ``ordering name: a < b``
     lines declaring orderings for ``rank(name, x)`` guards."""
-    from pynmms.rdf.values import parse_ordering_line
-
-    out: list[Rule] = []
-    for ln in text.splitlines():
-        line = ln.strip()
-        if not line or line.startswith("#"):
-            continue
-        if parse_ordering_line(line):
-            continue
-        out.append(parse_rule(line, resolver))
-    return out
+    return [parse_rule(line, resolver) for line in content_lines(text)]
 
 
 # --- RDFS ---
@@ -270,7 +314,6 @@ LITERAL_RULES: tuple[Rule, ...] = (
 )
 
 SIMPLE = Regime("simple")
-RDFS = Regime("rdfs", RDFS_RULES + LITERAL_RULES, RDFS_AXIOMS)  # rdfD1 attached below
 
 # --- OWL 2 RL/RDF (W3C OWL 2 Profiles, Section 4.3, Tables 4-9) ---
 #
@@ -661,8 +704,9 @@ def custom(
 
 
 __all__ = [
-    "Var", "Rule", "Regime", "Pattern", "Term", "parse_rule", "custom",
+    "Var", "Rule", "Regime", "Pattern", "Term", "parse_rule", "parse_rules_text",
+    "split_premises", "parse_premises", "content_lines", "custom",
     "ProceduralRule", "AnyRule", "Lookup", "rdf_list",
     "RDFS_RULES", "RDFS_AXIOMS", "LITERAL_RULES", "OWL2RL_RULES", "OWL2RL_LIST_RULES",
-    "RDFD1", "OWL2RL_OMITTED", "SIMPLE", "RDFS", "OWL2RL", "REGIMES", "URIRef",
+    "RDFD1", "OWL2RL_OMITTED", "SIMPLE", "RDFS", "OWL2RL", "REGIMES",
 ]

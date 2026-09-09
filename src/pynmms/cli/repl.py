@@ -1,4 +1,9 @@
-"""``pynmms repl`` subcommand — interactive REPL."""
+"""``pynmms repl`` subcommand — interactive REPL.
+
+The REPL is a thin loop over the same parsing and processing functions as
+``pynmms tell`` and ``pynmms ask`` (:func:`pynmms.cli.tell._process_tell_statement`,
+:func:`pynmms.cli.ask._ask_one`), run with JSON output off.
+"""
 
 from __future__ import annotations
 
@@ -7,9 +12,12 @@ import logging
 from pathlib import Path
 
 from pynmms.base import MaterialBase
+from pynmms.cli.ask import _ask_one
+from pynmms.cli.schema_line import describe_schema, format_registration, register_schema_line
+from pynmms.cli.tell import _process_tell_statement
+from pynmms.onto.base import OntoMaterialBase
 from pynmms.reasoner import NMMSReasoner
-from pynmms.robustness import EXACT, Robustness, split_robustness_clause
-from pynmms.syntax import find_top_level, split_top_level
+from pynmms.robustness import Robustness
 
 logger = logging.getLogger(__name__)
 
@@ -64,234 +72,145 @@ Commands (ontology mode):
 """
 
 
-def _parse_repl_tell(
-    statement: str,
-) -> tuple[str, frozenset[str] | None, frozenset[str] | None, str | None, Robustness]:
-    """Parse a REPL tell statement (without the 'tell ' prefix).
+class _Session:
+    """State of one REPL session: the base, its mode and the trace flag."""
 
-    Returns (kind, antecedent, consequent, annotation, robustness).
-    """
-    from pynmms.cli.tell import _parse_atom_with_annotation
+    def __init__(self, base: MaterialBase, onto_mode: bool) -> None:
+        self.base = base
+        self.onto_mode = onto_mode
+        self.base_cls: type[MaterialBase] = OntoMaterialBase if onto_mode else MaterialBase
+        self.show_trace = False
 
-    statement = statement.strip()
+    # Each handler prints its own output; ``handle`` returns False on ``quit``.
 
-    if statement.lower().startswith("atom "):
-        atom, annotation = _parse_atom_with_annotation(statement[5:])
-        return ("atom", frozenset({atom}), None, annotation, EXACT)
+    def handle(self, line: str) -> bool:
+        if line in ("quit", "exit"):
+            return False
+        if line == "help":
+            print(ONTO_HELP_TEXT if self.onto_mode else HELP_TEXT)
+        elif line == "show":
+            self.show()
+        elif self.onto_mode and line == "show schemas":
+            self.show_schemas()
+        elif self.onto_mode and line == "show individuals":
+            self.show_individuals()
+        elif line.startswith("trace "):
+            self.trace(line[6:].strip().lower())
+        elif line.startswith("save "):
+            self.save(line[5:].strip())
+        elif line.startswith("load "):
+            self.load(line[5:].strip())
+        elif self.onto_mode and line.startswith("tell schema "):
+            self.tell_schema(line[len("tell "):])
+        elif line.startswith("tell "):
+            _process_tell_statement(line[5:], self.base, "", added_label="Added")
+        elif line.startswith("ask "):
+            _ask_one(line[4:], NMMSReasoner(self.base), trace=self.show_trace)
+        else:
+            print(f"Unknown command: {line!r}. Type 'help' for commands.")
+        return True
 
-    statement, robustness = split_robustness_clause(statement)
-    if "|~" not in statement:
-        raise ValueError(f"Expected 'atom X' or 'A, B |~ C, D', got: {statement!r}")
+    def show(self) -> None:
+        data = self.base.to_dict()
+        ann = data.get("annotations", {})
+        print(f"Language ({len(data['language'])} atoms):")
+        for atom in data["language"]:
+            desc = ann.get(atom)
+            if desc:
+                print(f"  {atom} — {desc}")
+            else:
+                print(f"  {atom}")
+        print(f"Consequences ({len(data['consequences'])}):")
+        for entry in data["consequences"]:
+            ant = set(entry["antecedent"])
+            con = set(entry["consequent"])
+            rob = Robustness.from_json(entry.get("robustness"))
+            suffix = "" if rob.is_exact else f" [{rob}]"
+            print(f"  {ant} |~ {con}{suffix}")
 
-    turnstiles = find_top_level(statement, "|~")
-    if not turnstiles:
-        raise ValueError(f"Expected 'atom X' or 'A, B |~ C, D', got: {statement!r}")
-    antecedent = frozenset(split_top_level(statement[: turnstiles[0]], ","))
-    consequent = frozenset(split_top_level(statement[turnstiles[0] + 2 :], ","))
+    def show_schemas(self) -> None:
+        assert isinstance(self.base, OntoMaterialBase)
+        schemas = self.base.onto_schemas
+        print(f"Schemas ({len(schemas)}):")
+        for e in schemas:
+            desc = f"  {e.type}: {describe_schema(e.type, e.arg1, e.arg2)}"
+            if not e.robustness.is_exact:
+                desc += f" [{e.robustness}]"
+            if e.annotation:
+                desc += f" — {e.annotation}"
+            print(desc)
 
-    return ("consequence", antecedent, consequent, None, robustness)
+    def show_individuals(self) -> None:
+        assert isinstance(self.base, OntoMaterialBase)
+        print(f"Individuals: {sorted(self.base.individuals)}")
+        print(f"Concepts: {sorted(self.base.concepts)}")
+        print(f"Roles: {sorted(self.base.roles)}")
 
+    def trace(self, val: str) -> None:
+        if val == "on":
+            self.show_trace = True
+            print("Trace: ON")
+        elif val == "off":
+            self.show_trace = False
+            print("Trace: OFF")
+        else:
+            print("Usage: trace on/off")
 
-def _parse_repl_ask(sequent_str: str) -> tuple[frozenset[str], frozenset[str]]:
-    """Parse a REPL ask query (without the 'ask ' prefix)."""
-    sequent_str = sequent_str.strip()
+    def save(self, filepath: str) -> None:
+        try:
+            self.base.to_file(filepath)
+            print(f"Saved to {filepath}")
+        except OSError as e:
+            print(f"Error saving: {e}")
 
-    if "=>" not in sequent_str:
-        raise ValueError(f"Expected 'A, B => C, D', got: {sequent_str!r}")
+    def load(self, filepath: str) -> None:
+        try:
+            self.base = self.base_cls.from_file(filepath)
+            print(f"Loaded from {filepath}")
+        except (OSError, ValueError) as e:
+            print(f"Error loading: {e}")
 
-    arrows = find_top_level(sequent_str, "=>")
-    if not arrows:
-        raise ValueError(f"Expected 'A, B => C, D', got: {sequent_str!r}")
-    antecedent = frozenset(split_top_level(sequent_str[: arrows[0]], ","))
-    consequent = frozenset(split_top_level(sequent_str[arrows[0] + 2 :], ","))
-
-    return antecedent, consequent
+    def tell_schema(self, line: str) -> None:
+        assert isinstance(self.base, OntoMaterialBase)
+        try:
+            stype, details, rob, ann = register_schema_line(self.base, line)
+            print(format_registration(stype, details, rob, ann))
+        except (IndexError, ValueError) as e:
+            print(f"Error: {e}")
 
 
 def run_repl(args: argparse.Namespace) -> int:
     """Execute the ``repl`` subcommand."""
-    onto_mode = getattr(args, "onto", False)
+    onto_mode: bool = args.onto
+    base_cls: type[MaterialBase] = OntoMaterialBase if onto_mode else MaterialBase
+    label = "ontology base" if onto_mode else "base"
 
-    if onto_mode:
-        from pynmms.onto.base import OntoMaterialBase
-
-        base: MaterialBase
-        if args.base and Path(args.base).exists():
-            base = OntoMaterialBase.from_file(args.base)
-            print(f"Loaded ontology base from {args.base}")
-        else:
-            base = OntoMaterialBase()
-            if args.base:
-                print(f"Base file {args.base} not found, starting with empty ontology base.")
-            else:
-                print("Starting with empty ontology base.")
-
-        print("pyNMMS REPL (ontology mode). Type 'help' for commands.\n")
+    base: MaterialBase
+    if args.base and Path(args.base).exists():
+        base = base_cls.from_file(args.base)
+        print(f"Loaded {label} from {args.base}")
     else:
-        if args.base and Path(args.base).exists():
-            base = MaterialBase.from_file(args.base)
-            print(f"Loaded base from {args.base}")
+        base = base_cls()
+        if args.base:
+            print(f"Base file {args.base} not found, starting with empty {label}.")
         else:
-            base = MaterialBase()
-            if args.base:
-                print(f"Base file {args.base} not found, starting with empty base.")
-            else:
-                print("Starting with empty base.")
+            print(f"Starting with empty {label}.")
 
-        print("pyNMMS REPL. Type 'help' for commands.\n")
+    print("pyNMMS REPL (ontology mode). Type 'help' for commands.\n" if onto_mode
+          else "pyNMMS REPL. Type 'help' for commands.\n")
 
-    show_trace = False
+    session = _Session(base, onto_mode)
+    prompt = "pynmms[onto]> " if onto_mode else "pynmms> "
 
     try:
         while True:
             try:
-                prompt = "pynmms[onto]> " if onto_mode else "pynmms> "
                 line = input(prompt).strip()
             except EOFError:
                 print()
                 break
-
-            if not line:
-                continue
-
-            if line in ("quit", "exit"):
+            if line and not session.handle(line):
                 break
-
-            if line == "help":
-                print(ONTO_HELP_TEXT if onto_mode else HELP_TEXT)
-                continue
-
-            if line == "show":
-                data = base.to_dict()
-                ann = data.get("annotations", {})
-                print(f"Language ({len(data['language'])} atoms):")
-                for atom in data["language"]:
-                    desc = ann.get(atom)
-                    if desc:
-                        print(f"  {atom} \u2014 {desc}")
-                    else:
-                        print(f"  {atom}")
-                print(f"Consequences ({len(data['consequences'])}):")
-                for entry in data["consequences"]:
-                    ant = set(entry["antecedent"])
-                    con = set(entry["consequent"])
-                    rob = Robustness.from_json(entry.get("robustness"))
-                    suffix = "" if rob.is_exact else f" [{rob}]"
-                    print(f"  {ant} |~ {con}{suffix}")
-                continue
-
-            if onto_mode and line == "show schemas":
-                assert isinstance(base, OntoMaterialBase)  # type: ignore[unreachable]
-                from pynmms.cli.schema_line import describe_schema
-
-                schemas = base.onto_schemas
-                print(f"Schemas ({len(schemas)}):")
-                for e in schemas:
-                    desc = f"  {e.type}: {describe_schema(e.type, e.arg1, e.arg2)}"
-                    if not e.robustness.is_exact:
-                        desc += f" [{e.robustness}]"
-                    if e.annotation:
-                        desc += f" \u2014 {e.annotation}"
-                    print(desc)
-                continue
-
-            if onto_mode and line == "show individuals":
-                assert isinstance(base, OntoMaterialBase)  # type: ignore[unreachable]
-                print(f"Individuals: {sorted(base.individuals)}")
-                print(f"Concepts: {sorted(base.concepts)}")
-                print(f"Roles: {sorted(base.roles)}")
-                continue
-
-            if line.startswith("trace "):
-                val = line[6:].strip().lower()
-                if val == "on":
-                    show_trace = True
-                    print("Trace: ON")
-                elif val == "off":
-                    show_trace = False
-                    print("Trace: OFF")
-                else:
-                    print("Usage: trace on/off")
-                continue
-
-            if line.startswith("save "):
-                filepath = line[5:].strip()
-                try:
-                    base.to_file(filepath)
-                    print(f"Saved to {filepath}")
-                except OSError as e:
-                    print(f"Error saving: {e}")
-                continue
-
-            if line.startswith("load "):
-                filepath = line[5:].strip()
-                try:
-                    if onto_mode:
-                        base = OntoMaterialBase.from_file(filepath)
-                    else:
-                        base = MaterialBase.from_file(filepath)
-                    print(f"Loaded from {filepath}")
-                except (OSError, ValueError) as e:
-                    print(f"Error loading: {e}")
-                continue
-
-            # Schema commands (ontology mode only)
-            if onto_mode and line.startswith("tell schema "):
-                assert isinstance(base, OntoMaterialBase)  # type: ignore[unreachable]
-                from pynmms.cli.schema_line import format_registration, register_schema_line
-
-                try:
-                    stype, details, rob, ann = register_schema_line(base, line[len("tell "):])
-                    print(format_registration(stype, details, rob, ann))
-                except (IndexError, ValueError) as e:
-                    print(f"Error: {e}")
-                continue
-
-            if line.startswith("tell "):
-                rest = line[5:]
-                try:
-                    kind, antecedent, consequent, annotation, rob = _parse_repl_tell(rest)
-                    if kind == "atom":
-                        assert antecedent is not None
-                        atom = next(iter(antecedent))
-                        base.add_atom(atom)
-                        if annotation:
-                            base.annotate(atom, annotation)
-                            print(f"Added atom: {atom} \u2014 {annotation}")
-                        else:
-                            print(f"Added atom: {atom}")
-                    else:
-                        tell_ant = antecedent if antecedent else frozenset[str]()
-                        tell_con = consequent if consequent else frozenset[str]()
-                        base.add_consequence(tell_ant, tell_con, robustness=rob)
-                        suffix = "" if rob.is_exact else f" [{rob}]"
-                        print(f"Added: {set(tell_ant)} |~ {set(tell_con)}{suffix}")
-                except ValueError as e:
-                    print(f"Error: {e}")
-                continue
-
-            if line.startswith("ask "):
-                rest = line[4:]
-                try:
-                    antecedent, consequent = _parse_repl_ask(rest)
-                    r = NMMSReasoner(base)
-                    result = r.derives(antecedent, consequent)
-
-                    if result.derivable:
-                        print("DERIVABLE")
-                    else:
-                        print("NOT DERIVABLE")
-
-                    if show_trace:
-                        for tline in result.trace:
-                            print(f"  {tline}")
-                        print(f"  Depth: {result.depth_reached}, Cache hits: {result.cache_hits}")
-                except ValueError as e:
-                    print(f"Error: {e}")
-                continue
-
-            print(f"Unknown command: {line!r}. Type 'help' for commands.")
-
     except KeyboardInterrupt:
         print("\nInterrupted.")
 

@@ -127,16 +127,9 @@ class RDFBase(MaterialBase):
 
     # --- Sequents over the stored graph ---
 
-    def view(self, *, background: bool = False) -> GraphView:
-        """Γ = G: the stored graph as an antecedent (or, with *background*, an empty
-        position whose closure the store supplies)."""
-        return GraphView(self.backend, background=background)
-
-    def parse(self, text: str, *, antecedent: bool = False) -> Sentence:
-        """Parse a sentence whose atoms are ``<s p o>`` (prefixes resolved)."""
-        from pynmms.syntax import parse_sentence
-
-        return _canonicalize(parse_sentence(text), self.resolver, antecedent=antecedent)
+    def view(self) -> GraphView:
+        """Γ = G: the stored graph as an antecedent."""
+        return GraphView(self.backend)
 
     def sequent(
         self,
@@ -168,10 +161,13 @@ class RDFBase(MaterialBase):
         self,
         accept: Iterable[GraphLike] = (),
         reject: Iterable[GraphLike] = (),
-        *,
-        include_graph: bool = True,
     ) -> Sequent:
         """The sequent whose derivability says a position is out of bounds.
+
+        This builds the manuscript's positional sequent
+        (``def:contententailment``, ``prop:positional``) over the stored
+        graph; :class:`pynmms.rdf.position.Position` is the dialogical
+        position (assert, deny, withdraw, commit) built on the same machinery.
 
         A position ⟨𝔊, 𝔇⟩ is a set of accepted graphs and a set of rejected
         graphs (``def:contententailment``); it is out of bounds iff 𝔊
@@ -205,7 +201,7 @@ class RDFBase(MaterialBase):
                 consequent.append(PatternAtom(triples))
             else:
                 consequent.append(_conjunction(triples))
-        return self.sequent(antecedent, consequent, include_graph=include_graph)
+        return self.sequent(antecedent, consequent)
 
 
 GraphLike = Union[Graph, str, Path, Iterable[Triple]]
@@ -337,9 +333,25 @@ class RegimeBase(RDFBase):
 
         return lookup
 
+    def _contains(
+        self, derived: set[Triple], over_graph: bool, hidden: frozenset[str]
+    ) -> Callable[[Triple], bool]:
+        """The closure as a membership test, the counterpart of :meth:`_lookup`."""
+
+        def contains(t: Triple) -> bool:
+            if t in derived:
+                return True
+            return (
+                over_graph
+                and (not hidden or TripleAtom(*t) not in hidden)
+                and self.backend.closure_contains(t)
+            )
+
+        return contains
+
     def _pattern_check(
         self, delta: AtomsView, extras: frozenset[str], derived: set[Triple],
-        over_graph: bool, in_cl: Callable[[Triple], bool], hidden: frozenset[str],
+        over_graph: bool, hidden: frozenset[str],
     ) -> bool:
         """Clause (iii) for pattern entries: match by unification at the leaf."""
         from pynmms.rdf.defeasible import Matcher, apply
@@ -395,6 +407,13 @@ class RegimeBase(RDFBase):
     def is_axiom(self, gamma: AtomsView, delta: AtomsView) -> bool:
         """The B_{R,I} test: (i) inconsistency, (ii) the regime, (iii) one material entry.
 
+        (i) Γ is R-inconsistent, attributed per :attr:`attribution` (under
+        ``"position"`` only a ⊥ the position's own atoms take part in; under
+        ``"global"`` the store's too); (ii) Δ meets cl_R(Γ), a pattern atom in
+        Δ by witness search; (iii) one ground material entry
+        (:meth:`_material_check`: antecedent derivable, no defeater derivable,
+        consequent elaborated, incompatibilities attributed to the position)
+        or one pattern entry (:meth:`_pattern_check`, unified at the leaf).
         Containment is (ii) with Γ ⊆ cl_R(Γ), so the propositional base's
         literal-match paths are not consulted here.
         """
@@ -425,17 +444,13 @@ class RegimeBase(RDFBase):
         if not self._consequences and not self._pattern_rules:
             return False
 
-        def in_cl(t: Triple) -> bool:
-            if t in derived:
-                return True
-            return over_graph and TripleAtom(*t) not in hidden and self.backend.closure_contains(t)
-
+        in_cl = self._contains(derived, over_graph, hidden)
         if self._consequences and self._material_check(
             gamma, delta, extras, derived, over_graph, in_cl, hidden
         ):
             return True
         if self._pattern_rules:
-            return self._pattern_check(delta, extras, derived, over_graph, in_cl, hidden)
+            return self._pattern_check(delta, extras, derived, over_graph, hidden)
         return False
 
     def _delta_meets(
@@ -485,49 +500,16 @@ class RegimeBase(RDFBase):
         for a_set, d_set, rob in self.material_entries:
             if not atoms_in_cl(a_set):
                 continue
-            # Antecedent-side defeaters (singletons and the left parts of
-            # exclusions) are read through the closure; succedent-side ones
-            # against Δ literally.
-            if any(atoms_in_cl([x]) for x in rob.left):
-                logger.debug("entry %s |~ %s: a defeater is derivable", set(a_set), set(d_set))
-                continue
-            defeated = False
-            for x_, y in rob.exclusions:
-                left_ok = atoms_in_cl(x_) if x_ else True
-                right_ok = all(x in delta for x in y) if y else True
-                if left_ok and right_ok:
-                    defeated = True
-                    break
-            if defeated or (rob.right and any(x in delta for x in rob.right)):
-                logger.debug("entry %s |~ %s: a conjunctive or succedent defeater applies",
-                             set(a_set), set(d_set))
+            if self._defeated(rob, a_set, d_set, delta, atoms_in_cl):
                 continue
             if rob.is_exact and not self._gamma_within_closure_of(gamma, a_set):
                 logger.debug("entry %s |~ %s: exact, Γ not R-equivalent to A",
                              set(a_set), set(d_set))
                 continue
             if not d_set:
-                # An incompatibility ⟨A, ∅; E⟩. Under position attribution it is the
-                # position's only if it contributed to A (an atom of A is among the
-                # triples the position added or derived); under global attribution a
-                # background that satisfies A makes every position incoherent. What
-                # follows is the entry's succedent policy: exact yields Γ |~ ∅ alone,
-                # monotone and guarded explode (as in the propositional core).
-                if self.attribution != "global" and not any(
-                    a in extras
-                    or ((t := TripleAtom.coerce(a)) is not None and t.triple in derived)
-                    for a in a_set
-                ):
-                    logger.debug("entry %s |~ ∅: background only, not this position's",
-                                 set(a_set))
-                    continue
-                if rob.is_exact and len(delta) > 0:
-                    continue
-                logger.debug("entry %s |~ ∅ fires: Γ materially incoherent [%s]", set(a_set), rob)
-                self.last_reason = (f"incompatibility {', '.join(sorted(map(str, a_set)))} "
-                                    f"|~ ∅ [{rob.kind}]")
-                self.last_rescue = tuple(sorted(rob.left))
-                return True
+                if self._incompatibility_fires(rob, a_set, delta, extras, derived):
+                    return True
+                continue
             if self.elaborate_consequent:
                 elaborated = self._closure_of_extras_plus(extras, derived, d_set, over_graph)
                 if self._delta_meets(delta, elaborated, over_graph, "cl(Γ ∪ D)", hidden):
@@ -544,6 +526,61 @@ class RegimeBase(RDFBase):
                 return True
         return False
 
+    @staticmethod
+    def _defeated(
+        rob: Robustness, a_set: frozenset[str], d_set: frozenset[str], delta: AtomsView,
+        atoms_in_cl: Callable[[Iterable[str]], bool],
+    ) -> bool:
+        """Does a defeater of the entry ⟨A, D; E⟩ apply?
+
+        Antecedent-side defeaters (singletons and the left parts of
+        exclusions) are read through the closure; succedent-side ones
+        against Δ literally.
+        """
+        if any(atoms_in_cl([x]) for x in rob.left):
+            logger.debug("entry %s |~ %s: a defeater is derivable", set(a_set), set(d_set))
+            return True
+        defeated = False
+        for x_, y in rob.exclusions:
+            left_ok = atoms_in_cl(x_) if x_ else True
+            right_ok = all(x in delta for x in y) if y else True
+            if left_ok and right_ok:
+                defeated = True
+                break
+        if defeated or (rob.right and any(x in delta for x in rob.right)):
+            logger.debug("entry %s |~ %s: a conjunctive or succedent defeater applies",
+                         set(a_set), set(d_set))
+            return True
+        return False
+
+    def _incompatibility_fires(
+        self, rob: Robustness, a_set: frozenset[str], delta: AtomsView,
+        extras: frozenset[str], derived: set[Triple],
+    ) -> bool:
+        """An incompatibility ⟨A, ∅; E⟩ whose antecedent is derivable and undefeated.
+
+        Under position attribution it is the position's only if it contributed
+        to A (an atom of A is among the triples the position added or derived);
+        under global attribution a background that satisfies A makes every
+        position incoherent. What follows is the entry's succedent policy:
+        exact yields Γ |~ ∅ alone, monotone and guarded explode (as in the
+        propositional core).
+        """
+        if self.attribution != "global" and not any(
+            a in extras
+            or ((t := TripleAtom.coerce(a)) is not None and t.triple in derived)
+            for a in a_set
+        ):
+            logger.debug("entry %s |~ ∅: background only, not this position's", set(a_set))
+            return False
+        if rob.is_exact and len(delta) > 0:
+            return False
+        logger.debug("entry %s |~ ∅ fires: Γ materially incoherent [%s]", set(a_set), rob)
+        self.last_reason = (f"incompatibility {', '.join(sorted(map(str, a_set)))} "
+                            f"|~ ∅ [{rob.kind}]")
+        self.last_rescue = tuple(sorted(rob.left))
+        return True
+
     def _closure_of_extras_plus(
         self, extras: frozenset[str], derived: set[Triple], d_set: frozenset[str],
         over_graph: bool,
@@ -553,20 +590,12 @@ class RegimeBase(RDFBase):
         plus_hit = self._extras_plus_cache.get(key)
         if plus_hit is not None:
             return plus_hit
-        base_new = _TripleIndex()
-        for t in derived:
-            base_new.add(t)
         d_triples = [t.triple for t in (TripleAtom.coerce(a) for a in d_set) if t is not None]
-
-        def lookup(pattern: tuple[Node | None, Node | None, Node | None]) -> Iterator[Triple]:
-            if over_graph:
-                yield from self.backend.closure_triples(pattern)
-            yield from base_new.match(pattern)
-
-        def contains(t: Triple) -> bool:
-            return t in base_new or (over_graph and self.backend.closure_contains(t))
-
-        more, _bottom = self._engine.extend(d_triples, lookup, contains)
+        more, _bottom = self._engine.extend(
+            d_triples,
+            self._lookup(derived, over_graph, frozenset()),
+            self._contains(derived, over_graph, frozenset()),
+        )
         result = derived | more.triples
         if len(self._extras_plus_cache) >= 256:
             self._extras_plus_cache.clear()
@@ -590,15 +619,7 @@ class RegimeBase(RDFBase):
 
     def _matches(self, pat: PatternAtom, derived: set[Triple], over_graph: bool) -> bool:
         """``lem:witnesschar`` witness search for a succedent pattern (blanks as variables)."""
-        index = _TripleIndex()
-        for t in derived:
-            index.add(t)
-
-        def lookup(pattern: tuple[Node | None, Node | None, Node | None]) -> Iterator[Triple]:
-            if over_graph:
-                yield from self.backend.closure_triples(pattern)
-            yield from index.match(pattern)
-
+        lookup = self._lookup(derived, over_graph, frozenset())
         bnode_vars: dict[BNode, Var] = {
             b: Var(f"_b{i}") for i, b in enumerate(sorted(pat.bnodes))
         }

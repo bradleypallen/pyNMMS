@@ -19,16 +19,30 @@ from pathlib import Path
 from typing import Any
 
 
+def read_source(source: str | Path) -> str:
+    """The text of *source*, which is a file path or the entries text itself.
+
+    A :class:`~pathlib.Path` is always read. A ``str`` is read as a file when
+    it has no newline and names an existing file; otherwise it is the text
+    (one entry is a line, so a single-line string naming no file is one entry).
+    """
+    if isinstance(source, Path):
+        return source.read_text()
+    if "\n" not in source and Path(source).exists():
+        return Path(source).read_text()
+    return source
+
+
 def load_entries(source: str | Path, base: Any) -> tuple[int, int]:
-    """Add the entries of *source* (a path, or text) to *base*; returns (ground, pattern)."""
+    """Add the entries of *source* (a path, or text; :func:`read_source`) to *base*;
+    returns (ground, pattern)."""
     from pynmms.rdf.atoms import TripleAtom
     from pynmms.rdf.defeasible import is_pattern_entry, parse_defeasible_rule
-    from pynmms.rdf.values import parse_ordering_line
-    from pynmms.robustness import Robustness, split_robustness_clause
+    from pynmms.rdf.rules import content_lines
+    from pynmms.robustness import split_robustness_clause
     from pynmms.syntax import split_top_level
 
-    text = Path(source).read_text() if isinstance(source, Path) or (
-        "\n" not in str(source) and Path(str(source)).exists()) else str(source)
+    text = read_source(source)
 
     def atoms(part: str) -> frozenset[str]:
         out = []
@@ -46,10 +60,7 @@ def load_entries(source: str | Path, base: Any) -> tuple[int, int]:
         return str(atom) if atom is not None else name
 
     ground = patterns = 0
-    for raw in text.splitlines():
-        line = raw.strip()
-        if not line or line.startswith("#") or parse_ordering_line(line):
-            continue
+    for line in content_lines(text):
         if is_pattern_entry(line):
             base.add_rule(parse_defeasible_rule(line, base.resolver))
             patterns += 1
@@ -58,13 +69,6 @@ def load_entries(source: str | Path, base: Any) -> tuple[int, int]:
         if "|~" not in body:
             raise ValueError(f"entry without |~: {line!r}")
         left, right = body.split("|~", 1)
-        rob = Robustness(
-            rob.kind,
-            frozenset(canon(x) for x in rob.left),
-            frozenset(canon(x) for x in rob.right),
-            frozenset((frozenset(canon(x) for x in a), frozenset(canon(x) for x in b))
-                      for a, b in rob.exclusions),
-        )
-        base.add_consequence(atoms(left), atoms(right), robustness=rob)
+        base.add_consequence(atoms(left), atoms(right), robustness=rob.map_atoms(canon))
         ground += 1
     return ground, patterns

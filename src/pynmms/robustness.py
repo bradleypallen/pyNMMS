@@ -27,7 +27,7 @@ which the implication survives. A base entry ``Γ₀ |~ Δ₀`` in pyNMMS carrie
 
 For ontology schemas the ``left`` defeaters are concept names, instantiated
 on the individuals of the matched consequent (see
-:meth:`pynmms.onto.base.OntoMaterialBase._schema_applies`).
+:meth:`pynmms.onto.base.OntoMaterialBase._applies`).
 
 Containment is unaffected by any policy, so every base built from these
 entries satisfies Definition 1 of Ch. 3 and the NMMS metatheory applies.
@@ -35,7 +35,7 @@ entries satisfies Definition 1 of Ch. 3 and the NMMS metatheory applies.
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from typing import Any
 
@@ -103,6 +103,16 @@ class Robustness:
     @property
     def is_exact(self) -> bool:
         return self.kind == EXACT_KIND
+
+    def map_atoms(self, f: Callable[[str], str]) -> Robustness:
+        """The same policy with every defeater atom renamed by *f*."""
+        return Robustness(
+            self.kind,
+            frozenset(f(x) for x in self.left),
+            frozenset(f(x) for x in self.right),
+            frozenset((frozenset(f(x) for x in a), frozenset(f(x) for x in b))
+                      for a, b in self.exclusions),
+        )
 
     def allows(self, gamma: AtomsView, delta: AtomsView) -> bool:
         """True if a superset match ``Γ ⊇ Γ₀, Δ ⊇ Δ₀`` is licensed for these sides.

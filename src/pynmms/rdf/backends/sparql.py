@@ -156,27 +156,9 @@ class SPARQLBackend:
 
     def join(self, patterns: list[Any], bindings: dict[Any, Node]) -> Iterator[dict[Any, Node]]:
         """One ``SELECT`` for the whole conjunction, bound terms inlined."""
-        from pynmms.rdf.rules import Var
+        from pynmms.rdf.sparql_rules import build_select
 
-        names: dict[Any, str] = {}
-        free: list[Any] = []
-
-        def term(x: Any) -> str:
-            if isinstance(x, Var):
-                if x in bindings:
-                    return bindings[x].n3()
-                if x not in names:
-                    names[x] = f"?v{len(names)}"
-                    free.append(x)
-                return names[x]
-            return x.n3()  # type: ignore[no-any-return]
-
-        from pynmms.rdf.sparql_rules import order_bgp
-
-        bgp = " . ".join(f"{term(s)} {term(p)} {term(o)}"
-                         for s, p, o in order_bgp(patterns, bindings))
-        select = " ".join(names[v] for v in free) or "*"
-        query = f"SELECT DISTINCT {select} WHERE {{ {bgp} }}"
+        _bgp, query, free, _names = build_select(patterns, bindings)
         key = (tuple(patterns), tuple(sorted(bindings.items(), key=lambda kv: str(kv[0]))))
         rows = self._join_memo.get(key)
         if rows is None:

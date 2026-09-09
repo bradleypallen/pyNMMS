@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, NamedTuple
 
 from rdflib import Literal
 from rdflib.term import Node
@@ -80,6 +80,44 @@ def order_bgp(patterns: list[Any], bindings: dict[Any, Any]) -> list[Any]:
         ordered.append(best)
         seen.update(t for t in best if isinstance(t, Var))
     return ordered
+
+
+class JoinQuery(NamedTuple):
+    """A backend's ``join()`` as SPARQL: the ordered BGP with bound terms inlined,
+    the ``SELECT DISTINCT`` over it, the free variables in projection order, and
+    each free variable's name in the query (``?v0``, ``?v1``, ...)."""
+
+    bgp: str
+    query: str
+    free: list[Any]
+    names: dict[Any, str]
+
+
+def build_select(patterns: list[Any], bindings: dict[Any, Any]) -> JoinQuery:
+    """One ``SELECT`` for a conjunction of patterns, *bindings* inlined.
+
+    Variables already bound are written as their values, the others as
+    ``?vN`` in first-seen order over the BGP as :func:`order_bgp` arranges
+    it. With no free variable the projection is ``*`` (a backend may prefer
+    an ``ASK { bgp }`` then).
+    """
+    names: dict[Any, str] = {}
+    free: list[Any] = []
+
+    def term(x: Any) -> str:
+        if isinstance(x, Var):
+            if x in bindings:
+                return bindings[x].n3()  # type: ignore[no-any-return]
+            if x not in names:
+                names[x] = f"?v{len(names)}"
+                free.append(x)
+            return names[x]
+        return x.n3()  # type: ignore[no-any-return]
+
+    bgp_text = " . ".join(f"{term(s)} {term(p)} {term(o)}"
+                          for s, p, o in order_bgp(patterns, bindings))
+    select = " ".join(names[v] for v in free) or "*"
+    return JoinQuery(bgp_text, f"SELECT DISTINCT {select} WHERE {{ {bgp_text} }}", free, names)
 
 
 def translatable(rule: RuleLike) -> bool:

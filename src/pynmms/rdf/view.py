@@ -72,14 +72,6 @@ class GraphView(AbstractSet[str]):
     def diff_size(self) -> int:
         return len(self._added) + len(self._removed)
 
-    def added_triples(self) -> list[TripleAtom]:
-        out = []
-        for a in self._added:
-            t = TripleAtom.coerce(a)
-            if t is not None:
-                out.append(t)
-        return out
-
     # --- Set protocol ---
 
     def _in_store(self, x: object) -> bool:

@@ -103,6 +103,18 @@ class TestSerialization:
         assert restored.language == toy_base.language
         assert restored.consequences == toy_base.consequences
 
+    def test_robustness_keyed_by_canonical_pair(self):
+        """A policy may be keyed by the pair as given or by its canonical form."""
+        from pynmms.robustness import MONOTONE
+
+        raw = (frozenset({" a "}), frozenset({"b"}))
+        canonical = (frozenset({"a"}), frozenset({"b"}))
+        by_raw = MaterialBase(consequences={raw}, robustness={raw: MONOTONE})
+        by_canonical = MaterialBase(consequences={raw}, robustness={canonical: MONOTONE})
+        assert by_raw.consequences == {canonical}
+        assert by_raw.robustness_of(*canonical) == MONOTONE
+        assert by_canonical.robustness_of(*canonical) == MONOTONE
+
     def test_to_file_from_file_round_trip(self, toy_base):
         with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f:
             path = f.name

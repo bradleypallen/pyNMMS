@@ -90,6 +90,18 @@ class TestRules:
         assert r.guard({X: EX.a, S: Literal(5)}) and not r.guard({X: EX.a, S: Literal(10)})
         assert "FILTER(((?s > 1) && (?s < 9)))" in rule_to_update(r)
 
+    def test_a_guard_containing_less_than_does_not_swallow_the_premises_after_it(self):
+        # `<` used to open a quoted atom for the splitter, so a premise after the
+        # guard was glued onto it; a guard is an opaque `[...]` bracket now.
+        r = parse_rule("?a ex:p ?b, [?a < ?b], ?b ex:q ?c -> false", _resolver())
+        assert len(r.premises) == 2 and r.premises[1] == (Var("b"), EX.q, Var("c"))
+        assert r.conclusion is None and r.guard is not None
+        assert r.guard({Var("a"): Literal(1), Var("b"): Literal(2), Var("c"): EX.c})
+        assert not r.guard({Var("a"): Literal(3), Var("b"): Literal(2), Var("c"): EX.c})
+        # A literal with a comma is one term, not two premises.
+        r2 = parse_rule('?x ex:n "a, b", ?x ex:q ?y -> ?y ex:r ?x', _resolver())
+        assert len(r2.premises) == 2 and r2.premises[0][2] == Literal("a, b")
+
     def test_rules_text_declares_orderings(self):
         rules = parse_rules_text("""# comment
 ordering strength: IEA < ISS < IDA

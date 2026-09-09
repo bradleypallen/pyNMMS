@@ -46,6 +46,8 @@ from rdflib.term import Node
 
 from pynmms.rdf.atoms import SKOLEM_NS, PatternAtom, TripleAtom
 from pynmms.rdf.base import GraphLike, _conjunction, _load_graph
+from pynmms.rdf.closure import apply as _apply
+from pynmms.rdf.closure import unify as _unify
 from pynmms.rdf.provenance import Ground, attribution_triple, holder_graph, provenance_of
 from pynmms.rdf.rules import Rule, Var
 from pynmms.reasoner import NMMSReasoner
@@ -98,7 +100,8 @@ class Report:
         if self.coherent:
             lines.append(f"Position is in bounds; score {self.score}.")
         else:
-            lines.append(f"Position is out of bounds: {self.coherent.reason}.")
+            why = self.coherent.reason or "⊥ from the regime"
+            lines.append(f"Position is out of bounds: {why}.")
             if self.rescue:
                 lines.append("It would be rescued by: " + ", ".join(self.rescue) + ".")
         if self.defaults:
@@ -533,19 +536,3 @@ class Position:
         return (f"Position({who}{len(self._accepted)} accepted, {len(self._rejected)} rejected, "
                 f"{len(self.log)} moves)")
 
-
-def _unify(pattern: tuple[Any, Any, Any], t: Triple) -> dict[Var, Node] | None:
-    """Bind the variables of *pattern* against the ground triple *t*."""
-    b: dict[Var, Node] = {}
-    for p, x in zip(pattern, t):
-        if isinstance(p, Var):
-            if p in b and b[p] != x:
-                return None
-            b[p] = x
-        elif p != x:
-            return None
-    return b
-
-
-def _apply(pattern: tuple[Any, Any, Any], b: dict[Var, Node]) -> tuple[Any, Any, Any]:
-    return tuple(b.get(x, x) if isinstance(x, Var) else x for x in pattern)  # type: ignore[return-value]

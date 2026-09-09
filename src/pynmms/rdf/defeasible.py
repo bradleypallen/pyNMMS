@@ -36,15 +36,22 @@ from rdflib import BNode
 from rdflib.term import Node
 
 from pynmms.rdf.atoms import PatternAtom, Resolver, TripleAtom
-from pynmms.rdf.rules import Var, _parse_pattern
+from pynmms.rdf.closure import Bindings, apply, is_ground, join_patterns, unify
+from pynmms.rdf.rules import Var, parse_premises
 from pynmms.syntax import split_top_level
 
 logger = logging.getLogger(__name__)
 
 Triple = tuple[Node, Node, Node]
 Pattern = tuple[Any, Any, Any]
-Bindings = dict[Var, Node]
 Lookup = Callable[[tuple[Node | None, Node | None, Node | None]], Iterable[Triple]]
+
+# ``unify``, ``apply`` and ``is_ground`` live in :mod:`pynmms.rdf.closure` and
+# are re-exported here alongside ``as_atom`` for the matcher's clients.
+__all__ = [
+    "Defeater", "DefeasibleRule", "Matcher", "parse_defeasible_rule", "is_pattern_entry",
+    "unify", "apply", "is_ground", "as_atom",
+]
 
 
 @dataclass(frozen=True)
@@ -105,59 +112,13 @@ class DefeasibleRule:
 # --- Parsing ------------------------------------------------------------------
 
 
-def _split_premises(text: str) -> list[str]:
-    """Split premises on commas outside ``[guards]``, ``(...)``, ``"..."`` and ``<iri>``.
-
-    A guard may contain ``<`` (``[?a < ?b]``), so the quoted-atom rule of
-    :func:`pynmms.syntax.split_top_level` cannot apply inside brackets.
-    """
-    parts: list[str] = []
-    depth = bracket = 0
-    quote = ""
-    start = 0
-    for i, ch in enumerate(text):
-        if quote:
-            if ch == quote:
-                quote = ""
-            continue
-        if ch == '"' or (ch == "<" and not bracket):
-            quote = '"' if ch == '"' else ">"
-        elif ch == "[":
-            bracket += 1
-        elif ch == "]" and bracket:
-            bracket -= 1
-        elif ch == "(":
-            depth += 1
-        elif ch == ")" and depth:
-            depth -= 1
-        elif ch == "," and not depth and not bracket:
-            parts.append(text[start:i])
-            start = i + 1
-    parts.append(text[start:])
-    return [p.strip() for p in parts if p.strip()]
-
-
-def _patterns_and_guard(text: str, resolver: Resolver | None) -> tuple[tuple[Pattern, ...], Any]:
-    parts = _split_premises(text)
-    guards = [p[1:-1].strip() for p in parts if p.startswith("[") and p.endswith("]")]
-    patterns = tuple(_parse_pattern(p, resolver) for p in parts
-                     if not (p.startswith("[") and p.endswith("]")))
-    guard = None
-    if guards:
-        from pynmms.rdf.values import parse_guard
-
-        text = " && ".join(f"({g})" for g in guards) if len(guards) > 1 else guards[0]
-        guard = parse_guard(text)
-    return patterns, guard
-
-
 def parse_defeasible_rule(text: str, resolver: Resolver | None = None,
                           name: str | None = None) -> DefeasibleRule:
     """Parse ``A |~ D [unless E1 ; E2 | monotone]`` with variables."""
     if "|~" not in text:
         raise ValueError(f"pattern entry needs |~: {text!r}")
     left, right = text.split("|~", 1)
-    premises, guard = _patterns_and_guard(left, resolver)
+    premises, guard = parse_premises(left, resolver)
     if not premises:
         raise ValueError(f"pattern entry has no premises: {text!r}")
     right = right.strip()
@@ -171,14 +132,14 @@ def parse_defeasible_rule(text: str, resolver: Resolver | None = None,
         if len(pieces) > 1:
             right = pieces[0].strip()
             for alt in split_top_level(" unless ".join(pieces[1:]), ";"):
-                pats, dguard = _patterns_and_guard(alt, resolver)
+                pats, dguard = parse_premises(alt, resolver)
                 if not pats:
                     raise ValueError(f"empty defeater in {text!r}")
                 defeaters.append(Defeater(pats, dguard))
     if right.lower() in ("", "false", "⊥", "bottom"):
         conclusion = None
     else:
-        concl_patterns, cguard = _patterns_and_guard(right, resolver)
+        concl_patterns, cguard = parse_premises(right, resolver)
         if len(concl_patterns) != 1 or cguard is not None:
             raise ValueError(f"a pattern entry concludes one pattern: {text!r}")
         conclusion = concl_patterns[0]
@@ -192,28 +153,6 @@ def is_pattern_entry(text: str) -> bool:
 
 
 # --- Matching -----------------------------------------------------------------
-
-
-def unify(pattern: Pattern, t: Triple, bindings: Bindings | None = None) -> Bindings | None:
-    b: Bindings = dict(bindings or {})
-    for p, x in zip(pattern, t):
-        if isinstance(p, Var):
-            if p in b:
-                if b[p] != x:
-                    return None
-            else:
-                b[p] = x
-        elif p != x:
-            return None
-    return b
-
-
-def apply(pattern: Pattern, b: Bindings) -> Pattern:
-    return tuple(b.get(x, x) if isinstance(x, Var) else x for x in pattern)  # type: ignore[return-value]
-
-
-def is_ground(pattern: Pattern) -> bool:
-    return not any(isinstance(x, Var) for x in pattern)
 
 
 def as_atom(pattern: Pattern) -> str:
@@ -232,8 +171,6 @@ class Matcher:
 
     def solutions(self, patterns: Iterable[Pattern], b: Bindings, guard: Any = None
                   ) -> Iterator[Bindings]:
-        from pynmms.rdf.closure import join_patterns
-
         for sol in join_patterns(list(patterns), b, self.lookup):
             if guard is None or guard.evaluate(sol):
                 yield sol

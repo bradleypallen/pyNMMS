@@ -212,11 +212,6 @@ class Sequent:
         da, dc = _partition_cached(_as_frozenset(consequent))
         return cls(ga, gc, da, dc)
 
-    @classmethod
-    def from_atoms(cls, antecedent: AbstractSet[str], consequent: AbstractSet[str]) -> Sequent:
-        """Build an atomic sequent without parsing (both sides are atom names)."""
-        return cls(AtomSet.of(antecedent), frozenset(), AtomSet.of(consequent), frozenset())
-
     @property
     def is_atomic(self) -> bool:
         return not self.gamma_complex and not self.delta_complex

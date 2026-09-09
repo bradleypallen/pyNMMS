@@ -2,8 +2,11 @@
 
 A backend answers membership and pattern queries against the *asserted*
 graph and against its *closure* under the backend's regime (the same graph
-when no regime is configured). The reasoner never iterates a backend during
-proof search; it asks for membership of a handful of triples per node.
+when no regime is configured). Proof search mostly asks for membership of
+a handful of triples per node and hands conjunctions to :meth:`join`; a
+backend is iterated only when a whole side must be walked (a
+:class:`~pynmms.rdf.view.GraphView` read as a set, a procedural rule
+scanning its trigger predicates during materialisation).
 """
 
 from __future__ import annotations

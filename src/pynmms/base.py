@@ -17,6 +17,7 @@ import logging
 import re
 from collections.abc import Iterable
 from pathlib import Path
+from typing import TypeVar
 
 from pynmms.robustness import EXACT, Robustness
 from pynmms.sequent import AtomsView, intersects
@@ -34,6 +35,9 @@ _STRUCTURED_ATOM_RE = re.compile(r"^\w+\(\w+(?:,\s*\w+)?\)$")
 _EMPTY_KEY = ""
 
 RobustEntry = tuple[frozenset[str], frozenset[str], Robustness]
+
+_B = TypeVar("_B", bound="MaterialBase")
+"""The receiving class of ``from_dict`` / ``from_file`` (a subclass loads as itself)."""
 
 
 def _validate_atomic(s: str, context: str) -> str:
@@ -55,7 +59,7 @@ def _validate_atomic(s: str, context: str) -> str:
     if _STRUCTURED_ATOM_RE.match(parsed.name):
         raise ValueError(
             f"{context}: '{s}' looks like a concept or role assertion. "
-            f"Use --onto mode for NMMS_Onto atoms, or rename to a plain identifier."
+            f"Use OntoMaterialBase for NMMS_Onto atoms, or rename to a plain identifier."
         )
     return parsed.name
 
@@ -103,8 +107,12 @@ class MaterialBase:
             for gamma, delta in consequences:
                 pair = self._canonical_pair(gamma, delta, "Material base consequence")
                 self._consequences.add(pair)
-                if robustness and (gamma, delta) in robustness:
-                    self._set_robustness(pair, robustness[(gamma, delta)])
+                if robustness:
+                    # The caller may key the policy by the pair as given or by
+                    # its canonical form (whitespace inside applied atoms removed).
+                    policy = robustness.get((gamma, delta), robustness.get(pair))
+                    if policy is not None:
+                        self._set_robustness(pair, policy)
         self._reindex()
 
         logger.debug(
@@ -313,10 +321,15 @@ class MaterialBase:
             d["annotations"] = dict(sorted(self._annotations.items()))
         return d
 
-    @classmethod
-    def from_dict(cls, data: dict) -> MaterialBase:
-        """Deserialize from a dict (as produced by ``to_dict``)."""
-        language = set(data.get("language", []))
+    @staticmethod
+    def _consequences_from_dict(
+        data: dict,
+    ) -> tuple[set[Sequent], dict[Sequent, Robustness]]:
+        """Read the ``consequences`` list of a serialized base.
+
+        Returns the pairs and the non-EXACT policies keyed by pair; shared by
+        :meth:`from_dict` and the subclasses' overrides.
+        """
         consequences: set[Sequent] = set()
         robustness: dict[Sequent, Robustness] = {}
         for entry in data.get("consequences", []):
@@ -325,11 +338,16 @@ class MaterialBase:
             policy = Robustness.from_json(entry.get("robustness"))
             if not policy.is_exact:
                 robustness[pair] = policy
-        annotations = data.get("annotations", {})
+        return consequences, robustness
+
+    @classmethod
+    def from_dict(cls: type[_B], data: dict) -> _B:
+        """Deserialize from a dict (as produced by ``to_dict``)."""
+        consequences, robustness = cls._consequences_from_dict(data)
         return cls(
-            language=language,
+            language=set(data.get("language", [])),
             consequences=consequences,
-            annotations=annotations,
+            annotations=data.get("annotations", {}),
             robustness=robustness,
         )
 
@@ -340,8 +358,8 @@ class MaterialBase:
         logger.debug("Saved base to %s", path)
 
     @classmethod
-    def from_file(cls, path: str | Path) -> MaterialBase:
-        """Load a base from a JSON file."""
+    def from_file(cls: type[_B], path: str | Path) -> _B:
+        """Load a base from a JSON file (as the receiving class)."""
         with open(path) as f:
             data = json.load(f)
         logger.debug("Loaded base from %s", path)

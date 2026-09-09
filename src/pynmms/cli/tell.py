@@ -14,35 +14,18 @@ from pynmms.cli.output import (
     emit_json,
     tell_atom_response,
     tell_consequence_response,
+    tell_schema_response,
 )
+from pynmms.cli.schema_line import (
+    extract_trailing_annotation,
+    format_registration,
+    register_schema_line,
+)
+from pynmms.onto.base import OntoMaterialBase
 from pynmms.robustness import EXACT, Robustness, split_robustness_clause
 from pynmms.syntax import find_top_level, split_top_level
 
 logger = logging.getLogger(__name__)
-
-
-def _parse_atom_with_annotation(rest: str) -> tuple[str, str | None]:
-    """Parse ``atom_name`` or ``atom_name "description"`` after the ``atom`` keyword.
-
-    Returns (atom_name, annotation_or_None).
-    """
-    rest = rest.strip()
-    # Check for a quoted annotation
-    # Find the first quote — everything before it is the atom name
-    for quote_char in ('"', "'"):
-        idx = rest.find(quote_char)
-        if idx != -1:
-            atom = rest[:idx].strip()
-            # Extract the quoted string (find matching close quote)
-            end_idx = rest.find(quote_char, idx + 1)
-            if end_idx == -1:
-                # Unmatched quote — treat the rest as annotation
-                annotation = rest[idx + 1:].strip()
-            else:
-                annotation = rest[idx + 1:end_idx]
-            return atom, annotation if annotation else None
-    return rest, None
-
 
 TellStatement = tuple[
     str, frozenset[str] | None, frozenset[str] | None, str | None, Robustness
@@ -50,7 +33,7 @@ TellStatement = tuple[
 
 
 def _parse_tell_statement(statement: str) -> TellStatement:
-    """Parse a tell statement.
+    """Parse a tell statement (shared by ``tell`` and the REPL).
 
     Returns ``(kind, antecedent, consequent, annotation, robustness)``:
         ("atom", frozenset({name}), None, annotation_or_None, EXACT)
@@ -62,16 +45,10 @@ def _parse_tell_statement(statement: str) -> TellStatement:
     statement = statement.strip()
 
     if statement.lower().startswith("atom "):
-        atom, annotation = _parse_atom_with_annotation(statement[5:])
+        atom, annotation = extract_trailing_annotation(statement[5:].strip())
         return ("atom", frozenset({atom}), None, annotation, EXACT)
 
     statement, robustness = split_robustness_clause(statement)
-
-    if "|~" not in statement:
-        raise ValueError(
-            f"Invalid tell statement: {statement!r}. "
-            f'Expected "atom X" or "A, B |~ C, D".'
-        )
 
     turnstiles = find_top_level(statement, "|~")
     if not turnstiles:
@@ -91,12 +68,17 @@ def _parse_tell_statement(statement: str) -> TellStatement:
 def _process_tell_statement(
     statement: str,
     base: MaterialBase,
-    base_path: Path,
+    base_path: Path | str,
     *,
     json_mode: bool = False,
     quiet: bool = False,
+    added_label: str = "Added consequence",
 ) -> int:
-    """Process a single tell statement. Returns exit code."""
+    """Process a single tell statement. Returns exit code.
+
+    *added_label* is the prefix of the human-readable confirmation for a new
+    consequence (the REPL says ``Added:``).
+    """
     try:
         kind, antecedent, consequent, annotation, robustness = _parse_tell_statement(statement)
     except ValueError as e:
@@ -134,40 +116,49 @@ def _process_tell_statement(
                 ant, con, str(base_path), robustness=robustness.to_json()))
         elif not quiet:
             suffix = "" if robustness.is_exact else f" [{robustness}]"
-            print(f"Added consequence: {set(ant)} |~ {set(con)}{suffix}")
+            print(f"{added_label}: {set(ant)} |~ {set(con)}{suffix}")
 
     return EXIT_SUCCESS
+
+
+def read_batch_lines(
+    batch_source: str, *, json_mode: bool = False, quiet: bool = False
+) -> list[str] | None:
+    """Read a batch file (or stdin for ``-``), dropping blank and ``#`` lines.
+
+    Returns ``None`` after reporting the error if the file cannot be read.
+    """
+    if batch_source == "-":
+        raw = sys.stdin.read().splitlines()
+    else:
+        try:
+            with open(batch_source) as f:
+                raw = f.read().splitlines()
+        except OSError as e:
+            emit_error(str(e), json_mode=json_mode, quiet=quiet)
+            return None
+    lines = [line.strip() for line in raw]
+    return [line for line in lines if line and not line.startswith("#")]
 
 
 def run_tell(args: argparse.Namespace) -> int:
     """Execute the ``tell`` subcommand."""
     base_path = Path(args.base)
-    onto_mode = getattr(args, "onto", False)
-    json_mode = getattr(args, "json", False)
-    quiet = getattr(args, "quiet", False)
-    batch = getattr(args, "batch", None)
+    onto_mode: bool = args.onto
+    json_mode: bool = args.json
+    quiet: bool = args.quiet
+    batch: str | None = args.batch
+    base_cls: type[MaterialBase] = OntoMaterialBase if onto_mode else MaterialBase
+
     base: MaterialBase
-
-    if onto_mode:
-        from pynmms.onto.base import OntoMaterialBase
-
-        if base_path.exists():
-            base = OntoMaterialBase.from_file(base_path)
-        elif args.create:
-            base = OntoMaterialBase()
-        else:
-            msg = f"Base file {base_path} does not exist. Use --create to create it."
-            emit_error(msg, json_mode=json_mode, quiet=quiet)
-            return EXIT_ERROR
+    if base_path.exists():
+        base = base_cls.from_file(base_path)
+    elif args.create:
+        base = base_cls()
     else:
-        if base_path.exists():
-            base = MaterialBase.from_file(base_path)
-        elif args.create:
-            base = MaterialBase()
-        else:
-            msg = f"Base file {base_path} does not exist. Use --create to create it."
-            emit_error(msg, json_mode=json_mode, quiet=quiet)
-            return EXIT_ERROR
+        msg = f"Base file {base_path} does not exist. Use --create to create it."
+        emit_error(msg, json_mode=json_mode, quiet=quiet)
+        return EXIT_ERROR
 
     # --- Batch mode ---
     if batch is not None:
@@ -200,34 +191,20 @@ def _run_tell_batch(
     quiet: bool = False,
 ) -> int:
     """Process a batch file of tell statements."""
-    if batch_source == "-":
-        lines = sys.stdin.read().splitlines()
-    else:
-        try:
-            with open(batch_source) as f:
-                lines = f.read().splitlines()
-        except OSError as e:
-            emit_error(str(e), json_mode=json_mode, quiet=quiet)
-            return EXIT_ERROR
+    lines = read_batch_lines(batch_source, json_mode=json_mode, quiet=quiet)
+    if lines is None:
+        return EXIT_ERROR
 
     had_error = False
     for line in lines:
-        line = line.strip()
-        if not line or line.startswith("#"):
-            continue
-
         # Ontology schema lines
         if onto_mode and line.startswith("schema "):
-            from pynmms.onto.base import OntoMaterialBase
             assert isinstance(base, OntoMaterialBase)
             rc = _process_onto_schema_line(line, base, base_path,
                                            json_mode=json_mode, quiet=quiet)
-            if rc != EXIT_SUCCESS:
-                had_error = True
-            continue
-
-        rc = _process_tell_statement(line, base, base_path,
-                                     json_mode=json_mode, quiet=quiet)
+        else:
+            rc = _process_tell_statement(line, base, base_path,
+                                         json_mode=json_mode, quiet=quiet)
         if rc != EXIT_SUCCESS:
             had_error = True
 
@@ -236,27 +213,15 @@ def _run_tell_batch(
     return EXIT_ERROR if had_error else EXIT_SUCCESS
 
 
-def _extract_trailing_annotation(text: str) -> tuple[str, str | None]:
-    """Alias for :func:`pynmms.cli.schema_line.extract_trailing_annotation`."""
-    from pynmms.cli.schema_line import extract_trailing_annotation
-
-    return extract_trailing_annotation(text)
-
-
 def _process_onto_schema_line(
     line: str,
-    base: object,
-    base_path: Path,
+    base: OntoMaterialBase,
+    base_path: Path | str,
     *,
     json_mode: bool = False,
     quiet: bool = False,
 ) -> int:
     """Process an ontology schema line like ``schema subClassOf Man Mortal``."""
-    from pynmms.cli.output import emit_json, tell_schema_response
-    from pynmms.cli.schema_line import format_registration, register_schema_line
-    from pynmms.onto.base import OntoMaterialBase
-
-    assert isinstance(base, OntoMaterialBase)
     try:
         schema_type, details, robustness, annotation = register_schema_line(base, line)
     except ValueError as e:

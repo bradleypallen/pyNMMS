@@ -313,3 +313,57 @@ def test_elaboration_cache_does_not_hide_inconsistency():
     assert b.is_axiom(F({alive, dead}), F({x}))         # Γ is R-inconsistent: everything
     b.clear_caches()
     assert b.is_axiom(F({alive, dead}), F({x}))
+
+
+# --- defeaters on the other sides of an entry ----------------------------------
+
+
+def test_conjunctive_exclusion_defeater_through_the_regime():
+    """Bird ⊢ Flies unless Penguin & Grounded: an exclusion ⟨{Penguin, Grounded}, ∅⟩.
+
+    Neither conjunct alone defeats the entry; both together do, and the left
+    part is read through the regime (EmperorPenguin ⊑ Penguin).
+    """
+    b = RegimeBase(MemoryBackend(ontology(), regime=RDFS_REGIME))
+    rob = guarded(exclusions=[(F({typed("t", "Penguin"), typed("t", "Grounded")}), F())])
+    assert rob.exclusions and not rob.left and not rob.right  # not folded into a singleton
+    b.add_consequence(F({typed("t", "Bird")}), F({typed("t", "Flies")}), robustness=rob)
+    flies = [typed("t", "Flies")]
+    assert ask(b, [typed("t", "Sparrow")], flies)
+    assert ask(b, [typed("t", "Sparrow"), typed("t", "Penguin")], flies)
+    assert ask(b, [typed("t", "Sparrow"), typed("t", "Grounded")], flies)
+    assert not ask(b, [typed("t", "Sparrow"), typed("t", "Penguin"), typed("t", "Grounded")],
+                   flies)
+    assert not ask(b, [typed("t", "EmperorPenguin"), typed("t", "Bird"), typed("t", "Grounded")],
+                   flies)
+
+
+def test_mixed_exclusion_reads_its_right_part_against_delta():
+    """An exclusion ⟨{Penguin}, {Moves}⟩ defeats only when Moves is also asked for."""
+    b = RegimeBase(MemoryBackend(ontology(), regime=RDFS_REGIME))
+    rob = guarded(exclusions=[(F({typed("t", "Penguin")}), F({typed("t", "Moves")}))])
+    assert rob.exclusions and not rob.left and not rob.right
+    b.add_consequence(F({typed("t", "Bird")}), F({typed("t", "Flies")}), robustness=rob)
+    gamma = [typed("t", "EmperorPenguin"), typed("t", "Bird")]  # Penguin derived
+    assert ask(b, gamma, [typed("t", "Flies")])
+    assert not ask(b, gamma, [typed("t", "Flies"), typed("t", "Moves")])
+    assert ask(b, [typed("t", "Bird")], [typed("t", "Flies"), typed("t", "Moves")])
+
+
+def test_succedent_defeater_through_the_regime():
+    """Bird ⊢ Flies unless Grounded is in Δ: a succedent-side defeater.
+
+    The antecedent is derived (Sparrow ⊑ Bird); the defeater is read against
+    Δ literally, so a disjunction Flies ∨ Grounded in Δ (``R∨`` puts both
+    disjuncts into Δ) is refused while Flies alone is granted.
+    """
+    b = RegimeBase(MemoryBackend(ontology(), regime=RDFS_REGIME))
+    rob = guarded(right=[typed("t", "Grounded")])
+    assert rob.right and not rob.left and not rob.exclusions
+    b.add_consequence(F({typed("t", "Bird")}), F({typed("t", "Flies")}), robustness=rob)
+    flies, grounded = typed("t", "Flies"), typed("t", "Grounded")
+    assert ask(b, [typed("t", "Sparrow")], [flies])
+    assert not ask(b, [typed("t", "Sparrow")], [flies, grounded])
+    assert not ask(b, [typed("t", "Sparrow")], [f"{flies} | {grounded}"])
+    # Grounded in Γ is not a defeater: only Δ is consulted for the right side
+    assert ask(b, [typed("t", "Sparrow"), grounded], [flies])

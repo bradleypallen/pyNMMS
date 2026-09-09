@@ -11,9 +11,13 @@ equal exactly when the triples are.
 
 Content grammar (what goes between ``<`` and ``>``)::
 
-    content ::= term ' ' term ' ' term
+    content ::= triple | '{' triple (' . ' triple)* '}'
+    triple  ::= term ' ' term ' ' term
     term    ::= IRI | '_:' label | literal | 'a'          ('a' = rdf:type, predicate only)
     literal ::= '"' escaped '"' ( '@' lang | '^^' IRI )?
+
+The braced form is a :class:`PatternAtom`, a succedent graph pattern whose
+blank nodes are existential; the bare form is a :class:`TripleAtom`.
 
 In the canonical form IRIs are written in full. On input, ``prefix:local``
 is expanded through a :class:`Resolver` (an rdflib ``NamespaceManager``).

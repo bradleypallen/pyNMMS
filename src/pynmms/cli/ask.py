@@ -10,6 +10,8 @@ from pathlib import Path
 from pynmms.base import MaterialBase
 from pynmms.cli.exitcodes import EXIT_ERROR, EXIT_NOT_DERIVABLE, EXIT_SUCCESS
 from pynmms.cli.output import ask_response, emit_error, emit_json
+from pynmms.cli.tell import read_batch_lines
+from pynmms.onto.base import OntoMaterialBase
 from pynmms.reasoner import NMMSReasoner
 from pynmms.syntax import find_top_level, split_top_level
 
@@ -17,16 +19,11 @@ logger = logging.getLogger(__name__)
 
 
 def _parse_sequent(sequent_str: str) -> tuple[frozenset[str], frozenset[str]]:
-    """Parse a sequent string like ``A, B => C, D``.
+    """Parse a sequent string like ``A, B => C, D`` (shared by ``ask`` and the REPL).
 
     Returns (antecedent, consequent) as frozensets of sentence strings.
     """
     sequent_str = sequent_str.strip()
-
-    if "=>" not in sequent_str:
-        raise ValueError(
-            f"Invalid sequent: {sequent_str!r}. Expected 'A, B => C, D'."
-        )
 
     arrows = find_top_level(sequent_str, "=>")
     if not arrows:
@@ -102,28 +99,18 @@ def _ask_one(
 def run_ask(args: argparse.Namespace) -> int:
     """Execute the ``ask`` subcommand."""
     base_path = Path(args.base)
-    onto_mode = getattr(args, "onto", False)
-    json_mode = getattr(args, "json", False)
-    quiet = getattr(args, "quiet", False)
-    batch = getattr(args, "batch", None)
-    trace = getattr(args, "trace", False)
+    json_mode: bool = args.json
+    quiet: bool = args.quiet
+    batch: str | None = args.batch
+    trace: bool = args.trace
 
     if not base_path.exists():
         msg = f"Base file {base_path} does not exist."
         emit_error(msg, json_mode=json_mode, quiet=quiet)
         return EXIT_ERROR
 
-    base: MaterialBase
-    reasoner: NMMSReasoner
-
-    if onto_mode:
-        from pynmms.onto.base import OntoMaterialBase
-
-        base = OntoMaterialBase.from_file(base_path)
-        reasoner = NMMSReasoner(base, max_depth=args.max_depth)
-    else:
-        base = MaterialBase.from_file(base_path)
-        reasoner = NMMSReasoner(base, max_depth=args.max_depth)
+    base_cls: type[MaterialBase] = OntoMaterialBase if args.onto else MaterialBase
+    reasoner = NMMSReasoner(base_cls.from_file(base_path), max_depth=args.max_depth)
 
     # --- Batch mode ---
     if batch is not None:
@@ -151,24 +138,14 @@ def _run_ask_batch(
     quiet: bool = False,
 ) -> int:
     """Process a batch file of sequents."""
-    if batch_source == "-":
-        lines = sys.stdin.read().splitlines()
-    else:
-        try:
-            with open(batch_source) as f:
-                lines = f.read().splitlines()
-        except OSError as e:
-            emit_error(str(e), json_mode=json_mode, quiet=quiet)
-            return EXIT_ERROR
+    lines = read_batch_lines(batch_source, json_mode=json_mode, quiet=quiet)
+    if lines is None:
+        return EXIT_ERROR
 
     any_not_derivable = False
     any_error = False
 
     for line in lines:
-        line = line.strip()
-        if not line or line.startswith("#"):
-            continue
-
         rc = _ask_one(line, reasoner, trace=trace,
                       json_mode=json_mode, quiet=quiet)
         if rc == EXIT_ERROR:

@@ -160,8 +160,9 @@ def split_top_level(s: str, sep: str) -> list[str]:
 
 def validate_atom_name(s: str) -> str:
     """Return *s* if it is a well-formed atom name, else raise ValueError."""
-    # Fast path: a plain identifier needs no regex (this runs at every proof
-    # node for every element of Γ until Phase 1 removes the re-parse).
+    # Fast path: a plain identifier needs no regex (this runs for every atom
+    # the parser meets and, via ``sequent._partition``, for every sentence
+    # string handed to a reasoner).
     if s.isidentifier() or QUOTED_ATOM_RE.match(s):
         return s
     if PLAIN_ATOM_RE.match(s):

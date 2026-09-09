@@ -17,16 +17,14 @@ for incompatibilities), so a match costs O(candidates) regardless of how many
 schemas are registered, for hits and misses alike. The only O(|Γ|) paths are
 MONOTONE/GUARDED ``range``, ``domain`` and incompatibility schemas, which have
 to find a role or partner atom somewhere in Γ; a store-backed antecedent
-(Phase 3) answers those with a pattern query instead.
+(the RDF extension) answers those with a pattern query instead.
 """
 
 from __future__ import annotations
 
-import json
 import logging
 import re
 from collections.abc import Sequence
-from pathlib import Path
 from typing import NamedTuple
 
 from pynmms.base import MaterialBase, Sequent
@@ -535,21 +533,11 @@ class OntoMaterialBase(MaterialBase):
     @classmethod
     def from_dict(cls, data: dict) -> OntoMaterialBase:
         """Deserialize from a dict (as produced by ``to_dict``)."""
-        language = set(data.get("language", []))
-        consequences: set[Sequent] = set()
-        robustness: dict[Sequent, Robustness] = {}
-        for entry in data.get("consequences", []):
-            pair = (frozenset(entry["antecedent"]), frozenset(entry["consequent"]))
-            consequences.add(pair)
-            policy = Robustness.from_json(entry.get("robustness"))
-            if not policy.is_exact:
-                robustness[pair] = policy
-        annotations = data.get("annotations", {})
-
+        consequences, robustness = cls._consequences_from_dict(data)
         base = cls(
-            language=language,
+            language=set(data.get("language", [])),
             consequences=consequences,
-            annotations=annotations,
+            annotations=data.get("annotations", {}),
             robustness=robustness,
         )
 
@@ -569,20 +557,6 @@ class OntoMaterialBase(MaterialBase):
                 f"{arg1} -> {schema['arg2']}",
             )
         return base
-
-    def to_file(self, path: str | Path) -> None:
-        """Write the base to a JSON file."""
-        with open(path, "w") as f:
-            json.dump(self.to_dict(), f, indent=2)
-        logger.debug("Saved ontology base to %s", path)
-
-    @classmethod
-    def from_file(cls, path: str | Path) -> OntoMaterialBase:
-        """Load a base from a JSON file."""
-        with open(path) as f:
-            data = json.load(f)
-        logger.debug("Loaded ontology base from %s", path)
-        return cls.from_dict(data)
 
 
 class CommitmentStore:

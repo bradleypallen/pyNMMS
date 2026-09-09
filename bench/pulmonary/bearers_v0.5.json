@@ -1,0 +1,350 @@
+{
+ "_meta": {
+  "source": "cpe_ards_benchmark_listing_2026-07-08.xlsx (Bearers, Evidence families sheets)",
+  "status": "placeholder research instrument; not for clinical use"
+ },
+ "bearers": {
+  "bnp_lo": {
+   "statement": "the patient has BNP less than 100 pg/mL",
+   "family": "bnp",
+   "position": 1,
+   "bears_on": "the patient has cardiogenic pulmonary edema"
+  },
+  "bnp_grey": {
+   "statement": "the patient has BNP between 100 and 500 pg/mL",
+   "family": "bnp",
+   "position": 2,
+   "bears_on": "the patient has cardiogenic pulmonary edema"
+  },
+  "bnp_mod": {
+   "statement": "the patient has BNP between 500 and 900 pg/mL",
+   "family": "bnp",
+   "position": 3,
+   "bears_on": "the patient has cardiogenic pulmonary edema"
+  },
+  "bnp_hi": {
+   "statement": "the patient has BNP between 900 and 5000 pg/mL",
+   "family": "bnp",
+   "position": 4,
+   "bears_on": "the patient has cardiogenic pulmonary edema"
+  },
+  "bnp_vhi": {
+   "statement": "the patient has BNP greater than 5000 pg/mL",
+   "family": "bnp",
+   "position": 5,
+   "bears_on": "the patient has cardiogenic pulmonary edema"
+  },
+  "pf_normal": {
+   "statement": "the patient has a PaO2/FiO2 ratio greater than 300",
+   "family": "pf",
+   "position": 1,
+   "bears_on": "the patient has acute respiratory distress syndrome"
+  },
+  "pf_mild": {
+   "statement": "the patient has a PaO2/FiO2 ratio of 200-300",
+   "family": "pf",
+   "position": 2,
+   "bears_on": "the patient has acute respiratory distress syndrome"
+  },
+  "pf_mod": {
+   "statement": "the patient has a PaO2/FiO2 ratio of 100-200",
+   "family": "pf",
+   "position": 3,
+   "bears_on": "the patient has acute respiratory distress syndrome"
+  },
+  "pf_severe": {
+   "statement": "the patient has a PaO2/FiO2 ratio less than 100",
+   "family": "pf",
+   "position": 4,
+   "bears_on": "the patient has acute respiratory distress syndrome"
+  },
+  "rs_hfnc": {
+   "statement": "the patient receives high-flow nasal cannula at over 30 L/min and over 50% FiO2",
+   "family": "rs",
+   "position": 1,
+   "bears_on": "the patient has acute respiratory distress syndrome"
+  },
+  "rs_niv": {
+   "statement": "the patient receives non-invasive ventilation with PEEP over 5 cmH2O",
+   "family": "rs",
+   "position": 2,
+   "bears_on": "the patient has acute respiratory distress syndrome"
+  },
+  "rs_imvlow": {
+   "statement": "the patient receives invasive ventilation with PEEP 5-10 cmH2O",
+   "family": "rs",
+   "position": 3,
+   "bears_on": "the patient has acute respiratory distress syndrome"
+  },
+  "rs_imvmiddle": {
+   "statement": "the patient receives invasive ventilation with PEEP 10-15 cmH2O",
+   "family": "rs",
+   "position": 4,
+   "bears_on": "the patient has acute respiratory distress syndrome"
+  },
+  "rs_imvhigh": {
+   "statement": "the patient receives invasive ventilation with PEEP over 15 cmH2O",
+   "family": "rs",
+   "position": 5,
+   "bears_on": "the patient has acute respiratory distress syndrome"
+  },
+  "ef_preserved": {
+   "statement": "the patient has left ventricular ejection fraction of 50% or higher on echocardiogram",
+   "family": "ef",
+   "position": 1,
+   "bears_on": "the patient has cardiogenic pulmonary edema"
+  },
+  "ef_mid": {
+   "statement": "the patient has left ventricular ejection fraction of 40-49% on echocardiogram",
+   "family": "ef",
+   "position": 2,
+   "bears_on": "the patient has cardiogenic pulmonary edema"
+  },
+  "ef_reduced": {
+   "statement": "the patient has left ventricular ejection fraction of 30-39% on echocardiogram",
+   "family": "ef",
+   "position": 3,
+   "bears_on": "the patient has cardiogenic pulmonary edema"
+  },
+  "ef_severe": {
+   "statement": "the patient has left ventricular ejection fraction below 30% on echocardiogram",
+   "family": "ef",
+   "position": 4,
+   "bears_on": "the patient has cardiogenic pulmonary edema"
+  },
+  "bi_min": {
+   "statement": "the patient has subtle or limited bilateral pulmonary infiltrates on imaging",
+   "family": "bi",
+   "position": 1,
+   "bears_on": null
+  },
+  "bi_mod": {
+   "statement": "the patient has moderate bilateral pulmonary infiltrates on imaging",
+   "family": "bi",
+   "position": 2,
+   "bears_on": null
+  },
+  "bi_diffuse": {
+   "statement": "the patient has extensive, diffuse bilateral airspace opacities on imaging",
+   "family": "bi",
+   "position": 3,
+   "bears_on": null
+  },
+  "bp_partial": {
+   "statement": "the patient has partial perihilar predominance of pulmonary infiltrates on imaging",
+   "family": "bp",
+   "position": 1,
+   "bears_on": null
+  },
+  "bp_classic": {
+   "statement": "the patient has a classic bat-wing distribution of pulmonary infiltrates on imaging",
+   "family": "bp",
+   "position": 2,
+   "bears_on": null
+  },
+  "kb_present": {
+   "statement": "the patient has Kerley B lines on chest imaging",
+   "family": null,
+   "position": null,
+   "bears_on": null
+  },
+  "pv_none": {
+   "statement": "the patient has no pleural effusions",
+   "family": "pv",
+   "position": 1,
+   "bears_on": "the patient has cardiogenic pulmonary edema"
+  },
+  "pv_small": {
+   "statement": "the patient has small bilateral pleural effusions",
+   "family": "pv",
+   "position": 2,
+   "bears_on": "the patient has cardiogenic pulmonary edema"
+  },
+  "pv_mod": {
+   "statement": "the patient has moderate bilateral pleural effusions",
+   "family": "pv",
+   "position": 3,
+   "bears_on": "the patient has cardiogenic pulmonary edema"
+  },
+  "pv_large": {
+   "statement": "the patient has large bilateral pleural effusions",
+   "family": "pv",
+   "position": 4,
+   "bears_on": "the patient has cardiogenic pulmonary edema"
+  },
+  "cd_cardiotox": {
+   "statement": "the patient recently received chemotherapy with a cardiotoxic agent such as an anthracycline or trastuzumab",
+   "family": null,
+   "position": null,
+   "bears_on": null
+  },
+  "cd_pneumotox": {
+   "statement": "the patient recently received chemotherapy with a pneumotoxic agent such as bleomycin, gemcitabine, or methotrexate",
+   "family": null,
+   "position": null,
+   "bears_on": null
+  },
+  "fluid_neg": {
+   "statement": "the patient received diuretics in the past 24 hours and has a negative fluid balance",
+   "family": "fluid",
+   "position": 1,
+   "bears_on": "the patient has cardiogenic pulmonary edema"
+  },
+  "fluid_pos": {
+   "statement": "the patient received moderate-volume intravenous fluids and had a moderately positive fluid balance in the past 24 hours",
+   "family": "fluid",
+   "position": 2,
+   "bears_on": "the patient has cardiogenic pulmonary edema"
+  },
+  "fluid_verypos": {
+   "statement": "the patient received large-volume intravenous fluids and had a very positive fluid balance in the past 24 hours",
+   "family": "fluid",
+   "position": 3,
+   "bears_on": "the patient has cardiogenic pulmonary edema"
+  },
+  "tr_minor": {
+   "statement": "the patient sustained recent minor or isolated trauma",
+   "family": "tr",
+   "position": 1,
+   "bears_on": null
+  },
+  "tr_major": {
+   "statement": "the patient sustained recent major multisystem trauma",
+   "family": "tr",
+   "position": 2,
+   "bears_on": null
+  },
+  "cv_minor": {
+   "statement": "the patient has cardiovascular risk factors or treated hypertension",
+   "family": "cv",
+   "position": 1,
+   "bears_on": null
+  },
+  "cv_struct": {
+   "statement": "the patient has a known history of structural heart disease or prior heart failure",
+   "family": "cv",
+   "position": 2,
+   "bears_on": null
+  },
+  "pna_focal": {
+   "statement": "the patient has lobar or unilateral pneumonia",
+   "family": "pna",
+   "position": 1,
+   "bears_on": null
+  },
+  "pna_multifocal": {
+   "statement": "the patient has multilobar or bilateral pneumonia",
+   "family": "pna",
+   "position": 2,
+   "bears_on": null
+  },
+  "asp": {
+   "statement": "the patient has a documented aspiration event",
+   "family": null,
+   "position": null,
+   "bears_on": null
+  },
+  "rf": {
+   "statement": "the patient has acute renal failure with volume overload",
+   "family": null,
+   "position": null,
+   "bears_on": null
+  },
+  "sep": {
+   "statement": "the patient has documented sepsis",
+   "family": null,
+   "position": null,
+   "bears_on": null
+  },
+  "septic_shock": {
+   "statement": "the patient has documented septic shock",
+   "family": null,
+   "position": null,
+   "bears_on": null
+  },
+  "pe": {
+   "statement": "the patient has acute pulmonary embolism",
+   "family": null,
+   "position": null,
+   "bears_on": null
+  },
+  "ad": {
+   "statement": "the patient has acute dyspnea",
+   "family": null,
+   "position": null,
+   "bears_on": null
+  },
+  "cpe": {
+   "statement": "the patient has cardiogenic pulmonary edema",
+   "family": null,
+   "position": null,
+   "bears_on": null
+  },
+  "ards": {
+   "statement": "the patient has acute respiratory distress syndrome",
+   "family": null,
+   "position": null,
+   "bears_on": null
+  }
+ },
+ "families": {
+  "bnp": [
+   "bnp_lo",
+   "bnp_grey",
+   "bnp_mod",
+   "bnp_hi",
+   "bnp_vhi"
+  ],
+  "pf": [
+   "pf_normal",
+   "pf_mild",
+   "pf_mod",
+   "pf_severe"
+  ],
+  "rs": [
+   "rs_hfnc",
+   "rs_niv",
+   "rs_imvlow",
+   "rs_imvmiddle",
+   "rs_imvhigh"
+  ],
+  "ef": [
+   "ef_preserved",
+   "ef_mid",
+   "ef_reduced",
+   "ef_severe"
+  ],
+  "bi": [
+   "bi_min",
+   "bi_mod",
+   "bi_diffuse"
+  ],
+  "pv": [
+   "pv_none",
+   "pv_small",
+   "pv_mod",
+   "pv_large"
+  ],
+  "bp": [
+   "bp_partial",
+   "bp_classic"
+  ],
+  "fluid": [
+   "fluid_neg",
+   "fluid_pos",
+   "fluid_verypos"
+  ],
+  "tr": [
+   "tr_minor",
+   "tr_major"
+  ],
+  "cv": [
+   "cv_minor",
+   "cv_struct"
+  ],
+  "pna": [
+   "pna_focal",
+   "pna_multifocal"
+  ]
+ }
+}

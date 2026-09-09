@@ -105,8 +105,40 @@ class DefeasibleRule:
 # --- Parsing ------------------------------------------------------------------
 
 
+def _split_premises(text: str) -> list[str]:
+    """Split premises on commas outside ``[guards]``, ``(...)``, ``"..."`` and ``<iri>``.
+
+    A guard may contain ``<`` (``[?a < ?b]``), so the quoted-atom rule of
+    :func:`pynmms.syntax.split_top_level` cannot apply inside brackets.
+    """
+    parts: list[str] = []
+    depth = bracket = 0
+    quote = ""
+    start = 0
+    for i, ch in enumerate(text):
+        if quote:
+            if ch == quote:
+                quote = ""
+            continue
+        if ch == '"' or (ch == "<" and not bracket):
+            quote = '"' if ch == '"' else ">"
+        elif ch == "[":
+            bracket += 1
+        elif ch == "]" and bracket:
+            bracket -= 1
+        elif ch == "(":
+            depth += 1
+        elif ch == ")" and depth:
+            depth -= 1
+        elif ch == "," and not depth and not bracket:
+            parts.append(text[start:i])
+            start = i + 1
+    parts.append(text[start:])
+    return [p.strip() for p in parts if p.strip()]
+
+
 def _patterns_and_guard(text: str, resolver: Resolver | None) -> tuple[tuple[Pattern, ...], Any]:
-    parts = [p.strip() for p in split_top_level(text, ",") if p.strip()]
+    parts = _split_premises(text)
     guards = [p[1:-1].strip() for p in parts if p.startswith("[") and p.endswith("]")]
     patterns = tuple(_parse_pattern(p, resolver) for p in parts
                      if not (p.startswith("[") and p.endswith("]")))

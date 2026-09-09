@@ -711,3 +711,87 @@ constructed through play" now lives. And tensions may involve the
 background, since the base reasons over a knowledge graph: the positum's
 anachronism needed the person's death date, which is the store's, not the
 curator's, and attribution puts only the curator's atoms in `Γ`.
+
+## 15. A panel's practice as a base: the pulmonary vignettes
+
+Run 2026-09-08 (`python -m bench.pulmonary.session --check`, records
+`20260908T205038Z-*` for the placeholder base and `20260908T205104Z-*`
+for the model-panel base). The CPE-versus-ARDS clinical inference
+benchmark of the Simonelli and Bos collaboration (`bench/pulmonary/
+benchmark_v0.5.json`: 35 defeasible inferences over 47 clinical
+statements, eleven of them ordered tiers such as BNP or the P/F ratio,
+arranged in ladders that strengthen, defeat, contest and step through a
+tier; placeholder verdicts written without clinical credentials, **not
+for clinical use**) is a verdict source, and a verdict source is a
+material base. `bench/pulmonary/build_base.py` writes it as pattern
+entries: a good item is a default whose defeaters are the additions of
+the bad items of its ladder, a defeating bad item an incompatibility
+(with the clinician's override as its rescue when contested), an
+abstention nothing, a monotonicity ladder one rank-guarded default over
+the tiers rated good and one incompatibility over the tiers rated bad,
+plus one tier per family and septic shock as sepsis. The placeholder
+verdicts give 30 entries; the six-model panel's majority verdicts, 34.
+
+**The check.** A position holding each item's premises, asked whether
+the base licenses the diagnosis and whether it precludes it, against the
+verdict the base was built from. Predicted 34/35 for the placeholder base
+with B5 the exception; observed 33/35, F1 the same case missed in the
+prediction. Both are abstentions on a superset of premises whose subset
+the panel rated good: aspiration plus reduced LVEF (B5) abstains while
+aspiration alone (B1) licenses ARDS; reduced LVEF plus a negative balance
+(F1) is contested while reduced LVEF alone (A2) licenses CPE. A default
+fires on its premises whatever else is held unless something defeats it,
+so an abstention on a superset is inexpressible without naming the
+addition as a defeater, which the benchmark's abstain verdict does not
+do. That is a finding about the instrument: the ladder structure makes
+some abstentions implicit defeat verdicts, and the base built from a
+panel's answers will say which. The model panel's base agrees 35/35: the
+models rated B5 good and F1 good.
+
+**The vignettes.** Four sessions of the Elenchus loop over the base, the
+opponent computed, the respondent scripted with predictions (37 questions
+per base, 33 held on the first run for each; the four misses were probe
+counts, see below):
+
+1. *A BNP result arrives.* Dyspnoea, moderate bilateral infiltrates and
+   structural heart disease license CPE before it is asserted; asserted,
+   the position is coherent. BNP under 100 pg/mL raises the A7
+   incompatibility as one tension with no rescue; the respondent accepts,
+   retracting the diagnosis, and the base now neither licenses it (A1
+   defeated) nor permits it (A7).
+2. *ARDS with a very high BNP.* The very high BNP defeats the aspiration
+   default and B6, contested in the benchmark, precludes the diagnosis;
+   neither diagnosis is licensed. Asserting ARDS raises B6 with the
+   clinician's override as the rescue; contesting names it, and the
+   tension holds until the override is on the record.
+3. *The BNP ladder.* A grey-zone BNP licenses nothing under the
+   placeholder and CPE under the model panel (its ladder starts a tier
+   lower); the corrected value, moderate, licenses CPE through the rank
+   guard; a second BNP tier entered by mistake raises the one-tier
+   incompatibility, resolved by retracting the old one; then diuresis
+   with no effusions defeats the ladder's default and raises A8, rescued
+   by its override.
+4. *Aporia.* The positum holds the findings, the low BNP and the
+   diagnosis together: one tension over the positum alone, no rescue, so
+   the status is aporia. Contesting A7 with an exception the base does
+   not have revises the entry for the session, and committing the
+   exception restores coherence.
+
+The probe-count predictions were wrong both times: 8 and 11 predicted
+before the diagnosis, 6 and 9 observed. The one-tier-per-family entries
+raise no probe, since the tier held satisfies both premises and only the
+guard fails, so the opponent has nothing to ask for. The rest were as
+predicted: the unacknowledged default and one incompatibility per entry
+anchored on the patient's findings, the model panel adding its three
+contested incompatibilities. Moves cost 13 to 57 ms per session in
+memory.
+
+**What this is for.** The study proposes a clinician panel whose verdicts
+on these items become the ground truth for models. Read as a base, the
+panel's practice is executable: the check says where the verdicts are
+inconsistent with one another under defeasible reading, and the vignette
+sessions run the hold-you-back interaction over new cases with the
+panel's practice as the opponent, before or after any model is involved.
+The two bases here, one analyst's placeholders and a majority of six
+language models, differ in 12 entries and in what the same vignette
+licenses; a clinician panel's base would be a third.

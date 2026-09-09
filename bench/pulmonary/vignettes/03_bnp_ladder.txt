@@ -1,0 +1,35 @@
+# Vignette 3: the BNP ladder (ladder C) and a corrected lab entry, then diuresis (A8).
+# Dyspnoea, moderate bilateral infiltrates, minor cardiac history. Predictions written
+# before the run of 2026-09-08; the model panel starts the ladder one tier lower.
+holder respondent
+positum <pul:v3 pul:has pul:ad>, <pul:v3 pul:bi "bi_mod">, <pul:v3 pul:cv "cv_minor">
+
+# BNP in the grey zone: the placeholder abstains, the model panel licenses.
+commit <pul:v3 pul:bnp "bnp_grey">
+commits? <pul:v3 pul:dx pul:cpe> ## placeholder=False models=True
+precludes? <pul:v3 pul:dx pul:cpe> ## False
+
+# The result is corrected to moderate: the rank guard licenses the diagnosis.
+withdraw <pul:v3 pul:bnp "bnp_grey">
+commit <pul:v3 pul:bnp "bnp_mod">
+commits? <pul:v3 pul:dx pul:cpe> ## True
+
+# A second BNP tier is entered by mistake: one tier per family.
+commit <pul:v3 pul:bnp "bnp_hi">
+status? ## tensions open
+tensions? ## 1
+accept 1 retract <pul:v3 pul:bnp "bnp_mod">
+status? ## coherent
+commits? <pul:v3 pul:dx pul:cpe> ## True
+
+# The diagnosis is made; then diuretics, a negative balance and no effusions (A8,
+# contested): the ladder's default is defeated and A8 raises the tension, with the
+# override as its rescue.
+commit <pul:v3 pul:dx pul:cpe>
+status? ## coherent
+commit <pul:v3 pul:fluid "fluid_neg">, <pul:v3 pul:pv "pv_none">
+status? ## tensions open
+tensions? ## 1
+contest 1 unless <pul:v3 pul:override "A8">
+commit <pul:v3 pul:override "A8">
+status? ## coherent

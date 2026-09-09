@@ -393,7 +393,8 @@ class Dialogue:
         ``accept N [retract <atoms> | refine <old> => <new>]``, ``contest N
         [unless <atoms>]`` (``N`` the 1-based index into the open tensions in
         the order raised), ``propose <atoms> |~ <atoms>``; questions
-        ``status? ## coherent``, ``tensions? ## 1``, ``probes? ## 2``.
+        ``status? ## coherent``, ``tensions? ## 1``, ``probes? ## 2``,
+        ``commits? <atoms> ## True``, ``precludes? <atoms> ## False``.
         """
         from pynmms.syntax import split_top_level
 
@@ -436,6 +437,10 @@ class Dialogue:
                 self.propose_tension(atoms(left), atoms(right), source="script")
             elif kind == "status?":
                 answer = self.status()
+            elif kind == "commits?":
+                answer = bool(self.position.commits_to(*atoms(rest)))
+            elif kind == "precludes?":
+                answer = bool(self.position.precludes(*atoms(rest)))
             elif kind == "tensions?":
                 answer = len(self.open)
             elif kind == "probes?":

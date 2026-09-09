@@ -1,0 +1,401 @@
+{
+ "_meta": {
+  "source": "cpe_ards_benchmark_listing_2026-07-08.xlsx (Implications sheet)",
+  "models": [
+   "GPT-4.1",
+   "GPT-5.5",
+   "Claude Opus 4.7",
+   "Gemini 2.5 Pro",
+   "DeepSeek v4-pro",
+   "Qwen3-Max"
+  ],
+  "note": "six language models' verdicts on the 35 items, a model panel; placeholder analyst verdicts are in benchmark_v0.5.json"
+ },
+ "verdicts": {
+  "A0": {
+   "models": {
+    "GPT-4.1": "bad",
+    "GPT-5.5": "bad",
+    "Claude Opus 4.7": "bad",
+    "Gemini 2.5 Pro": "good",
+    "DeepSeek v4-pro": "bad",
+    "Qwen3-Max": "abstain"
+   },
+   "panel": "split"
+  },
+  "A1": {
+   "models": {
+    "GPT-4.1": "good",
+    "GPT-5.5": "good",
+    "Claude Opus 4.7": "good",
+    "Gemini 2.5 Pro": "good",
+    "DeepSeek v4-pro": "good",
+    "Qwen3-Max": "good"
+   },
+   "panel": "unanimous"
+  },
+  "A2": {
+   "models": {
+    "GPT-4.1": "good",
+    "GPT-5.5": "good",
+    "Claude Opus 4.7": "good",
+    "Gemini 2.5 Pro": "good",
+    "DeepSeek v4-pro": "good",
+    "Qwen3-Max": "good"
+   },
+   "panel": "unanimous"
+  },
+  "A3": {
+   "models": {
+    "GPT-4.1": "good",
+    "GPT-5.5": "good",
+    "Claude Opus 4.7": "good",
+    "Gemini 2.5 Pro": "good",
+    "DeepSeek v4-pro": "good",
+    "Qwen3-Max": "good"
+   },
+   "panel": "unanimous"
+  },
+  "A4": {
+   "models": {
+    "GPT-4.1": "bad",
+    "GPT-5.5": "good",
+    "Claude Opus 4.7": "bad",
+    "Gemini 2.5 Pro": "good",
+    "DeepSeek v4-pro": "good",
+    "Qwen3-Max": "good"
+   },
+   "panel": "split"
+  },
+  "A5": {
+   "models": {
+    "GPT-4.1": "good",
+    "GPT-5.5": "good",
+    "Claude Opus 4.7": "good",
+    "Gemini 2.5 Pro": "good",
+    "DeepSeek v4-pro": "good",
+    "Qwen3-Max": "good"
+   },
+   "panel": "unanimous"
+  },
+  "A6": {
+   "models": {
+    "GPT-4.1": "bad",
+    "GPT-5.5": "bad",
+    "Claude Opus 4.7": "bad",
+    "Gemini 2.5 Pro": "bad",
+    "DeepSeek v4-pro": "bad",
+    "Qwen3-Max": "bad"
+   },
+   "panel": "unanimous"
+  },
+  "A7": {
+   "models": {
+    "GPT-4.1": "bad",
+    "GPT-5.5": "bad",
+    "Claude Opus 4.7": "bad",
+    "Gemini 2.5 Pro": "bad",
+    "DeepSeek v4-pro": "bad",
+    "Qwen3-Max": "bad"
+   },
+   "panel": "unanimous"
+  },
+  "A8": {
+   "models": {
+    "GPT-4.1": "bad",
+    "GPT-5.5": "bad",
+    "Claude Opus 4.7": "bad",
+    "Gemini 2.5 Pro": "bad",
+    "DeepSeek v4-pro": "good",
+    "Qwen3-Max": "bad"
+   },
+   "panel": "split"
+  },
+  "A9": {
+   "models": {
+    "GPT-4.1": "bad",
+    "GPT-5.5": "bad",
+    "Claude Opus 4.7": "bad",
+    "Gemini 2.5 Pro": "bad",
+    "DeepSeek v4-pro": "bad",
+    "Qwen3-Max": "bad"
+   },
+   "panel": "unanimous"
+  },
+  "C1": {
+   "models": {
+    "GPT-4.1": "bad",
+    "GPT-5.5": "bad",
+    "Claude Opus 4.7": "bad",
+    "Gemini 2.5 Pro": "bad",
+    "DeepSeek v4-pro": "bad",
+    "Qwen3-Max": "bad"
+   },
+   "panel": "unanimous"
+  },
+  "C2": {
+   "models": {
+    "GPT-4.1": "good",
+    "GPT-5.5": "good",
+    "Claude Opus 4.7": "good",
+    "Gemini 2.5 Pro": "good",
+    "DeepSeek v4-pro": "good",
+    "Qwen3-Max": "good"
+   },
+   "panel": "unanimous"
+  },
+  "C3": {
+   "models": {
+    "GPT-4.1": "good",
+    "GPT-5.5": "good",
+    "Claude Opus 4.7": "good",
+    "Gemini 2.5 Pro": "good",
+    "DeepSeek v4-pro": "good",
+    "Qwen3-Max": "good"
+   },
+   "panel": "unanimous"
+  },
+  "C4": {
+   "models": {
+    "GPT-4.1": "good",
+    "GPT-5.5": "good",
+    "Claude Opus 4.7": "good",
+    "Gemini 2.5 Pro": "good",
+    "DeepSeek v4-pro": "good",
+    "Qwen3-Max": "good"
+   },
+   "panel": "unanimous"
+  },
+  "C5": {
+   "models": {
+    "GPT-4.1": "good",
+    "GPT-5.5": "good",
+    "Claude Opus 4.7": "good",
+    "Gemini 2.5 Pro": "good",
+    "DeepSeek v4-pro": "good",
+    "Qwen3-Max": "good"
+   },
+   "panel": "unanimous"
+  },
+  "F1": {
+   "models": {
+    "GPT-4.1": "good",
+    "GPT-5.5": "good",
+    "Claude Opus 4.7": "good",
+    "Gemini 2.5 Pro": "good",
+    "DeepSeek v4-pro": "good",
+    "Qwen3-Max": "good"
+   },
+   "panel": "unanimous"
+  },
+  "F2": {
+   "models": {
+    "GPT-4.1": "good",
+    "GPT-5.5": "good",
+    "Claude Opus 4.7": "good",
+    "Gemini 2.5 Pro": "good",
+    "DeepSeek v4-pro": "good",
+    "Qwen3-Max": "good"
+   },
+   "panel": "unanimous"
+  },
+  "F3": {
+   "models": {
+    "GPT-4.1": "good",
+    "GPT-5.5": "good",
+    "Claude Opus 4.7": "good",
+    "Gemini 2.5 Pro": "good",
+    "DeepSeek v4-pro": "good",
+    "Qwen3-Max": "good"
+   },
+   "panel": "unanimous"
+  },
+  "D1": {
+   "models": {
+    "GPT-4.1": "bad",
+    "GPT-5.5": "bad",
+    "Claude Opus 4.7": "bad",
+    "Gemini 2.5 Pro": "good",
+    "DeepSeek v4-pro": "bad",
+    "Qwen3-Max": "abstain"
+   },
+   "panel": "split"
+  },
+  "D2": {
+   "models": {
+    "GPT-4.1": "bad",
+    "GPT-5.5": "bad",
+    "Claude Opus 4.7": "bad",
+    "Gemini 2.5 Pro": "bad",
+    "DeepSeek v4-pro": "bad",
+    "Qwen3-Max": "bad"
+   },
+   "panel": "unanimous"
+  },
+  "D3": {
+   "models": {
+    "GPT-4.1": "bad",
+    "GPT-5.5": "bad",
+    "Claude Opus 4.7": "bad",
+    "Gemini 2.5 Pro": "bad",
+    "DeepSeek v4-pro": "bad",
+    "Qwen3-Max": "bad"
+   },
+   "panel": "unanimous"
+  },
+  "B0": {
+   "models": {
+    "GPT-4.1": "good",
+    "GPT-5.5": "good",
+    "Claude Opus 4.7": "good",
+    "Gemini 2.5 Pro": "good",
+    "DeepSeek v4-pro": "good",
+    "Qwen3-Max": "good"
+   },
+   "panel": "unanimous"
+  },
+  "B1": {
+   "models": {
+    "GPT-4.1": "good",
+    "GPT-5.5": "good",
+    "Claude Opus 4.7": "good",
+    "Gemini 2.5 Pro": "good",
+    "DeepSeek v4-pro": "good",
+    "Qwen3-Max": "good"
+   },
+   "panel": "unanimous"
+  },
+  "B2": {
+   "models": {
+    "GPT-4.1": "good",
+    "GPT-5.5": "good",
+    "Claude Opus 4.7": "good",
+    "Gemini 2.5 Pro": "good",
+    "DeepSeek v4-pro": "good",
+    "Qwen3-Max": "good"
+   },
+   "panel": "unanimous"
+  },
+  "B3": {
+   "models": {
+    "GPT-4.1": "good",
+    "GPT-5.5": "good",
+    "Claude Opus 4.7": "good",
+    "Gemini 2.5 Pro": "good",
+    "DeepSeek v4-pro": "good",
+    "Qwen3-Max": "good"
+   },
+   "panel": "unanimous"
+  },
+  "B4": {
+   "models": {
+    "GPT-4.1": "good",
+    "GPT-5.5": "good",
+    "Claude Opus 4.7": "good",
+    "Gemini 2.5 Pro": "good",
+    "DeepSeek v4-pro": "good",
+    "Qwen3-Max": "good"
+   },
+   "panel": "unanimous"
+  },
+  "B5": {
+   "models": {
+    "GPT-4.1": "good",
+    "GPT-5.5": "good",
+    "Claude Opus 4.7": "good",
+    "Gemini 2.5 Pro": "good",
+    "DeepSeek v4-pro": "good",
+    "Qwen3-Max": "good"
+   },
+   "panel": "unanimous"
+  },
+  "B6": {
+   "models": {
+    "GPT-4.1": "bad",
+    "GPT-5.5": "bad",
+    "Claude Opus 4.7": "bad",
+    "Gemini 2.5 Pro": "bad",
+    "DeepSeek v4-pro": "bad",
+    "Qwen3-Max": "bad"
+   },
+   "panel": "unanimous"
+  },
+  "B7": {
+   "models": {
+    "GPT-4.1": "good",
+    "GPT-5.5": "bad",
+    "Claude Opus 4.7": "bad",
+    "Gemini 2.5 Pro": "bad",
+    "DeepSeek v4-pro": "bad",
+    "Qwen3-Max": "good"
+   },
+   "panel": "split"
+  },
+  "B8": {
+   "models": {
+    "GPT-4.1": "good",
+    "GPT-5.5": "bad",
+    "Claude Opus 4.7": "bad",
+    "Gemini 2.5 Pro": "bad",
+    "DeepSeek v4-pro": "bad",
+    "Qwen3-Max": "bad"
+   },
+   "panel": "split"
+  },
+  "G1": {
+   "models": {
+    "GPT-4.1": "good",
+    "GPT-5.5": "good",
+    "Claude Opus 4.7": "good",
+    "Gemini 2.5 Pro": "good",
+    "DeepSeek v4-pro": "good",
+    "Qwen3-Max": "good"
+   },
+   "panel": "unanimous"
+  },
+  "G2": {
+   "models": {
+    "GPT-4.1": "good",
+    "GPT-5.5": "good",
+    "Claude Opus 4.7": "good",
+    "Gemini 2.5 Pro": "good",
+    "DeepSeek v4-pro": "good",
+    "Qwen3-Max": "good"
+   },
+   "panel": "unanimous"
+  },
+  "G3": {
+   "models": {
+    "GPT-4.1": "good",
+    "GPT-5.5": "good",
+    "Claude Opus 4.7": "good",
+    "Gemini 2.5 Pro": "good",
+    "DeepSeek v4-pro": "good",
+    "Qwen3-Max": "good"
+   },
+   "panel": "unanimous"
+  },
+  "G4": {
+   "models": {
+    "GPT-4.1": "good",
+    "GPT-5.5": "good",
+    "Claude Opus 4.7": "good",
+    "Gemini 2.5 Pro": "good",
+    "DeepSeek v4-pro": "good",
+    "Qwen3-Max": "good"
+   },
+   "panel": "unanimous"
+  },
+  "G5": {
+   "models": {
+    "GPT-4.1": "good",
+    "GPT-5.5": "good",
+    "Claude Opus 4.7": "good",
+    "Gemini 2.5 Pro": "good",
+    "DeepSeek v4-pro": "good",
+    "Qwen3-Max": "good"
+   },
+   "panel": "unanimous"
+  }
+ }
+}

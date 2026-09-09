@@ -706,7 +706,7 @@ This is the coupling to dialogue (Elenchus) the ontology extension was
 written for, stated as data: the base's entries are the rules of the
 game, the background is the common ground, and positions are the moves.
 
-#### The six steps from here to the vision
+#### The eight steps from here to the vision
 
 `docs/docs/theory/onto-extension.md`, Section 9, states the vision:
 knowledge engineering as the engineering of the space of implications a
@@ -771,6 +771,189 @@ has to be true, in the order each unblocks the next:
    (`bench/elenchus_session.py`, `bench/queries/am_elenchus.txt`). The
    opponent is computed from the base, which inverts the paper's oracle;
    an LLM respondent is the natural next client, and a curator the test.
+
+   *A panel's practice as a base* — DONE 2026-09-08 (`bench/pulmonary/`):
+   the CPE-versus-ARDS clinical inference benchmark of the Simonelli and
+   Bos collaboration (35 defeasible inferences over 47 clinical statements
+   in ladders, placeholder verdicts, not for clinical use) read as a
+   material base by `build_base.py`: defaults with the ladders' defeaters,
+   incompatibilities rescued by the clinician's override when contested,
+   rank-guarded entries over the ordered tiers; the base checked against
+   its own verdicts (`session.py --check`: 33/35 for the placeholder, the
+   two misses abstentions on supersets of licensed premises, which the
+   benchmark cannot express without a defeat verdict; 35/35 for the
+   six-model majority); four vignette sessions of the Elenchus loop with
+   predictions (`vignettes/`, 33/37 held on each base, the misses probe
+   counts). This is the shape the collaboration takes with pyNMMS: the
+   panel's verdicts become an executable practice, checked for coherence
+   among themselves and run as the opponent over new vignettes
+   (`bench/PERFORMANCE.md` section 15). What remains is the panel itself,
+   and an LLM respondent in the vignette's seat.
+7. **The ledger.** Section 9.1 calls the graph the scorekeeper's ledger,
+   and the store is one only in part. The asserted content sits in named
+   graphs with a source, and what a position commits is written to the
+   holder's graph with `prov:wasAttributedTo`; that is a ledger of who
+   asserted what. The materialised closure is its index, derived and
+   attributed to nobody. But the speech acts themselves are not in the
+   store: a dialogue saves its transcript as JSON beside it, `commit`
+   writes what held and a withdrawal leaves no trace, and no triple has a
+   time, so the store records outcomes and cannot say what a position was
+   at admission and what it was after the BNP. The step makes the store
+   the ledger, with PROV-O, which the platform already uses:
+
+   - **One named graph per session**, `urn:pynmms:session:<id>`, written
+     by `Dialogue` as it plays and read back by `load`.
+   - **Moves as activities.** Each commit, deny, withdraw, accept, contest
+     and propose is a `prov:Activity` with `prov:wasAssociatedWith` the
+     holder, `prov:startedAtTime`, and its arguments. Time and sequence
+     enter the store here.
+   - **Commitments as entities with a lifetime.** A committed triple is
+     `prov:wasGeneratedBy` the move that asserted it and
+     `prov:wasInvalidatedBy` the move that withdrew it; the position at
+     any moment is a query over the two.
+   - **Tensions and their resolution.** A tension is an entity naming the
+     entry responsible and the atoms of `Γ`, linked to the accept or
+     contest that closed it with the retraction or the exception. An
+     override is then a record of which entry was overridden, by whom,
+     and when.
+   - **The practice, versioned.** Entries as triples in a base graph
+     (ground entries through `consequences_to_triples`, pattern entries
+     as their text under an IRI), so a contest that adds a defeater
+     generates a new entry version attributed to the contester and the
+     panel's base has a history.
+
+   `Position.of` and `provenance_of` already read named graphs and
+   records, so inherited entitlement reaches session graphs without new
+   machinery: a finding committed and defended in one session is
+   inherited with that standing in the next. The check and the vignette
+   runner write their sessions the same way. What changes in the claims:
+   accountability has an address for every move rather than for every
+   triple, and the questions of Section 9.1 about whose commitments were
+   challenged, stood, or were overridden become queries. About the size
+   of step 4, and in place before a curator or a panel sits down.
+
+   *Cost.* Small. A move is about 5 triples, a commitment about 6 with
+   reification and its two lifetime links (3 with RDF-star, which
+   Oxigraph supports), a tension with its resolution about 8; a
+   ten-move session is 100 to 150 triples, an ICU at 50 patients and 30
+   moves a day about 15k triples a day, under 1 GB a year on disk at the
+   10^7 run's 170 bytes a triple, append-only and never closed. Writing
+   10 to 15 quads costs well under a millisecond against moves that cost
+   2 to 57 ms today, almost all of it the participant search; reads for
+   inherited entitlement are `graphs_of` lookups and queries over time
+   run over one session graph.
+
+   *Architecture.* Four consequences, none of them optional:
+
+   - **The closure must not see the ledger.** Session, base and meta
+     graphs are outside the regime. Materialisation and `add()` close
+     the asserted and holder graphs only, so the backend enforces the
+     partition and gains a raw write path beside `add()`, which extends
+     the closure. `MemoryBackend` moves from a `Graph` to a `Dataset`
+     with named graphs.
+   - **The ledger becomes the source of truth.** A holder's graph is
+     derivable from the ledger as the commitments not yet invalidated,
+     and the closure is derived from that. Recovery rebuilds both from
+     the ledger; the closure is a cache twice over, and the asserted
+     graph of a loaded file is the one source that is not a session.
+   - **Multiple writers.** An embedded Oxigraph store has one process.
+     A panel and a registrar, or two clinicians on one patient, make the
+     store multi-writer, so the server backends of Phase 5 (Oxigraph
+     server, GraphDB, RDFox over SPARQL Update) stop being optional. The
+     `SPARQLBackend` has the write path; the session writer must be
+     backend-neutral.
+   - **Base revision needs a policy.** A contest revises the base in
+     memory for the session; in the ledger it is a proposal against an
+     entry version. Whether it changes the practice for everyone is a
+     separate move, the panel's, and the platform must distinguish a
+     session's revision from an adopted one. A design decision, not a
+     cost.
+
+   Nothing in the position or dialogue APIs moves.
+8. **Consolidation and the split.** Sequenced before step 7 and before
+   an LLM respondent. The library is not sprawling (about 9,900 lines,
+   the largest modules 600 to 750 with one job each, layering intact),
+   but the boundary around it is. `bench/`, chartered as a stdlib timing
+   package with a committed baseline, now also holds six experiment
+   harnesses that need the rdf extra and a store, and a case study with
+   a collaboration's data; three session runners (`replay_dialogue`,
+   `elenchus_session`, `pulmonary/session`) overlap, with two copies of
+   the holder/positum parser and three prediction syntaxes; store
+   boilerplate repeats in five scripts; tests import from `bench` through
+   `pythonpath`; `PERFORMANCE.md` is an experiment log with two sections
+   of performance, and this file is half plan and half running record.
+   The game layer reaches into the semantics layer through private names
+   (`last_reason`, `last_rescue`, `_closure_of_extras`, `_lookup`, the
+   `hidden` set, `Matcher`). And the ontology extension is obviated:
+   every schema type is one pattern entry, `onto_to_defeasible` is the
+   translation, the differential test agrees up to the extension's own
+   non-exploding incompatibilities, and what it taught (lazy schemas,
+   guarded defeaters, joint commitments, schemas as macros) survives as
+   pattern entries.
+
+   *Consolidation* (one release, about a day, no working code changes):
+
+   - `bench/` back to the timing package; `experiments/` for the
+     harnesses, query files and shapes, with `PERFORMANCE.md` sections 7
+     to 15 as its README; `experiments/cases/` for the museum and
+     pulmonary studies with their own READMEs. This directory is a
+     staging area: the experiments and cases move out into repositories
+     of their own (one per study, or the pulmonary case into infereval),
+     each pinning a pyNMMS release, and this repository keeps only the
+     harness tests that validate the library. One `experiments/_common.py`
+     for opening a store with rules, prefixes and entries, which goes
+     with them.
+   - One session runner and one script grammar: `Dialogue.play` takes the
+     replay-only moves (`defend`, `entitled?`, `score?`, `propose?`); the
+     other runners become thin or go.
+   - Harness tests to `tests/experiments/`, so the library suite runs
+     without them and the README count stops mixing the two.
+   - This file becomes a plan: the running record to `CHANGELOG.md`, the
+     second-paper outline to `docs/`. Section 9 of onto-extension.md,
+     the vision, moves to the game layer's documentation, since it
+     describes that and not the extension it is filed under.
+   - The public API named and frozen for a version: `RegimeBase`, the
+     backends, `load_entries`, `Position`, `Dialogue`, `Report`,
+     `Verdict`, `Challenge`; the API pages say the rest is internal.
+   - `RDFBase.position(accept, reject)` documented as the manuscript's
+     position (`def:contententailment`) with `Position` built on it,
+     one notion rather than two.
+   - `pynmms.onto` and `--onto` deprecated, docs pointing at
+     `onto_to_defeasible` and `pynmms rdf --onto FILE` as the migration;
+     the frozen v0.6.2 differential stays in the core suite (it tests the
+     reasoner); the other ontology tests re-pointed at the translation so
+     the behaviour is a contract on `onto_to_defeasible`.
+
+   *The interface.* The small API the game layer needs from the
+   semantics layer, made public and named: a verdict with reason and
+   rescue, the closure of extras over the background, a lookup over the
+   background with a set-aside, the pattern matcher. Step 7 falls on this
+   boundary (the partition rule to the backends, the session writer to the
+   game layer) and should be done across it.
+
+   *The split* (about two days on top; can begin as a directory with its
+   own `pyproject` in this repository and move out when the interface has
+   held for a release):
+
+   - **pyNMMS** keeps the calculus and the RDF semantics: everything the
+     manuscript and the second paper specify, for people who want
+     `RegimeBase` and a backend; releases follow the papers.
+   - **A second package** takes the game layer, the REPL client and the
+     session runner, with the experiments and cases already in their own
+     repositories depending on both: inferentialist
+     knowledge engineering as a practice, with the ledger, the LLM
+     respondent and the server store as its next dependencies, none of
+     which belong in a reasoner. Its home is beside or inside
+     elenchus-server; releases follow the collaborations.
+   - The ontology extension is removed in the release after the split
+     and archived as NMMS_Onto with its document, so the reviewed record
+     stays citable.
+
+   Layers and cadence, for the record: calculus ~2,300 lines, stdlib,
+   unchanged since v0.7.0; ontology extension ~950, last touched as a
+   surface syntax in v0.13.1; RDF semantics ~4,200, rdflib/owlrl/
+   pyoxigraph, settled at v0.13; game layer ~1,500, changing daily;
+   experiments ~2,000, changing daily.
 
 Alongside: the second paper (outline below), since the implementation is
 now ahead of the text in exactly the places where negation and

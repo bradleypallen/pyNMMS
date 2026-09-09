@@ -1,0 +1,76 @@
+{
+  "_meta": {
+    "spec_version": "0.5",
+    "bearer_set": "bearers_v0.5.txt",
+    "construction": "Hlobil-Brandom implication frame; single-succedent instantiation (|delta|=1), per Allen Def. 4-5",
+    "verdict_values": ["good", "bad", "abstain"],
+    "abstain_semantics": "premises license neither target; NOT a hedge for 'unsure'",
+    "verdict_fields": {
+      "analyst_verdicts": "V_i : tuple of panel verdicts, EMPTY here; collected from clinicians",
+      "placeholder": "instrument's provisional verdict; used ONLY for the model dry-run, never an analyst label"
+    },
+    "targets": ["cpe", "ards"],
+    "invariants": [
+      "single-succedent: every item has exactly one consequent",
+      "mutex: at most one tier per ordinal family in any Gamma",
+      "copresent: an item contains a pf tier iff it contains an rs tier (@copresent pf & rs)"
+    ],
+    "ordinal_families": {
+      "bnp": ["bnp_lo", "bnp_grey", "bnp_mod", "bnp_hi", "bnp_vhi"],
+      "pf": ["pf_normal", "pf_mild", "pf_mod", "pf_severe"],
+      "rs": ["rs_hfnc", "rs_niv", "rs_imvlow", "rs_imvmiddle", "rs_imvhigh"],
+      "ef": ["ef_preserved", "ef_mid", "ef_reduced", "ef_severe"],
+      "bi": ["bi_min", "bi_mod", "bi_diffuse"],
+      "pv": ["pv_none", "pv_small", "pv_mod", "pv_large"],
+      "bp": ["bp_partial", "bp_classic"],
+      "fluid": ["fluid_neg", "fluid_pos", "fluid_verypos"],
+      "tr": ["tr_minor", "tr_major"],
+      "cv": ["cv_minor", "cv_struct"],
+      "pna": ["pna_focal", "pna_multifocal"]
+    },
+    "n_items": 35
+  },
+
+  "items": [
+    {"id": "A0", "ladder": "A", "target": "cpe", "premises": ["ad", "bi_mod"], "variation": "base", "placeholder": "abstain", "analyst_verdicts": []},
+    {"id": "A1", "ladder": "A", "target": "cpe", "premises": ["ad", "bi_mod", "cv_struct"], "variation": "strengthen", "placeholder": "good", "analyst_verdicts": []},
+    {"id": "A2", "ladder": "A", "target": "cpe", "premises": ["ad", "bi_mod", "ef_reduced"], "variation": "strengthen", "placeholder": "good", "analyst_verdicts": []},
+    {"id": "A3", "ladder": "A", "target": "cpe", "premises": ["ad", "bi_mod", "bnp_vhi"], "variation": "strengthen", "placeholder": "good", "analyst_verdicts": []},
+    {"id": "A4", "ladder": "A", "target": "cpe", "premises": ["ad", "bi_mod", "fluid_verypos"], "variation": "strengthen", "placeholder": "good", "analyst_verdicts": []},
+    {"id": "A5", "ladder": "A", "target": "cpe", "premises": ["ad", "bi_mod", "pv_large"], "variation": "strengthen", "placeholder": "good", "analyst_verdicts": []},
+    {"id": "A6", "ladder": "A", "target": "cpe", "premises": ["ad", "bi_mod", "ef_preserved"], "variation": "contested", "placeholder": "good", "analyst_verdicts": [], "note": "preserved EF does not exclude CPE (HFpEF); tests EF over-weighting"},
+    {"id": "A7", "ladder": "A", "target": "cpe", "premises": ["ad", "bi_mod", "bnp_lo"], "variation": "defeat", "placeholder": "bad", "analyst_verdicts": [], "note": "BNP <100 strong negative predictor"},
+    {"id": "A8", "ladder": "A", "target": "cpe", "premises": ["ad", "bi_mod", "fluid_neg", "pv_none"], "variation": "contested", "placeholder": "bad", "analyst_verdicts": [], "note": "diuresed-negative + no effusion: against active CPE, or the treated-CPE picture"},
+    {"id": "A9", "ladder": "A", "target": "cpe", "premises": ["ad", "bi_mod", "pna_focal"], "variation": "contested", "placeholder": "abstain", "analyst_verdicts": [], "note": "focal pneumonia: competing alternative"},
+
+    {"id": "C1", "ladder": "C", "target": "cpe", "premises": ["ad", "bi_mod", "cv_minor", "bnp_lo"], "variation": "monotonicity_step", "placeholder": "bad", "monotonicity": {"family": "bnp", "tier": "bnp_lo", "tier_index": 0, "expected": "non_decreasing"}, "analyst_verdicts": []},
+    {"id": "C2", "ladder": "C", "target": "cpe", "premises": ["ad", "bi_mod", "cv_minor", "bnp_grey"], "variation": "monotonicity_step", "placeholder": "abstain", "monotonicity": {"family": "bnp", "tier": "bnp_grey", "tier_index": 1, "expected": "non_decreasing"}, "analyst_verdicts": []},
+    {"id": "C3", "ladder": "C", "target": "cpe", "premises": ["ad", "bi_mod", "cv_minor", "bnp_mod"], "variation": "monotonicity_step", "placeholder": "good", "monotonicity": {"family": "bnp", "tier": "bnp_mod", "tier_index": 2, "expected": "non_decreasing"}, "analyst_verdicts": []},
+    {"id": "C4", "ladder": "C", "target": "cpe", "premises": ["ad", "bi_mod", "cv_minor", "bnp_hi"], "variation": "monotonicity_step", "placeholder": "good", "monotonicity": {"family": "bnp", "tier": "bnp_hi", "tier_index": 3, "expected": "non_decreasing"}, "analyst_verdicts": []},
+    {"id": "C5", "ladder": "C", "target": "cpe", "premises": ["ad", "bi_mod", "cv_minor", "bnp_vhi"], "variation": "monotonicity_step", "placeholder": "good", "monotonicity": {"family": "bnp", "tier": "bnp_vhi", "tier_index": 4, "expected": "non_decreasing"}, "analyst_verdicts": []},
+
+    {"id": "F1", "ladder": "F", "target": "cpe", "premises": ["ad", "bi_mod", "ef_reduced", "fluid_neg"], "variation": "monotonicity_step", "placeholder": "contested", "monotonicity": {"family": "fluid", "tier": "fluid_neg", "tier_index": 0, "expected": "non_decreasing"}, "analyst_verdicts": []},
+    {"id": "F2", "ladder": "F", "target": "cpe", "premises": ["ad", "bi_mod", "ef_reduced", "fluid_pos"], "variation": "monotonicity_step", "placeholder": "good", "monotonicity": {"family": "fluid", "tier": "fluid_pos", "tier_index": 1, "expected": "non_decreasing"}, "analyst_verdicts": []},
+    {"id": "F3", "ladder": "F", "target": "cpe", "premises": ["ad", "bi_mod", "ef_reduced", "fluid_verypos"], "variation": "monotonicity_step", "placeholder": "good", "monotonicity": {"family": "fluid", "tier": "fluid_verypos", "tier_index": 2, "expected": "non_decreasing"}, "analyst_verdicts": []},
+
+    {"id": "D1", "ladder": "D", "target": "cpe", "premises": ["ad", "cv_minor"], "variation": "abstain_anchor", "placeholder": "abstain", "analyst_verdicts": []},
+    {"id": "D2", "ladder": "D", "target": "cpe", "premises": ["ad", "bi_mod", "pe"], "variation": "abstain_anchor", "placeholder": "abstain", "analyst_verdicts": []},
+    {"id": "D3", "ladder": "D", "target": "cpe", "premises": ["ad", "pna_focal"], "variation": "abstain_anchor", "placeholder": "abstain", "analyst_verdicts": []},
+
+    {"id": "B0", "ladder": "B", "target": "ards", "premises": ["ad", "bi_diffuse", "pf_mod", "rs_imvlow"], "variation": "base", "placeholder": "abstain", "analyst_verdicts": []},
+    {"id": "B1", "ladder": "B", "target": "ards", "premises": ["ad", "bi_diffuse", "pf_mod", "rs_imvlow", "asp"], "variation": "strengthen", "placeholder": "good", "analyst_verdicts": []},
+    {"id": "B2", "ladder": "B", "target": "ards", "premises": ["ad", "bi_diffuse", "pf_mod", "rs_imvlow", "sep"], "variation": "strengthen", "placeholder": "good", "analyst_verdicts": []},
+    {"id": "B3", "ladder": "B", "target": "ards", "premises": ["ad", "bi_diffuse", "pf_mod", "rs_imvlow", "cd_pneumotox"], "variation": "strengthen", "placeholder": "good", "analyst_verdicts": []},
+    {"id": "B4", "ladder": "B", "target": "ards", "premises": ["ad", "bi_diffuse", "pf_severe", "rs_imvlow"], "variation": "strengthen", "placeholder": "good", "analyst_verdicts": [], "note": "mutex swap pf_mod->pf_severe: worse hypoxaemia at same support"},
+    {"id": "B5", "ladder": "B", "target": "ards", "premises": ["ad", "bi_diffuse", "pf_mod", "rs_imvlow", "asp", "ef_reduced"], "variation": "contested", "placeholder": "abstain", "analyst_verdicts": [], "note": "deck item: aspiration + low LVEF -> ARDS; cardiac-exclusion vs coexistence"},
+    {"id": "B6", "ladder": "B", "target": "ards", "premises": ["ad", "bi_diffuse", "pf_mod", "rs_imvlow", "bnp_vhi"], "variation": "contested", "placeholder": "bad", "analyst_verdicts": [], "note": "thousands-level BNP points cardiac"},
+    {"id": "B7", "ladder": "B", "target": "ards", "premises": ["ad", "bi_diffuse", "pf_mod", "rs_imvlow", "cd_cardiotox"], "variation": "defeat", "placeholder": "bad", "analyst_verdicts": [], "note": "deck worked example: cardiotoxic -> cardiogenic, not ARDS"},
+    {"id": "B8", "ladder": "B", "target": "ards", "premises": ["ad", "bi_diffuse", "pf_mod", "rs_imvlow", "fluid_verypos"], "variation": "contested", "placeholder": "abstain", "analyst_verdicts": [], "note": "very positive balance -> fluid-overload exclusion (Global Definition)"},
+
+    {"id": "G1", "ladder": "G", "target": "ards", "premises": ["ad", "bi_diffuse", "asp", "pf_mild", "rs_hfnc"], "variation": "monotonicity_step", "placeholder": "abstain", "monotonicity": {"family": "rs", "tier": "rs_hfnc", "tier_index": 0, "expected": "non_decreasing", "fixed": "pf_mild"}, "analyst_verdicts": []},
+    {"id": "G2", "ladder": "G", "target": "ards", "premises": ["ad", "bi_diffuse", "asp", "pf_mild", "rs_niv"], "variation": "monotonicity_step", "placeholder": "good", "monotonicity": {"family": "rs", "tier": "rs_niv", "tier_index": 1, "expected": "non_decreasing", "fixed": "pf_mild"}, "analyst_verdicts": []},
+    {"id": "G3", "ladder": "G", "target": "ards", "premises": ["ad", "bi_diffuse", "asp", "pf_mild", "rs_imvlow"], "variation": "monotonicity_step", "placeholder": "good", "monotonicity": {"family": "rs", "tier": "rs_imvlow", "tier_index": 2, "expected": "non_decreasing", "fixed": "pf_mild"}, "analyst_verdicts": []},
+    {"id": "G4", "ladder": "G", "target": "ards", "premises": ["ad", "bi_diffuse", "asp", "pf_mild", "rs_imvmiddle"], "variation": "monotonicity_step", "placeholder": "good", "monotonicity": {"family": "rs", "tier": "rs_imvmiddle", "tier_index": 3, "expected": "non_decreasing", "fixed": "pf_mild"}, "analyst_verdicts": []},
+    {"id": "G5", "ladder": "G", "target": "ards", "premises": ["ad", "bi_diffuse", "asp", "pf_mild", "rs_imvhigh"], "variation": "monotonicity_step", "placeholder": "good", "monotonicity": {"family": "rs", "tier": "rs_imvhigh", "tier_index": 4, "expected": "non_decreasing", "fixed": "pf_mild"}, "analyst_verdicts": []}
+  ]
+}

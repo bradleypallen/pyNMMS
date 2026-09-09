@@ -1,0 +1,133 @@
+@prefix pul: <http://pynmms.dev/pulmonary/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+pul:bnp_lo a pul:Bearer ;
+    rdfs:label "the patient has BNP less than 100 pg/mL" ;
+    pul:family "bnp" ; pul:position 1 .
+pul:bnp_grey a pul:Bearer ;
+    rdfs:label "the patient has BNP between 100 and 500 pg/mL" ;
+    pul:family "bnp" ; pul:position 2 .
+pul:bnp_mod a pul:Bearer ;
+    rdfs:label "the patient has BNP between 500 and 900 pg/mL" ;
+    pul:family "bnp" ; pul:position 3 .
+pul:bnp_hi a pul:Bearer ;
+    rdfs:label "the patient has BNP between 900 and 5000 pg/mL" ;
+    pul:family "bnp" ; pul:position 4 .
+pul:bnp_vhi a pul:Bearer ;
+    rdfs:label "the patient has BNP greater than 5000 pg/mL" ;
+    pul:family "bnp" ; pul:position 5 .
+pul:pf_normal a pul:Bearer ;
+    rdfs:label "the patient has a PaO2/FiO2 ratio greater than 300" ;
+    pul:family "pf" ; pul:position 1 .
+pul:pf_mild a pul:Bearer ;
+    rdfs:label "the patient has a PaO2/FiO2 ratio of 200-300" ;
+    pul:family "pf" ; pul:position 2 .
+pul:pf_mod a pul:Bearer ;
+    rdfs:label "the patient has a PaO2/FiO2 ratio of 100-200" ;
+    pul:family "pf" ; pul:position 3 .
+pul:pf_severe a pul:Bearer ;
+    rdfs:label "the patient has a PaO2/FiO2 ratio less than 100" ;
+    pul:family "pf" ; pul:position 4 .
+pul:rs_hfnc a pul:Bearer ;
+    rdfs:label "the patient receives high-flow nasal cannula at over 30 L/min and over 50% FiO2" ;
+    pul:family "rs" ; pul:position 1 .
+pul:rs_niv a pul:Bearer ;
+    rdfs:label "the patient receives non-invasive ventilation with PEEP over 5 cmH2O" ;
+    pul:family "rs" ; pul:position 2 .
+pul:rs_imvlow a pul:Bearer ;
+    rdfs:label "the patient receives invasive ventilation with PEEP 5-10 cmH2O" ;
+    pul:family "rs" ; pul:position 3 .
+pul:rs_imvmiddle a pul:Bearer ;
+    rdfs:label "the patient receives invasive ventilation with PEEP 10-15 cmH2O" ;
+    pul:family "rs" ; pul:position 4 .
+pul:rs_imvhigh a pul:Bearer ;
+    rdfs:label "the patient receives invasive ventilation with PEEP over 15 cmH2O" ;
+    pul:family "rs" ; pul:position 5 .
+pul:ef_preserved a pul:Bearer ;
+    rdfs:label "the patient has left ventricular ejection fraction of 50% or higher on echocardiogram" ;
+    pul:family "ef" ; pul:position 1 .
+pul:ef_mid a pul:Bearer ;
+    rdfs:label "the patient has left ventricular ejection fraction of 40-49% on echocardiogram" ;
+    pul:family "ef" ; pul:position 2 .
+pul:ef_reduced a pul:Bearer ;
+    rdfs:label "the patient has left ventricular ejection fraction of 30-39% on echocardiogram" ;
+    pul:family "ef" ; pul:position 3 .
+pul:ef_severe a pul:Bearer ;
+    rdfs:label "the patient has left ventricular ejection fraction below 30% on echocardiogram" ;
+    pul:family "ef" ; pul:position 4 .
+pul:bi_min a pul:Bearer ;
+    rdfs:label "the patient has subtle or limited bilateral pulmonary infiltrates on imaging" ;
+    pul:family "bi" ; pul:position 1 .
+pul:bi_mod a pul:Bearer ;
+    rdfs:label "the patient has moderate bilateral pulmonary infiltrates on imaging" ;
+    pul:family "bi" ; pul:position 2 .
+pul:bi_diffuse a pul:Bearer ;
+    rdfs:label "the patient has extensive, diffuse bilateral airspace opacities on imaging" ;
+    pul:family "bi" ; pul:position 3 .
+pul:bp_partial a pul:Bearer ;
+    rdfs:label "the patient has partial perihilar predominance of pulmonary infiltrates on imaging" ;
+    pul:family "bp" ; pul:position 1 .
+pul:bp_classic a pul:Bearer ;
+    rdfs:label "the patient has a classic bat-wing distribution of pulmonary infiltrates on imaging" ;
+    pul:family "bp" ; pul:position 2 .
+pul:kb_present a pul:Bearer ;
+    rdfs:label "the patient has Kerley B lines on chest imaging" .
+pul:pv_none a pul:Bearer ;
+    rdfs:label "the patient has no pleural effusions" ;
+    pul:family "pv" ; pul:position 1 .
+pul:pv_small a pul:Bearer ;
+    rdfs:label "the patient has small bilateral pleural effusions" ;
+    pul:family "pv" ; pul:position 2 .
+pul:pv_mod a pul:Bearer ;
+    rdfs:label "the patient has moderate bilateral pleural effusions" ;
+    pul:family "pv" ; pul:position 3 .
+pul:pv_large a pul:Bearer ;
+    rdfs:label "the patient has large bilateral pleural effusions" ;
+    pul:family "pv" ; pul:position 4 .
+pul:cd_cardiotox a pul:Bearer ;
+    rdfs:label "the patient recently received chemotherapy with a cardiotoxic agent such as an anthracycline or trastuzumab" .
+pul:cd_pneumotox a pul:Bearer ;
+    rdfs:label "the patient recently received chemotherapy with a pneumotoxic agent such as bleomycin, gemcitabine, or methotrexate" .
+pul:fluid_neg a pul:Bearer ;
+    rdfs:label "the patient received diuretics in the past 24 hours and has a negative fluid balance" ;
+    pul:family "fluid" ; pul:position 1 .
+pul:fluid_pos a pul:Bearer ;
+    rdfs:label "the patient received moderate-volume intravenous fluids and had a moderately positive fluid balance in the past 24 hours" ;
+    pul:family "fluid" ; pul:position 2 .
+pul:fluid_verypos a pul:Bearer ;
+    rdfs:label "the patient received large-volume intravenous fluids and had a very positive fluid balance in the past 24 hours" ;
+    pul:family "fluid" ; pul:position 3 .
+pul:tr_minor a pul:Bearer ;
+    rdfs:label "the patient sustained recent minor or isolated trauma" ;
+    pul:family "tr" ; pul:position 1 .
+pul:tr_major a pul:Bearer ;
+    rdfs:label "the patient sustained recent major multisystem trauma" ;
+    pul:family "tr" ; pul:position 2 .
+pul:cv_minor a pul:Bearer ;
+    rdfs:label "the patient has cardiovascular risk factors or treated hypertension" ;
+    pul:family "cv" ; pul:position 1 .
+pul:cv_struct a pul:Bearer ;
+    rdfs:label "the patient has a known history of structural heart disease or prior heart failure" ;
+    pul:family "cv" ; pul:position 2 .
+pul:pna_focal a pul:Bearer ;
+    rdfs:label "the patient has lobar or unilateral pneumonia" ;
+    pul:family "pna" ; pul:position 1 .
+pul:pna_multifocal a pul:Bearer ;
+    rdfs:label "the patient has multilobar or bilateral pneumonia" ;
+    pul:family "pna" ; pul:position 2 .
+pul:asp a pul:Bearer ;
+    rdfs:label "the patient has a documented aspiration event" .
+pul:rf a pul:Bearer ;
+    rdfs:label "the patient has acute renal failure with volume overload" .
+pul:sep a pul:Bearer ;
+    rdfs:label "the patient has documented sepsis" .
+pul:septic_shock a pul:Bearer ;
+    rdfs:label "the patient has documented septic shock" .
+pul:pe a pul:Bearer ;
+    rdfs:label "the patient has acute pulmonary embolism" .
+pul:ad a pul:Bearer ;
+    rdfs:label "the patient has acute dyspnea" .
+pul:cpe a pul:Bearer ;
+    rdfs:label "the patient has cardiogenic pulmonary edema" .
+pul:ards a pul:Bearer ;
+    rdfs:label "the patient has acute respiratory distress syndrome" .

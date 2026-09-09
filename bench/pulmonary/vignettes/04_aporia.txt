@@ -1,0 +1,16 @@
+# Vignette 4: aporia. The respondent stands by the findings, the low BNP and the
+# diagnosis of cardiogenic pulmonary edema together (A7). Nothing in the positum can be
+# retracted and the base has no rescue. Predictions written before the run of 2026-09-08.
+holder respondent
+positum <pul:v4 pul:has pul:ad>, <pul:v4 pul:bi "bi_mod">, <pul:v4 pul:bnp "bnp_lo">, <pul:v4 pul:dx pul:cpe>
+
+status? ## aporia
+tensions? ## 1
+
+# The way out is to contest A7 with an exception the base does not have: the entry is
+# revised for this session, and the exception must then be committed.
+contest 1 unless <pul:v4 pul:override "A7">
+status? ## tensions open
+commit <pul:v4 pul:override "A7">
+status? ## coherent
+tensions? ## 0

@@ -1,6 +1,7 @@
 """Material entries in tell syntax, ground and pattern, from a file or text.
 
-One entry per line, ``#`` comments::
+One entry per line, ``#`` comments, and ``ordering name: a < b < c`` lines
+declaring an ordering for ``rank`` guards (:mod:`pynmms.rdf.values`)::
 
     <ex:tweety a ex:Bird> |~ <ex:tweety a ex:Flies> unless <ex:tweety a ex:Penguin>
     <ex:a ex:p ex:b>, <ex:b ex:q ex:c> |~ <ex:a ex:r ex:c> monotone
@@ -22,6 +23,7 @@ def load_entries(source: str | Path, base: Any) -> tuple[int, int]:
     """Add the entries of *source* (a path, or text) to *base*; returns (ground, pattern)."""
     from pynmms.rdf.atoms import TripleAtom
     from pynmms.rdf.defeasible import is_pattern_entry, parse_defeasible_rule
+    from pynmms.rdf.values import parse_ordering_line
     from pynmms.robustness import Robustness, split_robustness_clause
     from pynmms.syntax import split_top_level
 
@@ -46,7 +48,7 @@ def load_entries(source: str | Path, base: Any) -> tuple[int, int]:
     ground = patterns = 0
     for raw in text.splitlines():
         line = raw.strip()
-        if not line or line.startswith("#"):
+        if not line or line.startswith("#") or parse_ordering_line(line):
             continue
         if is_pattern_entry(line):
             base.add_rule(parse_defeasible_rule(line, base.resolver))

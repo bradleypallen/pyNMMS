@@ -1,0 +1,37 @@
+# Vignette 1: a BNP result arrives after the diagnosis (ladder A, items A1 and A7).
+# The respondent stands by acute dyspnoea, moderate bilateral infiltrates, and a history
+# of structural heart disease, and diagnoses cardiogenic pulmonary edema. Predictions
+# written before the run of 2026-09-08 for the placeholder base, and where they differ,
+# for the model-panel base. Prefix pul = http://pynmms.dev/pulmonary/.
+holder respondent
+positum <pul:v1 pul:has pul:ad>, <pul:v1 pul:bi "bi_mod">, <pul:v1 pul:cv "cv_struct">
+
+# Nothing yet contradicts the findings; A1 licenses the diagnosis before it is made.
+status? ## coherent
+commits? <pul:v1 pul:dx pul:cpe> ## True
+# Probes: the unacknowledged default A1 and the incompatibilities anchored on the patient's
+# findings (A7, A8, the BNP ladder's low tiers, B6 and B7 through acute dyspnoea); the
+# model panel adds A6, A9 and B8. Predicted 8 and 11 before the run, counting a probe per
+# tier family held (a second tier of bi, of cv): observed 6 and 9. The one-tier entries
+# raise none, since the tier held satisfies both premises and only the guard fails; the
+# opponent has nothing to ask for.
+probes? ## placeholder=6 models=9
+
+commit <pul:v1 pul:dx pul:cpe>
+status? ## coherent
+tensions? ## 0
+probes? ## placeholder=5 models=8
+
+# The lab reports BNP under 100 pg/mL. A7: dyspnoea, infiltrates, low BNP and the
+# diagnosis are incoherent, with no rescue in the base.
+commit <pul:v1 pul:bnp "bnp_lo">
+status? ## tensions open
+tensions? ## 1
+
+# The respondent accepts, retracting the diagnosis (the findings are the positum).
+accept 1 retract <pul:v1 pul:dx pul:cpe>
+status? ## coherent
+tensions? ## 0
+# A1 is now defeated by the low BNP, and A7 precludes the diagnosis outright.
+commits? <pul:v1 pul:dx pul:cpe> ## False
+precludes? <pul:v1 pul:dx pul:cpe> ## True

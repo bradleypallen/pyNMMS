@@ -1,0 +1,108 @@
+# The pulmonary material base from benchmark_v0.5.json, verdict source: models.
+# Placeholder research instrument; not for clinical use. Prefix pul = http://pynmms.dev/pulmonary/
+# Findings: ?p pul:has pul:<bearer>; tiers: ?p pul:<family> "<tier>"; ?p pul:dx pul:<target>.
+
+# --- the eleven evidence families as orderings, low to high ---
+ordering bnp: bnp_lo < bnp_grey < bnp_mod < bnp_hi < bnp_vhi
+ordering pf: pf_normal < pf_mild < pf_mod < pf_severe
+ordering rs: rs_hfnc < rs_niv < rs_imvlow < rs_imvmiddle < rs_imvhigh
+ordering ef: ef_preserved < ef_mid < ef_reduced < ef_severe
+ordering bi: bi_min < bi_mod < bi_diffuse
+ordering pv: pv_none < pv_small < pv_mod < pv_large
+ordering bp: bp_partial < bp_classic
+ordering fluid: fluid_neg < fluid_pos < fluid_verypos
+ordering tr: tr_minor < tr_major
+ordering cv: cv_minor < cv_struct
+ordering pna: pna_focal < pna_multifocal
+
+# --- structural: one tier per family, and septic shock is sepsis ---
+?p pul:bnp ?a, ?p pul:bnp ?b, [str(?a) < str(?b)] |~ false
+?p pul:pf ?a, ?p pul:pf ?b, [str(?a) < str(?b)] |~ false
+?p pul:rs ?a, ?p pul:rs ?b, [str(?a) < str(?b)] |~ false
+?p pul:ef ?a, ?p pul:ef ?b, [str(?a) < str(?b)] |~ false
+?p pul:bi ?a, ?p pul:bi ?b, [str(?a) < str(?b)] |~ false
+?p pul:pv ?a, ?p pul:pv ?b, [str(?a) < str(?b)] |~ false
+?p pul:bp ?a, ?p pul:bp ?b, [str(?a) < str(?b)] |~ false
+?p pul:fluid ?a, ?p pul:fluid ?b, [str(?a) < str(?b)] |~ false
+?p pul:tr ?a, ?p pul:tr ?b, [str(?a) < str(?b)] |~ false
+?p pul:cv ?a, ?p pul:cv ?b, [str(?a) < str(?b)] |~ false
+?p pul:pna ?a, ?p pul:pna ?b, [str(?a) < str(?b)] |~ false
+?p pul:has pul:septic_shock |~ ?p pul:has pul:sep monotone
+
+# --- ladder A: target cpe (the patient has cardiogenic pulmonary edema); base ['ad', 'bi_mod'] ---
+# A0 (base, bad): + -
+# A1 (strengthen, good): + the patient has a known history of structural heart disease or prior heart failure
+# A2 (strengthen, good): + the patient has left ventricular ejection fraction of 30-39% on echocardiogram
+# A3 (strengthen, good): + the patient has BNP greater than 5000 pg/mL
+# A4 (strengthen, good): + the patient received large-volume intravenous fluids and had a very positive fluid balance in the past 24 hours
+# A5 (strengthen, good): + the patient has large bilateral pleural effusions
+# A6 (contested, bad): + the patient has left ventricular ejection fraction of 50% or higher on echocardiogram
+# A7 (defeat, bad): + the patient has BNP less than 100 pg/mL
+# A8 (contested, bad): + the patient received diuretics in the past 24 hours and has a negative fluid balance; the patient has no pleural effusions
+# A9 (contested, bad): + the patient has lobar or unilateral pneumonia
+# (A0: the premises are not enough; no default)
+?p pul:has pul:ad, ?p pul:bi "bi_mod", ?p pul:cv "cv_struct" |~ ?p pul:dx pul:cpe unless ?p pul:ef "ef_preserved" ; ?p pul:bnp "bnp_lo" ; ?p pul:pna "pna_focal" ; ?p pul:fluid "fluid_neg", ?p pul:pv "pv_none"
+?p pul:has pul:ad, ?p pul:bi "bi_mod", ?p pul:ef "ef_reduced" |~ ?p pul:dx pul:cpe unless ?p pul:bnp "bnp_lo" ; ?p pul:pna "pna_focal" ; ?p pul:fluid "fluid_neg", ?p pul:pv "pv_none"
+?p pul:has pul:ad, ?p pul:bi "bi_mod", ?p pul:bnp "bnp_vhi" |~ ?p pul:dx pul:cpe unless ?p pul:ef "ef_preserved" ; ?p pul:pna "pna_focal" ; ?p pul:fluid "fluid_neg", ?p pul:pv "pv_none"
+?p pul:has pul:ad, ?p pul:bi "bi_mod", ?p pul:fluid "fluid_verypos" |~ ?p pul:dx pul:cpe unless ?p pul:ef "ef_preserved" ; ?p pul:bnp "bnp_lo" ; ?p pul:pna "pna_focal"
+?p pul:has pul:ad, ?p pul:bi "bi_mod", ?p pul:pv "pv_large" |~ ?p pul:dx pul:cpe unless ?p pul:ef "ef_preserved" ; ?p pul:bnp "bnp_lo" ; ?p pul:pna "pna_focal"
+?p pul:has pul:ad, ?p pul:bi "bi_mod", ?p pul:ef "ef_preserved", ?p pul:dx pul:cpe |~ false unless ?p pul:override "A6"
+?p pul:has pul:ad, ?p pul:bi "bi_mod", ?p pul:bnp "bnp_lo", ?p pul:dx pul:cpe |~ false
+?p pul:has pul:ad, ?p pul:bi "bi_mod", ?p pul:fluid "fluid_neg", ?p pul:pv "pv_none", ?p pul:dx pul:cpe |~ false unless ?p pul:override "A8"
+?p pul:has pul:ad, ?p pul:bi "bi_mod", ?p pul:pna "pna_focal", ?p pul:dx pul:cpe |~ false unless ?p pul:override "A9"
+
+# --- ladder C: target cpe (the patient has cardiogenic pulmonary edema); base ['ad', 'bi_mod', 'cv_minor'] ---
+# C1 (monotonicity_step, bad): + the patient has BNP less than 100 pg/mL
+# C2 (monotonicity_step, good): + the patient has BNP between 100 and 500 pg/mL
+# C3 (monotonicity_step, good): + the patient has BNP between 500 and 900 pg/mL
+# C4 (monotonicity_step, good): + the patient has BNP between 900 and 5000 pg/mL
+# C5 (monotonicity_step, good): + the patient has BNP greater than 5000 pg/mL
+# bnp ladder over ['bnp_lo', 'bnp_grey', 'bnp_mod', 'bnp_hi', 'bnp_vhi']: verdicts ['bad', 'good', 'good', 'good', 'good']; one entry per range
+?p pul:has pul:ad, ?p pul:bi "bi_mod", ?p pul:cv "cv_minor", ?p pul:bnp ?v, [rank(bnp, ?v) >= rank(bnp, "bnp_grey")] |~ ?p pul:dx pul:cpe unless ?p pul:ef "ef_preserved" ; ?p pul:pna "pna_focal" ; ?p pul:fluid "fluid_neg", ?p pul:pv "pv_none"
+?p pul:has pul:ad, ?p pul:bi "bi_mod", ?p pul:cv "cv_minor", ?p pul:bnp ?v, [rank(bnp, ?v) <= rank(bnp, "bnp_lo")], ?p pul:dx pul:cpe |~ false
+
+# --- ladder F: target cpe (the patient has cardiogenic pulmonary edema); base ['ad', 'bi_mod', 'ef_reduced'] ---
+# F1 (monotonicity_step, good): + the patient received diuretics in the past 24 hours and has a negative fluid balance
+# F2 (monotonicity_step, good): + the patient received moderate-volume intravenous fluids and had a moderately positive fluid balance in the past 24 hours
+# F3 (monotonicity_step, good): + the patient received large-volume intravenous fluids and had a very positive fluid balance in the past 24 hours
+# fluid ladder over ['fluid_neg', 'fluid_pos', 'fluid_verypos']: verdicts ['good', 'good', 'good']; one entry per range
+?p pul:has pul:ad, ?p pul:bi "bi_mod", ?p pul:ef "ef_reduced", ?p pul:fluid ?v, [rank(fluid, ?v) >= rank(fluid, "fluid_neg")] |~ ?p pul:dx pul:cpe unless ?p pul:bnp "bnp_lo" ; ?p pul:pv "pv_none" ; ?p pul:pna "pna_focal"
+
+# --- ladder D: target cpe (the patient has cardiogenic pulmonary edema); base ['ad'] ---
+# D1 (abstain_anchor, bad): + the patient has cardiovascular risk factors or treated hypertension
+# D2 (abstain_anchor, bad): + the patient has moderate bilateral pulmonary infiltrates on imaging; the patient has acute pulmonary embolism
+# D3 (abstain_anchor, bad): + the patient has lobar or unilateral pneumonia
+# (D1: the premises are not enough; no default)
+# (D2: the premises are not enough; no default)
+# (D3: the premises are not enough; no default)
+
+# --- ladder B: target ards (the patient has acute respiratory distress syndrome); base ['ad', 'bi_diffuse', 'rs_imvlow'] ---
+# B0 (base, good): + the patient has a PaO2/FiO2 ratio of 100-200
+# B1 (strengthen, good): + the patient has a documented aspiration event; the patient has a PaO2/FiO2 ratio of 100-200
+# B2 (strengthen, good): + the patient has a PaO2/FiO2 ratio of 100-200; the patient has documented sepsis
+# B3 (strengthen, good): + the patient recently received chemotherapy with a pneumotoxic agent such as bleomycin, gemcitabine, or methotrexate; the patient has a PaO2/FiO2 ratio of 100-200
+# B4 (strengthen, good): + the patient has a PaO2/FiO2 ratio less than 100
+# B5 (contested, good): + the patient has a documented aspiration event; the patient has left ventricular ejection fraction of 30-39% on echocardiogram; the patient has a PaO2/FiO2 ratio of 100-200
+# B6 (contested, bad): + the patient has BNP greater than 5000 pg/mL; the patient has a PaO2/FiO2 ratio of 100-200
+# B7 (defeat, bad): + the patient recently received chemotherapy with a cardiotoxic agent such as an anthracycline or trastuzumab; the patient has a PaO2/FiO2 ratio of 100-200
+# B8 (contested, bad): + the patient received large-volume intravenous fluids and had a very positive fluid balance in the past 24 hours; the patient has a PaO2/FiO2 ratio of 100-200
+?p pul:has pul:ad, ?p pul:bi "bi_diffuse", ?p pul:pf "pf_mod", ?p pul:rs "rs_imvlow" |~ ?p pul:dx pul:ards unless ?p pul:bnp "bnp_vhi" ; ?p pul:has pul:cd_cardiotox ; ?p pul:fluid "fluid_verypos"
+?p pul:has pul:ad, ?p pul:bi "bi_diffuse", ?p pul:pf "pf_mod", ?p pul:rs "rs_imvlow", ?p pul:has pul:asp |~ ?p pul:dx pul:ards unless ?p pul:bnp "bnp_vhi" ; ?p pul:has pul:cd_cardiotox ; ?p pul:fluid "fluid_verypos"
+?p pul:has pul:ad, ?p pul:bi "bi_diffuse", ?p pul:pf "pf_mod", ?p pul:rs "rs_imvlow", ?p pul:has pul:sep |~ ?p pul:dx pul:ards unless ?p pul:bnp "bnp_vhi" ; ?p pul:has pul:cd_cardiotox ; ?p pul:fluid "fluid_verypos"
+?p pul:has pul:ad, ?p pul:bi "bi_diffuse", ?p pul:pf "pf_mod", ?p pul:rs "rs_imvlow", ?p pul:has pul:cd_pneumotox |~ ?p pul:dx pul:ards unless ?p pul:bnp "bnp_vhi" ; ?p pul:has pul:cd_cardiotox ; ?p pul:fluid "fluid_verypos"
+?p pul:has pul:ad, ?p pul:bi "bi_diffuse", ?p pul:pf "pf_severe", ?p pul:rs "rs_imvlow" |~ ?p pul:dx pul:ards monotone
+?p pul:has pul:ad, ?p pul:bi "bi_diffuse", ?p pul:pf "pf_mod", ?p pul:rs "rs_imvlow", ?p pul:has pul:asp, ?p pul:ef "ef_reduced" |~ ?p pul:dx pul:ards unless ?p pul:bnp "bnp_vhi" ; ?p pul:has pul:cd_cardiotox ; ?p pul:fluid "fluid_verypos" ; ?p pul:override "B5"
+?p pul:has pul:ad, ?p pul:bi "bi_diffuse", ?p pul:pf "pf_mod", ?p pul:rs "rs_imvlow", ?p pul:bnp "bnp_vhi", ?p pul:dx pul:ards |~ false unless ?p pul:override "B6"
+?p pul:has pul:ad, ?p pul:bi "bi_diffuse", ?p pul:pf "pf_mod", ?p pul:rs "rs_imvlow", ?p pul:has pul:cd_cardiotox, ?p pul:dx pul:ards |~ false
+?p pul:has pul:ad, ?p pul:bi "bi_diffuse", ?p pul:pf "pf_mod", ?p pul:rs "rs_imvlow", ?p pul:fluid "fluid_verypos", ?p pul:dx pul:ards |~ false unless ?p pul:override "B8"
+
+# --- ladder G: target ards (the patient has acute respiratory distress syndrome); base ['ad', 'asp', 'bi_diffuse', 'pf_mild'] ---
+# G1 (monotonicity_step, good): + the patient receives high-flow nasal cannula at over 30 L/min and over 50% FiO2
+# G2 (monotonicity_step, good): + the patient receives non-invasive ventilation with PEEP over 5 cmH2O
+# G3 (monotonicity_step, good): + the patient receives invasive ventilation with PEEP 5-10 cmH2O
+# G4 (monotonicity_step, good): + the patient receives invasive ventilation with PEEP 10-15 cmH2O
+# G5 (monotonicity_step, good): + the patient receives invasive ventilation with PEEP over 15 cmH2O
+# rs ladder over ['rs_hfnc', 'rs_niv', 'rs_imvlow', 'rs_imvmiddle', 'rs_imvhigh']: verdicts ['good', 'good', 'good', 'good', 'good']; one entry per range
+?p pul:has pul:ad, ?p pul:bi "bi_diffuse", ?p pul:has pul:asp, ?p pul:pf "pf_mild", ?p pul:rs ?v, [rank(rs, ?v) >= rank(rs, "rs_hfnc")] |~ ?p pul:dx pul:ards monotone
+
+# 23 good, 12 bad, 0 abstain, 0 contested; 34 entries

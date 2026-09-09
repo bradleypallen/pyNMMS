@@ -1,0 +1,25 @@
+# Vignette 2: ARDS with a very high BNP (ladder B, items B1 and B6, the contested case).
+# Ventilated, diffuse infiltrates, moderate hypoxaemia, aspiration, BNP over 5000. The
+# respondent diagnoses ARDS and stands by it. Predictions written before the run of
+# 2026-09-08; the model panel agrees with the placeholder on B1 and B6.
+holder respondent
+positum <pul:v2 pul:has pul:ad>, <pul:v2 pul:bi "bi_diffuse">, <pul:v2 pul:pf "pf_mod">, <pul:v2 pul:rs "rs_imvlow">, <pul:v2 pul:has pul:asp>, <pul:v2 pul:bnp "bnp_vhi">
+
+# B1 would license ARDS from aspiration, but the very high BNP defeats it; B6 precludes it.
+# Neither diagnosis is licensed: A3's infiltrates are moderate, these are diffuse.
+commits? <pul:v2 pul:dx pul:ards> ## False
+precludes? <pul:v2 pul:dx pul:ards> ## True
+commits? <pul:v2 pul:dx pul:cpe> ## False
+
+commit <pul:v2 pul:dx pul:ards>
+status? ## tensions open
+tensions? ## 1
+
+# B6 is contested in the benchmark: its rescue is the clinician's explicit override.
+# Contesting names it; the tension holds until the override is on the record.
+contest 1 unless <pul:v2 pul:override "B6">
+status? ## tensions open
+commit <pul:v2 pul:override "B6">
+status? ## coherent
+tensions? ## 0
+precludes? <pul:v2 pul:dx pul:ards> ## False

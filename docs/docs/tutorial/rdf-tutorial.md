@@ -383,6 +383,32 @@ rescue left). `save` and `load` persist the state as JSON, and
 scripted respondent with predictions, and `python -m
 bench.elenchus_session` does so over a persisted store.
 
+A base need not come from a catalogue. `bench/pulmonary/` reads a
+clinical inference benchmark (35 defeasible inferences from findings to a
+diagnosis, with placeholder verdicts; not for clinical use) as pattern
+entries, good items as defaults defeated by the additions the bad items
+of their ladder make, contested items rescued by an explicit override,
+ordered tiers under `rank` guards, and plays vignette sessions over it:
+
+```text
+holder respondent
+positum <pul:v1 pul:has pul:ad>, <pul:v1 pul:bi "bi_mod">, <pul:v1 pul:cv "cv_struct">
+commits? <pul:v1 pul:dx pul:cpe> ## True
+commit <pul:v1 pul:dx pul:cpe>
+commit <pul:v1 pul:bnp "bnp_lo">
+status? ## tensions open
+accept 1 retract <pul:v1 pul:dx pul:cpe>
+precludes? <pul:v1 pul:dx pul:cpe> ## True
+```
+
+```bash
+python -m bench.pulmonary.session --check --base placeholder
+```
+
+`--check` replays the benchmark's items against the base built from
+them, which says where a panel's verdicts are inconsistent with one
+another under a defeasible reading.
+
 ## How the closure is split
 
 The regime base checks `Γ |~ Δ` as "Γ is inconsistent or Δ meets `cl_R(Γ)`".

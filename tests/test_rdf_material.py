@@ -289,3 +289,27 @@ def test_exact_incompatibility_fires_only_at_empty_delta():
     q = lambda a, c: r.derives_sequent(b.sequent(a, c, include_graph=False)).derivable  # noqa: E731
     assert q([typed("t", "Bird"), typed("t", "Grounded")], [])
     assert not q([typed("t", "Bird"), typed("t", "Grounded")], [typed("t", "Fish")])
+
+
+def test_elaboration_cache_does_not_hide_inconsistency():
+    """cl_R(Γ ∪ D), cached for entry elaboration, must not answer a later query
+    for cl_R(Γ) with its ⊥ flag dropped (found 2026-09-09).
+
+    Regime: Alive and Dead are incompatible. Entry: Alive |~ Dead. Asking
+    Alive ⊢ X first primes the elaboration cache with cl(Alive ∪ Dead); asking
+    Alive, Dead ⊢ X then must still see that Γ is R-inconsistent.
+    """
+    from pynmms.rdf import Resolver
+    from pynmms.rdf.rules import SIMPLE, custom, parse_rule
+
+    g = Graph()
+    g.bind("ex", EX)
+    regime = custom("alive-dead", [parse_rule("?x a ex:Alive, ?x a ex:Dead -> false",
+                                              Resolver(g))], extends=SIMPLE)
+    b = RegimeBase(MemoryBackend(g, regime=regime))
+    alive, dead, x = typed("t", "Alive"), typed("t", "Dead"), typed("t", "X")
+    b.add_consequence(F({alive}), F({dead}))
+    assert not b.is_axiom(F({alive}), F({x}))          # primes the elaboration cache
+    assert b.is_axiom(F({alive, dead}), F({x}))         # Γ is R-inconsistent: everything
+    b.clear_caches()
+    assert b.is_axiom(F({alive, dead}), F({x}))

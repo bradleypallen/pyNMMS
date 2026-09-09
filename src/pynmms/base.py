@@ -16,7 +16,6 @@ import json
 import logging
 import re
 from collections.abc import Iterable
-from dataclasses import dataclass, field
 from pathlib import Path
 
 from pynmms.robustness import EXACT, Robustness
@@ -61,7 +60,6 @@ def _validate_atomic(s: str, context: str) -> str:
     return parsed.name
 
 
-@dataclass
 class MaterialBase:
     """A material base B = <L_B, |~_B> for propositional NMMS.
 
@@ -72,10 +70,6 @@ class MaterialBase:
         robustness: Optional mapping from a consequence pair to its
             :class:`~pynmms.robustness.Robustness`; pairs not listed are EXACT.
     """
-
-    _language: set[str] = field(default_factory=set)
-    _consequences: set[Sequent] = field(default_factory=set)
-    _robustness: dict[Sequent, Robustness] = field(default_factory=dict)
 
     def __init__(
         self,
@@ -119,6 +113,27 @@ class MaterialBase:
             len(self._consequences),
             len(self._robustness),
         )
+
+    def __eq__(self, other: object) -> bool:
+        """Equal when language, consequences, robustness and annotations agree.
+
+        Until 2026-09-09 a vestigial ``@dataclass`` supplied an equality that
+        ignored the annotations.
+        """
+        if not isinstance(other, MaterialBase) or type(other) is not type(self):
+            return NotImplemented
+        return bool(
+            self._language == other._language
+            and self._consequences == other._consequences
+            and self._robustness == other._robustness
+            and self._annotations == other._annotations
+        )
+
+    __hash__ = None  # type: ignore[assignment]
+
+    def __repr__(self) -> str:
+        return (f"{type(self).__name__}({len(self._language)} atoms, "
+                f"{len(self._consequences)} consequences, {len(self._robustness)} robust)")
 
     # --- Validation hooks (overridden by OntoMaterialBase) ---
 

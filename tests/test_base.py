@@ -133,3 +133,15 @@ class TestMalformedAtoms:
     def test_quoted_atom_accepted(self, empty_base):
         empty_base.add_atom("<Tara is human>")
         assert "<Tara is human>" in empty_base.language
+
+
+class TestEquality:
+    def test_annotations_take_part_in_equality(self):
+        # A vestigial @dataclass compared three of the four fields (fixed 2026-09-09).
+        assert MaterialBase(language={"A"}, annotations={"A": "x"}) != MaterialBase(language={"A"})
+        assert MaterialBase(language={"A"}, annotations={"A": "x"}) == \
+            MaterialBase(language={"A"}, annotations={"A": "x"})
+
+    def test_bases_are_unhashable(self):
+        with pytest.raises(TypeError):
+            hash(MaterialBase())

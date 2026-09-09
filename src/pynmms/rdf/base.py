@@ -278,6 +278,11 @@ class RegimeBase(RDFBase):
             )
         self._engine = ClosureEngine(self.regime)
         self._extras_cache: dict[tuple[int, int, frozenset[str]], tuple[set[Triple], bool]] = {}
+        # cl_R(Γ ∪ D) for entry elaboration, keyed separately: it carries no ⊥ flag,
+        # and sharing the dict above let a (Γ ∪ D) result answer a later query for Γ
+        # with its inconsistency dropped (found 2026-09-09).
+        self._extras_plus_cache: dict[tuple[int, int, frozenset[str], frozenset[str]],
+                                      set[Triple]] = {}
         # Hand store-side premises to the backend's join() in one call per
         # rule firing (one round trip on a remote store) rather than one
         # lookup per premise per candidate.
@@ -304,6 +309,7 @@ class RegimeBase(RDFBase):
 
     def clear_caches(self) -> None:
         self._extras_cache.clear()
+        self._extras_plus_cache.clear()
         self._entry_closure_cache.clear()
 
     def add_rule(self, rule: Any) -> None:
@@ -543,10 +549,10 @@ class RegimeBase(RDFBase):
         over_graph: bool,
     ) -> set[Triple]:
         """cl_R(Γ ∪ D) minus the store: cl_R(Γ)'s in-process part extended by D."""
-        key = (id(self.backend), self.backend.generation if over_graph else -1, extras | d_set)
-        hit = self._extras_cache.get(key)
-        if hit is not None:
-            return hit[0]
+        key = (id(self.backend), self.backend.generation if over_graph else -1, extras, d_set)
+        plus_hit = self._extras_plus_cache.get(key)
+        if plus_hit is not None:
+            return plus_hit
         base_new = _TripleIndex()
         for t in derived:
             base_new.add(t)
@@ -562,9 +568,9 @@ class RegimeBase(RDFBase):
 
         more, _bottom = self._engine.extend(d_triples, lookup, contains)
         result = derived | more.triples
-        if len(self._extras_cache) >= 256:
-            self._extras_cache.clear()
-        self._extras_cache[key] = (result, False)
+        if len(self._extras_plus_cache) >= 256:
+            self._extras_plus_cache.clear()
+        self._extras_plus_cache[key] = result
         return result
 
     def _gamma_within_closure_of(self, gamma: AtomsView, a_set: frozenset[str]) -> bool:

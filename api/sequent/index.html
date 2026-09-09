@@ -784,17 +784,6 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#pynmms.sequent.Sequent.from_atoms" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        from_atoms
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#pynmms.sequent.Sequent.from_strings" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1452,17 +1441,6 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#pynmms.sequent.Sequent.from_atoms" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        from_atoms
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#pynmms.sequent.Sequent.from_strings" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1913,12 +1891,7 @@
 <span class="normal"><a href="#__codelineno-0-260">260</a></span>
 <span class="normal"><a href="#__codelineno-0-261">261</a></span>
 <span class="normal"><a href="#__codelineno-0-262">262</a></span>
-<span class="normal"><a href="#__codelineno-0-263">263</a></span>
-<span class="normal"><a href="#__codelineno-0-264">264</a></span>
-<span class="normal"><a href="#__codelineno-0-265">265</a></span>
-<span class="normal"><a href="#__codelineno-0-266">266</a></span>
-<span class="normal"><a href="#__codelineno-0-267">267</a></span>
-<span class="normal"><a href="#__codelineno-0-268">268</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-194" name="__codelineno-0-194"></a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="normal"><a href="#__codelineno-0-263">263</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-194" name="__codelineno-0-194"></a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <a id="__codelineno-0-195" name="__codelineno-0-195"></a><span class="k">class</span><span class="w"> </span><span class="nc">Sequent</span><span class="p">:</span>
 <a id="__codelineno-0-196" name="__codelineno-0-196"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;A proof node Γ ⇒ Δ with each side partitioned into atoms and complex sentences.&quot;&quot;&quot;</span>
 <a id="__codelineno-0-197" name="__codelineno-0-197"></a>
@@ -1939,60 +1912,55 @@
 <a id="__codelineno-0-212" name="__codelineno-0-212"></a>        <span class="n">da</span><span class="p">,</span> <span class="n">dc</span> <span class="o">=</span> <span class="n">_partition_cached</span><span class="p">(</span><span class="n">_as_frozenset</span><span class="p">(</span><span class="n">consequent</span><span class="p">))</span>
 <a id="__codelineno-0-213" name="__codelineno-0-213"></a>        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">ga</span><span class="p">,</span> <span class="n">gc</span><span class="p">,</span> <span class="n">da</span><span class="p">,</span> <span class="n">dc</span><span class="p">)</span>
 <a id="__codelineno-0-214" name="__codelineno-0-214"></a>
-<a id="__codelineno-0-215" name="__codelineno-0-215"></a>    <span class="nd">@classmethod</span>
-<a id="__codelineno-0-216" name="__codelineno-0-216"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">from_atoms</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">antecedent</span><span class="p">:</span> <span class="n">AbstractSet</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">consequent</span><span class="p">:</span> <span class="n">AbstractSet</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Sequent</span><span class="p">:</span>
-<a id="__codelineno-0-217" name="__codelineno-0-217"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Build an atomic sequent without parsing (both sides are atom names).&quot;&quot;&quot;</span>
-<a id="__codelineno-0-218" name="__codelineno-0-218"></a>        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">AtomSet</span><span class="o">.</span><span class="n">of</span><span class="p">(</span><span class="n">antecedent</span><span class="p">),</span> <span class="nb">frozenset</span><span class="p">(),</span> <span class="n">AtomSet</span><span class="o">.</span><span class="n">of</span><span class="p">(</span><span class="n">consequent</span><span class="p">),</span> <span class="nb">frozenset</span><span class="p">())</span>
-<a id="__codelineno-0-219" name="__codelineno-0-219"></a>
-<a id="__codelineno-0-220" name="__codelineno-0-220"></a>    <span class="nd">@property</span>
-<a id="__codelineno-0-221" name="__codelineno-0-221"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">is_atomic</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<a id="__codelineno-0-222" name="__codelineno-0-222"></a>        <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">gamma_complex</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">delta_complex</span>
+<a id="__codelineno-0-215" name="__codelineno-0-215"></a>    <span class="nd">@property</span>
+<a id="__codelineno-0-216" name="__codelineno-0-216"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">is_atomic</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<a id="__codelineno-0-217" name="__codelineno-0-217"></a>        <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">gamma_complex</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">delta_complex</span>
+<a id="__codelineno-0-218" name="__codelineno-0-218"></a>
+<a id="__codelineno-0-219" name="__codelineno-0-219"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">connectives</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<a id="__codelineno-0-220" name="__codelineno-0-220"></a>        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">connective_count</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">gamma_complex</span><span class="p">)</span> <span class="o">+</span> <span class="nb">sum</span><span class="p">(</span>
+<a id="__codelineno-0-221" name="__codelineno-0-221"></a>            <span class="n">connective_count</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">delta_complex</span>
+<a id="__codelineno-0-222" name="__codelineno-0-222"></a>        <span class="p">)</span>
 <a id="__codelineno-0-223" name="__codelineno-0-223"></a>
-<a id="__codelineno-0-224" name="__codelineno-0-224"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">connectives</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<a id="__codelineno-0-225" name="__codelineno-0-225"></a>        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">connective_count</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">gamma_complex</span><span class="p">)</span> <span class="o">+</span> <span class="nb">sum</span><span class="p">(</span>
-<a id="__codelineno-0-226" name="__codelineno-0-226"></a>            <span class="n">connective_count</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">delta_complex</span>
-<a id="__codelineno-0-227" name="__codelineno-0-227"></a>        <span class="p">)</span>
-<a id="__codelineno-0-228" name="__codelineno-0-228"></a>
-<a id="__codelineno-0-229" name="__codelineno-0-229"></a>    <span class="c1"># --- Rule support: return new sequents, never mutate ---</span>
-<a id="__codelineno-0-230" name="__codelineno-0-230"></a>
-<a id="__codelineno-0-231" name="__codelineno-0-231"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">without_left</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="n">Sentence</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequent</span><span class="p">:</span>
-<a id="__codelineno-0-232" name="__codelineno-0-232"></a>        <span class="k">return</span> <span class="n">Sequent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gamma_atoms</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gamma_complex</span> <span class="o">-</span> <span class="p">{</span><span class="n">s</span><span class="p">},</span>
-<a id="__codelineno-0-233" name="__codelineno-0-233"></a>                       <span class="bp">self</span><span class="o">.</span><span class="n">delta_atoms</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">delta_complex</span><span class="p">)</span>
-<a id="__codelineno-0-234" name="__codelineno-0-234"></a>
-<a id="__codelineno-0-235" name="__codelineno-0-235"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">without_right</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="n">Sentence</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequent</span><span class="p">:</span>
-<a id="__codelineno-0-236" name="__codelineno-0-236"></a>        <span class="k">return</span> <span class="n">Sequent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gamma_atoms</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gamma_complex</span><span class="p">,</span>
-<a id="__codelineno-0-237" name="__codelineno-0-237"></a>                       <span class="bp">self</span><span class="o">.</span><span class="n">delta_atoms</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">delta_complex</span> <span class="o">-</span> <span class="p">{</span><span class="n">s</span><span class="p">})</span>
-<a id="__codelineno-0-238" name="__codelineno-0-238"></a>
-<a id="__codelineno-0-239" name="__codelineno-0-239"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">with_left</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">ss</span><span class="p">:</span> <span class="n">Sentence</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequent</span><span class="p">:</span>
-<a id="__codelineno-0-240" name="__codelineno-0-240"></a>        <span class="n">atoms</span><span class="p">,</span> <span class="n">complex_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gamma_atoms</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gamma_complex</span>
-<a id="__codelineno-0-241" name="__codelineno-0-241"></a>        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">ss</span><span class="p">:</span>
-<a id="__codelineno-0-242" name="__codelineno-0-242"></a>            <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">ATOM</span><span class="p">:</span>
-<a id="__codelineno-0-243" name="__codelineno-0-243"></a>                <span class="k">assert</span> <span class="n">s</span><span class="o">.</span><span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-<a id="__codelineno-0-244" name="__codelineno-0-244"></a>                <span class="n">atoms</span> <span class="o">=</span> <span class="n">atoms</span><span class="o">.</span><span class="n">with_added</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-<a id="__codelineno-0-245" name="__codelineno-0-245"></a>            <span class="k">else</span><span class="p">:</span>
-<a id="__codelineno-0-246" name="__codelineno-0-246"></a>                <span class="n">complex_</span> <span class="o">=</span> <span class="n">complex_</span> <span class="o">|</span> <span class="p">{</span><span class="n">s</span><span class="p">}</span>
-<a id="__codelineno-0-247" name="__codelineno-0-247"></a>        <span class="k">return</span> <span class="n">Sequent</span><span class="p">(</span><span class="n">atoms</span><span class="p">,</span> <span class="n">complex_</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">delta_atoms</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">delta_complex</span><span class="p">)</span>
-<a id="__codelineno-0-248" name="__codelineno-0-248"></a>
-<a id="__codelineno-0-249" name="__codelineno-0-249"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">with_right</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">ss</span><span class="p">:</span> <span class="n">Sentence</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequent</span><span class="p">:</span>
-<a id="__codelineno-0-250" name="__codelineno-0-250"></a>        <span class="n">atoms</span><span class="p">,</span> <span class="n">complex_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">delta_atoms</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">delta_complex</span>
-<a id="__codelineno-0-251" name="__codelineno-0-251"></a>        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">ss</span><span class="p">:</span>
-<a id="__codelineno-0-252" name="__codelineno-0-252"></a>            <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">ATOM</span><span class="p">:</span>
-<a id="__codelineno-0-253" name="__codelineno-0-253"></a>                <span class="k">assert</span> <span class="n">s</span><span class="o">.</span><span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-<a id="__codelineno-0-254" name="__codelineno-0-254"></a>                <span class="n">atoms</span> <span class="o">=</span> <span class="n">atoms</span><span class="o">.</span><span class="n">with_added</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-<a id="__codelineno-0-255" name="__codelineno-0-255"></a>            <span class="k">else</span><span class="p">:</span>
-<a id="__codelineno-0-256" name="__codelineno-0-256"></a>                <span class="n">complex_</span> <span class="o">=</span> <span class="n">complex_</span> <span class="o">|</span> <span class="p">{</span><span class="n">s</span><span class="p">}</span>
-<a id="__codelineno-0-257" name="__codelineno-0-257"></a>        <span class="k">return</span> <span class="n">Sequent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gamma_atoms</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gamma_complex</span><span class="p">,</span> <span class="n">atoms</span><span class="p">,</span> <span class="n">complex_</span><span class="p">)</span>
+<a id="__codelineno-0-224" name="__codelineno-0-224"></a>    <span class="c1"># --- Rule support: return new sequents, never mutate ---</span>
+<a id="__codelineno-0-225" name="__codelineno-0-225"></a>
+<a id="__codelineno-0-226" name="__codelineno-0-226"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">without_left</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="n">Sentence</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequent</span><span class="p">:</span>
+<a id="__codelineno-0-227" name="__codelineno-0-227"></a>        <span class="k">return</span> <span class="n">Sequent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gamma_atoms</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gamma_complex</span> <span class="o">-</span> <span class="p">{</span><span class="n">s</span><span class="p">},</span>
+<a id="__codelineno-0-228" name="__codelineno-0-228"></a>                       <span class="bp">self</span><span class="o">.</span><span class="n">delta_atoms</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">delta_complex</span><span class="p">)</span>
+<a id="__codelineno-0-229" name="__codelineno-0-229"></a>
+<a id="__codelineno-0-230" name="__codelineno-0-230"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">without_right</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="n">Sentence</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequent</span><span class="p">:</span>
+<a id="__codelineno-0-231" name="__codelineno-0-231"></a>        <span class="k">return</span> <span class="n">Sequent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gamma_atoms</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gamma_complex</span><span class="p">,</span>
+<a id="__codelineno-0-232" name="__codelineno-0-232"></a>                       <span class="bp">self</span><span class="o">.</span><span class="n">delta_atoms</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">delta_complex</span> <span class="o">-</span> <span class="p">{</span><span class="n">s</span><span class="p">})</span>
+<a id="__codelineno-0-233" name="__codelineno-0-233"></a>
+<a id="__codelineno-0-234" name="__codelineno-0-234"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">with_left</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">ss</span><span class="p">:</span> <span class="n">Sentence</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequent</span><span class="p">:</span>
+<a id="__codelineno-0-235" name="__codelineno-0-235"></a>        <span class="n">atoms</span><span class="p">,</span> <span class="n">complex_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gamma_atoms</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gamma_complex</span>
+<a id="__codelineno-0-236" name="__codelineno-0-236"></a>        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">ss</span><span class="p">:</span>
+<a id="__codelineno-0-237" name="__codelineno-0-237"></a>            <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">ATOM</span><span class="p">:</span>
+<a id="__codelineno-0-238" name="__codelineno-0-238"></a>                <span class="k">assert</span> <span class="n">s</span><span class="o">.</span><span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+<a id="__codelineno-0-239" name="__codelineno-0-239"></a>                <span class="n">atoms</span> <span class="o">=</span> <span class="n">atoms</span><span class="o">.</span><span class="n">with_added</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+<a id="__codelineno-0-240" name="__codelineno-0-240"></a>            <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-0-241" name="__codelineno-0-241"></a>                <span class="n">complex_</span> <span class="o">=</span> <span class="n">complex_</span> <span class="o">|</span> <span class="p">{</span><span class="n">s</span><span class="p">}</span>
+<a id="__codelineno-0-242" name="__codelineno-0-242"></a>        <span class="k">return</span> <span class="n">Sequent</span><span class="p">(</span><span class="n">atoms</span><span class="p">,</span> <span class="n">complex_</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">delta_atoms</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">delta_complex</span><span class="p">)</span>
+<a id="__codelineno-0-243" name="__codelineno-0-243"></a>
+<a id="__codelineno-0-244" name="__codelineno-0-244"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">with_right</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">ss</span><span class="p">:</span> <span class="n">Sentence</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequent</span><span class="p">:</span>
+<a id="__codelineno-0-245" name="__codelineno-0-245"></a>        <span class="n">atoms</span><span class="p">,</span> <span class="n">complex_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">delta_atoms</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">delta_complex</span>
+<a id="__codelineno-0-246" name="__codelineno-0-246"></a>        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">ss</span><span class="p">:</span>
+<a id="__codelineno-0-247" name="__codelineno-0-247"></a>            <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">ATOM</span><span class="p">:</span>
+<a id="__codelineno-0-248" name="__codelineno-0-248"></a>                <span class="k">assert</span> <span class="n">s</span><span class="o">.</span><span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+<a id="__codelineno-0-249" name="__codelineno-0-249"></a>                <span class="n">atoms</span> <span class="o">=</span> <span class="n">atoms</span><span class="o">.</span><span class="n">with_added</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+<a id="__codelineno-0-250" name="__codelineno-0-250"></a>            <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-0-251" name="__codelineno-0-251"></a>                <span class="n">complex_</span> <span class="o">=</span> <span class="n">complex_</span> <span class="o">|</span> <span class="p">{</span><span class="n">s</span><span class="p">}</span>
+<a id="__codelineno-0-252" name="__codelineno-0-252"></a>        <span class="k">return</span> <span class="n">Sequent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gamma_atoms</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gamma_complex</span><span class="p">,</span> <span class="n">atoms</span><span class="p">,</span> <span class="n">complex_</span><span class="p">)</span>
+<a id="__codelineno-0-253" name="__codelineno-0-253"></a>
+<a id="__codelineno-0-254" name="__codelineno-0-254"></a>    <span class="c1"># --- Display ---</span>
+<a id="__codelineno-0-255" name="__codelineno-0-255"></a>
+<a id="__codelineno-0-256" name="__codelineno-0-256"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">gamma_str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<a id="__codelineno-0-257" name="__codelineno-0-257"></a>        <span class="k">return</span> <span class="n">_side_str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gamma_atoms</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gamma_complex</span><span class="p">)</span>
 <a id="__codelineno-0-258" name="__codelineno-0-258"></a>
-<a id="__codelineno-0-259" name="__codelineno-0-259"></a>    <span class="c1"># --- Display ---</span>
-<a id="__codelineno-0-260" name="__codelineno-0-260"></a>
-<a id="__codelineno-0-261" name="__codelineno-0-261"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">gamma_str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<a id="__codelineno-0-262" name="__codelineno-0-262"></a>        <span class="k">return</span> <span class="n">_side_str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gamma_atoms</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gamma_complex</span><span class="p">)</span>
-<a id="__codelineno-0-263" name="__codelineno-0-263"></a>
-<a id="__codelineno-0-264" name="__codelineno-0-264"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">delta_str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<a id="__codelineno-0-265" name="__codelineno-0-265"></a>        <span class="k">return</span> <span class="n">_side_str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">delta_atoms</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">delta_complex</span><span class="p">)</span>
-<a id="__codelineno-0-266" name="__codelineno-0-266"></a>
-<a id="__codelineno-0-267" name="__codelineno-0-267"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<a id="__codelineno-0-268" name="__codelineno-0-268"></a>        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">gamma_str</span><span class="p">()</span><span class="si">}</span><span class="s2"> =&gt; </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">delta_str</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
+<a id="__codelineno-0-259" name="__codelineno-0-259"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">delta_str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<a id="__codelineno-0-260" name="__codelineno-0-260"></a>        <span class="k">return</span> <span class="n">_side_str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">delta_atoms</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">delta_complex</span><span class="p">)</span>
+<a id="__codelineno-0-261" name="__codelineno-0-261"></a>
+<a id="__codelineno-0-262" name="__codelineno-0-262"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<a id="__codelineno-0-263" name="__codelineno-0-263"></a>        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">gamma_str</span><span class="p">()</span><span class="si">}</span><span class="s2"> =&gt; </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">delta_str</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
 </code></pre></div></td></tr></table></div>
               </details>
 
@@ -2008,39 +1976,6 @@
 
 
 
-
-<div class="doc doc-object doc-function">
-
-
-<h3 id="pynmms.sequent.Sequent.from_atoms" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">from_atoms</span><span class="p">(</span><span class="n">antecedent</span><span class="p">,</span> <span class="n">consequent</span><span class="p">)</span></code>
-
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
-  </span>
-
-<a href="#pynmms.sequent.Sequent.from_atoms" class="headerlink" title="Permanent link">&para;</a></h3>
-
-
-    <div class="doc doc-contents ">
-
-        <p>Build an atomic sequent without parsing (both sides are atom names).</p>
-
-
-            <details class="mkdocstrings-source">
-              <summary>Source code in <code>src/pynmms/sequent.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-215">215</a></span>
-<span class="normal"><a href="#__codelineno-0-216">216</a></span>
-<span class="normal"><a href="#__codelineno-0-217">217</a></span>
-<span class="normal"><a href="#__codelineno-0-218">218</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-215" name="__codelineno-0-215"></a><span class="nd">@classmethod</span>
-<a id="__codelineno-0-216" name="__codelineno-0-216"></a><span class="k">def</span><span class="w"> </span><span class="nf">from_atoms</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">antecedent</span><span class="p">:</span> <span class="n">AbstractSet</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">consequent</span><span class="p">:</span> <span class="n">AbstractSet</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Sequent</span><span class="p">:</span>
-<a id="__codelineno-0-217" name="__codelineno-0-217"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Build an atomic sequent without parsing (both sides are atom names).&quot;&quot;&quot;</span>
-<a id="__codelineno-0-218" name="__codelineno-0-218"></a>    <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">AtomSet</span><span class="o">.</span><span class="n">of</span><span class="p">(</span><span class="n">antecedent</span><span class="p">),</span> <span class="nb">frozenset</span><span class="p">(),</span> <span class="n">AtomSet</span><span class="o">.</span><span class="n">of</span><span class="p">(</span><span class="n">consequent</span><span class="p">),</span> <span class="nb">frozenset</span><span class="p">())</span>
-</code></pre></div></td></tr></table></div>
-            </details>
-    </div>
-
-</div>
 
 <div class="doc doc-object doc-function">
 
@@ -2209,7 +2144,12 @@ O(|Γ|) parse only once.</p>
 
               <details class="mkdocstrings-source">
                 <summary>Source code in <code>src/pynmms/sequent.py</code></summary>
-                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-315">315</a></span>
+                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-310">310</a></span>
+<span class="normal"><a href="#__codelineno-0-311">311</a></span>
+<span class="normal"><a href="#__codelineno-0-312">312</a></span>
+<span class="normal"><a href="#__codelineno-0-313">313</a></span>
+<span class="normal"><a href="#__codelineno-0-314">314</a></span>
+<span class="normal"><a href="#__codelineno-0-315">315</a></span>
 <span class="normal"><a href="#__codelineno-0-316">316</a></span>
 <span class="normal"><a href="#__codelineno-0-317">317</a></span>
 <span class="normal"><a href="#__codelineno-0-318">318</a></span>
@@ -2229,37 +2169,32 @@ O(|Γ|) parse only once.</p>
 <span class="normal"><a href="#__codelineno-0-332">332</a></span>
 <span class="normal"><a href="#__codelineno-0-333">333</a></span>
 <span class="normal"><a href="#__codelineno-0-334">334</a></span>
-<span class="normal"><a href="#__codelineno-0-335">335</a></span>
-<span class="normal"><a href="#__codelineno-0-336">336</a></span>
-<span class="normal"><a href="#__codelineno-0-337">337</a></span>
-<span class="normal"><a href="#__codelineno-0-338">338</a></span>
-<span class="normal"><a href="#__codelineno-0-339">339</a></span>
-<span class="normal"><a href="#__codelineno-0-340">340</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-315" name="__codelineno-0-315"></a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<a id="__codelineno-0-316" name="__codelineno-0-316"></a><span class="k">class</span><span class="w"> </span><span class="nc">TraceEntry</span><span class="p">:</span>
-<a id="__codelineno-0-317" name="__codelineno-0-317"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;One structured line of a proof trace; formatted only when ``str()`` is called.</span>
-<a id="__codelineno-0-318" name="__codelineno-0-318"></a>
-<a id="__codelineno-0-319" name="__codelineno-0-319"></a><span class="sd">    Attributes:</span>
-<a id="__codelineno-0-320" name="__codelineno-0-320"></a><span class="sd">        kind: ``&quot;AXIOM&quot;``, ``&quot;FAIL&quot;``, ``&quot;DEPTH LIMIT&quot;``, or ``&quot;RULE&quot;``.</span>
-<a id="__codelineno-0-321" name="__codelineno-0-321"></a><span class="sd">        depth: Proof depth of the node (used for indentation).</span>
-<a id="__codelineno-0-322" name="__codelineno-0-322"></a><span class="sd">        sequent: The node&#39;s sequent (``None`` for a depth-limit entry).</span>
-<a id="__codelineno-0-323" name="__codelineno-0-323"></a><span class="sd">        rule: Rule label such as ``&quot;L¬&quot;`` when ``kind == &quot;RULE&quot;``.</span>
-<a id="__codelineno-0-324" name="__codelineno-0-324"></a><span class="sd">        principal: The principal sentence a rule was applied to.</span>
-<a id="__codelineno-0-325" name="__codelineno-0-325"></a><span class="sd">    &quot;&quot;&quot;</span>
-<a id="__codelineno-0-326" name="__codelineno-0-326"></a>
-<a id="__codelineno-0-327" name="__codelineno-0-327"></a>    <span class="n">kind</span><span class="p">:</span> <span class="nb">str</span>
-<a id="__codelineno-0-328" name="__codelineno-0-328"></a>    <span class="n">depth</span><span class="p">:</span> <span class="nb">int</span>
-<a id="__codelineno-0-329" name="__codelineno-0-329"></a>    <span class="n">sequent</span><span class="p">:</span> <span class="n">Sequent</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-<a id="__codelineno-0-330" name="__codelineno-0-330"></a>    <span class="n">rule</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-<a id="__codelineno-0-331" name="__codelineno-0-331"></a>    <span class="n">principal</span><span class="p">:</span> <span class="n">Sentence</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-<a id="__codelineno-0-332" name="__codelineno-0-332"></a>
-<a id="__codelineno-0-333" name="__codelineno-0-333"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<a id="__codelineno-0-334" name="__codelineno-0-334"></a>        <span class="n">indent</span> <span class="o">=</span> <span class="s2">&quot;  &quot;</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">depth</span>
-<a id="__codelineno-0-335" name="__codelineno-0-335"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;RULE&quot;</span><span class="p">:</span>
-<a id="__codelineno-0-336" name="__codelineno-0-336"></a>            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">indent</span><span class="si">}</span><span class="s2">[</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">rule</span><span class="si">}</span><span class="s2">] on </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">principal</span><span class="si">}</span><span class="s2">&quot;</span>
-<a id="__codelineno-0-337" name="__codelineno-0-337"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;DEPTH LIMIT&quot;</span><span class="p">:</span>
-<a id="__codelineno-0-338" name="__codelineno-0-338"></a>            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">indent</span><span class="si">}</span><span class="s2">DEPTH LIMIT&quot;</span>
-<a id="__codelineno-0-339" name="__codelineno-0-339"></a>        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequent</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-<a id="__codelineno-0-340" name="__codelineno-0-340"></a>        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">indent</span><span class="si">}{</span><span class="bp">self</span><span class="o">.</span><span class="n">kind</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">sequent</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="normal"><a href="#__codelineno-0-335">335</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-310" name="__codelineno-0-310"></a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a id="__codelineno-0-311" name="__codelineno-0-311"></a><span class="k">class</span><span class="w"> </span><span class="nc">TraceEntry</span><span class="p">:</span>
+<a id="__codelineno-0-312" name="__codelineno-0-312"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;One structured line of a proof trace; formatted only when ``str()`` is called.</span>
+<a id="__codelineno-0-313" name="__codelineno-0-313"></a>
+<a id="__codelineno-0-314" name="__codelineno-0-314"></a><span class="sd">    Attributes:</span>
+<a id="__codelineno-0-315" name="__codelineno-0-315"></a><span class="sd">        kind: ``&quot;AXIOM&quot;``, ``&quot;FAIL&quot;``, ``&quot;DEPTH LIMIT&quot;``, or ``&quot;RULE&quot;``.</span>
+<a id="__codelineno-0-316" name="__codelineno-0-316"></a><span class="sd">        depth: Proof depth of the node (used for indentation).</span>
+<a id="__codelineno-0-317" name="__codelineno-0-317"></a><span class="sd">        sequent: The node&#39;s sequent (``None`` for a depth-limit entry).</span>
+<a id="__codelineno-0-318" name="__codelineno-0-318"></a><span class="sd">        rule: Rule label such as ``&quot;L¬&quot;`` when ``kind == &quot;RULE&quot;``.</span>
+<a id="__codelineno-0-319" name="__codelineno-0-319"></a><span class="sd">        principal: The principal sentence a rule was applied to.</span>
+<a id="__codelineno-0-320" name="__codelineno-0-320"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-321" name="__codelineno-0-321"></a>
+<a id="__codelineno-0-322" name="__codelineno-0-322"></a>    <span class="n">kind</span><span class="p">:</span> <span class="nb">str</span>
+<a id="__codelineno-0-323" name="__codelineno-0-323"></a>    <span class="n">depth</span><span class="p">:</span> <span class="nb">int</span>
+<a id="__codelineno-0-324" name="__codelineno-0-324"></a>    <span class="n">sequent</span><span class="p">:</span> <span class="n">Sequent</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<a id="__codelineno-0-325" name="__codelineno-0-325"></a>    <span class="n">rule</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<a id="__codelineno-0-326" name="__codelineno-0-326"></a>    <span class="n">principal</span><span class="p">:</span> <span class="n">Sentence</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<a id="__codelineno-0-327" name="__codelineno-0-327"></a>
+<a id="__codelineno-0-328" name="__codelineno-0-328"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<a id="__codelineno-0-329" name="__codelineno-0-329"></a>        <span class="n">indent</span> <span class="o">=</span> <span class="s2">&quot;  &quot;</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">depth</span>
+<a id="__codelineno-0-330" name="__codelineno-0-330"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;RULE&quot;</span><span class="p">:</span>
+<a id="__codelineno-0-331" name="__codelineno-0-331"></a>            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">indent</span><span class="si">}</span><span class="s2">[</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">rule</span><span class="si">}</span><span class="s2">] on </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">principal</span><span class="si">}</span><span class="s2">&quot;</span>
+<a id="__codelineno-0-332" name="__codelineno-0-332"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;DEPTH LIMIT&quot;</span><span class="p">:</span>
+<a id="__codelineno-0-333" name="__codelineno-0-333"></a>            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">indent</span><span class="si">}</span><span class="s2">DEPTH LIMIT&quot;</span>
+<a id="__codelineno-0-334" name="__codelineno-0-334"></a>        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequent</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+<a id="__codelineno-0-335" name="__codelineno-0-335"></a>        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">indent</span><span class="si">}{</span><span class="bp">self</span><span class="o">.</span><span class="n">kind</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">sequent</span><span class="si">}</span><span class="s2">&quot;</span>
 </code></pre></div></td></tr></table></div>
               </details>
 

@@ -2088,6 +2088,26 @@ rescue left). <code>save</code> and <code>load</code> persist the state as JSON,
 <code>commit_to_store</code> writes the commitments that held. <code>play(script)</code> runs a
 scripted respondent with predictions, and <code>python -m
 bench.elenchus_session</code> does so over a persisted store.</p>
+<p>A base need not come from a catalogue. <code>bench/pulmonary/</code> reads a
+clinical inference benchmark (35 defeasible inferences from findings to a
+diagnosis, with placeholder verdicts; not for clinical use) as pattern
+entries, good items as defaults defeated by the additions the bad items
+of their ladder make, contested items rescued by an explicit override,
+ordered tiers under <code>rank</code> guards, and plays vignette sessions over it:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>holder respondent
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>positum &lt;pul:v1 pul:has pul:ad&gt;, &lt;pul:v1 pul:bi &quot;bi_mod&quot;&gt;, &lt;pul:v1 pul:cv &quot;cv_struct&quot;&gt;
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>commits? &lt;pul:v1 pul:dx pul:cpe&gt; ## True
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>commit &lt;pul:v1 pul:dx pul:cpe&gt;
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>commit &lt;pul:v1 pul:bnp &quot;bnp_lo&quot;&gt;
+<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>status? ## tensions open
+<a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>accept 1 retract &lt;pul:v1 pul:dx pul:cpe&gt;
+<a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a>precludes? &lt;pul:v1 pul:dx pul:cpe&gt; ## True
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>python<span class="w"> </span>-m<span class="w"> </span>bench.pulmonary.session<span class="w"> </span>--check<span class="w"> </span>--base<span class="w"> </span>placeholder
+</code></pre></div>
+<p><code>--check</code> replays the benchmark's items against the base built from
+them, which says where a panel's verdicts are inconsistent with one
+another under a defeasible reading.</p>
 <h2 id="how-the-closure-is-split">How the closure is split<a class="headerlink" href="#how-the-closure-is-split" title="Permanent link">&para;</a></h2>
 <p>The regime base checks <code>Γ |~ Δ</code> as "Γ is inconsistent or Δ meets <code>cl_R(Γ)</code>".
 The backend holds <code>cl_R(G)</code> for the stored graph; the per-node extras (the
@@ -2138,9 +2158,9 @@ on-disk store records which regime it holds, so reopening it skips the
 closure altogether. On the command line, <code>--oxigraph DIR</code> opens or creates
 such a store; <code>-g</code> files are loaded into it once, and later runs need only
 the directory:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>pynmms<span class="w"> </span>rdf<span class="w"> </span>ask<span class="w"> </span>--oxigraph<span class="w"> </span>./kb<span class="w"> </span>-g<span class="w"> </span>ontology.ttl<span class="w"> </span>-g<span class="w"> </span>data.ttl<span class="w"> </span>--regime<span class="w"> </span>rdfs<span class="w"> </span><span class="s2">&quot;&lt;ex:tweety a ex:Bird&gt;&quot;</span>
-<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>pynmms<span class="w"> </span>rdf<span class="w"> </span>ask<span class="w"> </span>--oxigraph<span class="w"> </span>./kb<span class="w"> </span>--regime<span class="w"> </span>rdfs<span class="w"> </span>--prefix<span class="w"> </span><span class="nv">ex</span><span class="o">=</span>http://ex.org/<span class="w"> </span><span class="s2">&quot;&lt;ex:tweety a ex:Bird&gt;&quot;</span>
-<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>pynmms<span class="w"> </span>rdf<span class="w"> </span>tell<span class="w"> </span>--oxigraph<span class="w"> </span>./kb<span class="w"> </span>--regime<span class="w"> </span>rdfs<span class="w"> </span>--prefix<span class="w"> </span><span class="nv">ex</span><span class="o">=</span>http://ex.org/<span class="w"> </span><span class="s2">&quot;&lt;ex:polly a ex:Sparrow&gt;&quot;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>pynmms<span class="w"> </span>rdf<span class="w"> </span>ask<span class="w"> </span>--oxigraph<span class="w"> </span>./kb<span class="w"> </span>-g<span class="w"> </span>ontology.ttl<span class="w"> </span>-g<span class="w"> </span>data.ttl<span class="w"> </span>--regime<span class="w"> </span>rdfs<span class="w"> </span><span class="s2">&quot;&lt;ex:tweety a ex:Bird&gt;&quot;</span>
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>pynmms<span class="w"> </span>rdf<span class="w"> </span>ask<span class="w"> </span>--oxigraph<span class="w"> </span>./kb<span class="w"> </span>--regime<span class="w"> </span>rdfs<span class="w"> </span>--prefix<span class="w"> </span><span class="nv">ex</span><span class="o">=</span>http://ex.org/<span class="w"> </span><span class="s2">&quot;&lt;ex:tweety a ex:Bird&gt;&quot;</span>
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>pynmms<span class="w"> </span>rdf<span class="w"> </span>tell<span class="w"> </span>--oxigraph<span class="w"> </span>./kb<span class="w"> </span>--regime<span class="w"> </span>rdfs<span class="w"> </span>--prefix<span class="w"> </span><span class="nv">ex</span><span class="o">=</span>http://ex.org/<span class="w"> </span><span class="s2">&quot;&lt;ex:polly a ex:Sparrow&gt;&quot;</span>
 </code></pre></div>
 <p><code>tell</code> extends the closure incrementally and persists it. An on-disk store
 below two million asserted triples computes the closure in a temporary
@@ -2148,13 +2168,13 @@ in-memory store and bulk-loads the result, which costs about 600 bytes of
 memory per closure triple; above that it runs the rule updates directly on
 disk, slower but with no memory cost (<code>in_memory=</code> overrides the choice).
 In Python:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pynmms.rdf</span><span class="w"> </span><span class="kn">import</span> <span class="n">RDFS</span><span class="p">,</span> <span class="n">RegimeBase</span>
-<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pynmms.rdf.backends</span><span class="w"> </span><span class="kn">import</span> <span class="n">OxigraphBackend</span>
-<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>
-<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="k">with</span> <span class="n">OxigraphBackend</span><span class="p">(</span><span class="s2">&quot;./kb&quot;</span><span class="p">,</span> <span class="n">regime</span><span class="o">=</span><span class="n">RDFS</span><span class="p">,</span> <span class="n">prefixes</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;ex&quot;</span><span class="p">:</span> <span class="s2">&quot;http://ex.org/&quot;</span><span class="p">})</span> <span class="k">as</span> <span class="n">backend</span><span class="p">:</span>
-<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a>    <span class="n">backend</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;ontology.ttl&quot;</span><span class="p">,</span> <span class="n">materialize</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a>    <span class="n">backend</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;data.ttl&quot;</span><span class="p">)</span>            <span class="c1"># materialises once, in the store</span>
-<a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a>    <span class="n">base</span> <span class="o">=</span> <span class="n">RegimeBase</span><span class="p">(</span><span class="n">backend</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pynmms.rdf</span><span class="w"> </span><span class="kn">import</span> <span class="n">RDFS</span><span class="p">,</span> <span class="n">RegimeBase</span>
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pynmms.rdf.backends</span><span class="w"> </span><span class="kn">import</span> <span class="n">OxigraphBackend</span>
+<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>
+<a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="k">with</span> <span class="n">OxigraphBackend</span><span class="p">(</span><span class="s2">&quot;./kb&quot;</span><span class="p">,</span> <span class="n">regime</span><span class="o">=</span><span class="n">RDFS</span><span class="p">,</span> <span class="n">prefixes</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;ex&quot;</span><span class="p">:</span> <span class="s2">&quot;http://ex.org/&quot;</span><span class="p">})</span> <span class="k">as</span> <span class="n">backend</span><span class="p">:</span>
+<a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a>    <span class="n">backend</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;ontology.ttl&quot;</span><span class="p">,</span> <span class="n">materialize</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a>    <span class="n">backend</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;data.ttl&quot;</span><span class="p">)</span>            <span class="c1"># materialises once, in the store</span>
+<a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a>    <span class="n">base</span> <span class="o">=</span> <span class="n">RegimeBase</span><span class="p">(</span><span class="n">backend</span><span class="p">)</span>
 </code></pre></div>
 <p>Rules with a Python guard or a procedural body (the OWL 2 RL list rules)
 run in process against the store between rounds, so every shipped regime

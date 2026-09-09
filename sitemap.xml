@@ -2,122 +2,122 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://bradleypallen.github.io/pyNMMS/</loc>
-         <lastmod>2026-09-08</lastmod>
+         <lastmod>2026-09-09</lastmod>
     </url>
     <url>
          <loc>https://bradleypallen.github.io/pyNMMS/getting-started/</loc>
-         <lastmod>2026-09-08</lastmod>
+         <lastmod>2026-09-09</lastmod>
     </url>
     <url>
          <loc>https://bradleypallen.github.io/pyNMMS/api/base/</loc>
-         <lastmod>2026-09-08</lastmod>
+         <lastmod>2026-09-09</lastmod>
     </url>
     <url>
          <loc>https://bradleypallen.github.io/pyNMMS/api/onto-base/</loc>
-         <lastmod>2026-09-08</lastmod>
+         <lastmod>2026-09-09</lastmod>
     </url>
     <url>
          <loc>https://bradleypallen.github.io/pyNMMS/api/onto-syntax/</loc>
-         <lastmod>2026-09-08</lastmod>
+         <lastmod>2026-09-09</lastmod>
     </url>
     <url>
          <loc>https://bradleypallen.github.io/pyNMMS/api/rdf-atoms/</loc>
-         <lastmod>2026-09-08</lastmod>
+         <lastmod>2026-09-09</lastmod>
     </url>
     <url>
          <loc>https://bradleypallen.github.io/pyNMMS/api/rdf-backends/</loc>
-         <lastmod>2026-09-08</lastmod>
+         <lastmod>2026-09-09</lastmod>
     </url>
     <url>
          <loc>https://bradleypallen.github.io/pyNMMS/api/rdf-base/</loc>
-         <lastmod>2026-09-08</lastmod>
+         <lastmod>2026-09-09</lastmod>
     </url>
     <url>
          <loc>https://bradleypallen.github.io/pyNMMS/api/rdf-closure/</loc>
-         <lastmod>2026-09-08</lastmod>
+         <lastmod>2026-09-09</lastmod>
     </url>
     <url>
          <loc>https://bradleypallen.github.io/pyNMMS/api/rdf-convert/</loc>
-         <lastmod>2026-09-08</lastmod>
+         <lastmod>2026-09-09</lastmod>
     </url>
     <url>
          <loc>https://bradleypallen.github.io/pyNMMS/api/rdf-dialogue/</loc>
-         <lastmod>2026-09-08</lastmod>
+         <lastmod>2026-09-09</lastmod>
     </url>
     <url>
          <loc>https://bradleypallen.github.io/pyNMMS/api/rdf-position/</loc>
-         <lastmod>2026-09-08</lastmod>
+         <lastmod>2026-09-09</lastmod>
     </url>
     <url>
          <loc>https://bradleypallen.github.io/pyNMMS/api/rdf-provenance/</loc>
-         <lastmod>2026-09-08</lastmod>
+         <lastmod>2026-09-09</lastmod>
     </url>
     <url>
          <loc>https://bradleypallen.github.io/pyNMMS/api/rdf-rules/</loc>
-         <lastmod>2026-09-08</lastmod>
+         <lastmod>2026-09-09</lastmod>
     </url>
     <url>
          <loc>https://bradleypallen.github.io/pyNMMS/api/rdf-view/</loc>
-         <lastmod>2026-09-08</lastmod>
+         <lastmod>2026-09-09</lastmod>
     </url>
     <url>
          <loc>https://bradleypallen.github.io/pyNMMS/api/reasoner/</loc>
-         <lastmod>2026-09-08</lastmod>
+         <lastmod>2026-09-09</lastmod>
     </url>
     <url>
          <loc>https://bradleypallen.github.io/pyNMMS/api/robustness/</loc>
-         <lastmod>2026-09-08</lastmod>
+         <lastmod>2026-09-09</lastmod>
     </url>
     <url>
          <loc>https://bradleypallen.github.io/pyNMMS/api/sequent/</loc>
-         <lastmod>2026-09-08</lastmod>
+         <lastmod>2026-09-09</lastmod>
     </url>
     <url>
          <loc>https://bradleypallen.github.io/pyNMMS/api/syntax/</loc>
-         <lastmod>2026-09-08</lastmod>
+         <lastmod>2026-09-09</lastmod>
     </url>
     <url>
          <loc>https://bradleypallen.github.io/pyNMMS/theory/nmms-calculus/</loc>
-         <lastmod>2026-09-08</lastmod>
+         <lastmod>2026-09-09</lastmod>
     </url>
     <url>
          <loc>https://bradleypallen.github.io/pyNMMS/theory/onto-extension/</loc>
-         <lastmod>2026-09-08</lastmod>
+         <lastmod>2026-09-09</lastmod>
     </url>
     <url>
          <loc>https://bradleypallen.github.io/pyNMMS/theory/querying-and-entitlement/</loc>
-         <lastmod>2026-09-08</lastmod>
+         <lastmod>2026-09-09</lastmod>
     </url>
     <url>
          <loc>https://bradleypallen.github.io/pyNMMS/theory/rdf-semantics/</loc>
-         <lastmod>2026-09-08</lastmod>
+         <lastmod>2026-09-09</lastmod>
     </url>
     <url>
          <loc>https://bradleypallen.github.io/pyNMMS/tutorial/chapter3-walkthrough/</loc>
-         <lastmod>2026-09-08</lastmod>
+         <lastmod>2026-09-09</lastmod>
     </url>
     <url>
          <loc>https://bradleypallen.github.io/pyNMMS/tutorial/cli-usage/</loc>
-         <lastmod>2026-09-08</lastmod>
+         <lastmod>2026-09-09</lastmod>
     </url>
     <url>
          <loc>https://bradleypallen.github.io/pyNMMS/tutorial/concepts/</loc>
-         <lastmod>2026-09-08</lastmod>
+         <lastmod>2026-09-09</lastmod>
     </url>
     <url>
          <loc>https://bradleypallen.github.io/pyNMMS/tutorial/material-bases/</loc>
-         <lastmod>2026-09-08</lastmod>
+         <lastmod>2026-09-09</lastmod>
     </url>
     <url>
          <loc>https://bradleypallen.github.io/pyNMMS/tutorial/onto-tutorial/</loc>
-         <lastmod>2026-09-08</lastmod>
+         <lastmod>2026-09-09</lastmod>
     </url>
     <url>
          <loc>https://bradleypallen.github.io/pyNMMS/tutorial/proof-search/</loc>
-         <lastmod>2026-09-08</lastmod>
+         <lastmod>2026-09-09</lastmod>
     </url>
     <url>
          <loc>https://bradleypallen.github.io/pyNMMS/tutorial/rdf-tutorial/</loc>
-         <lastmod>2026-09-08</lastmod>
+         <lastmod>2026-09-09</lastmod>
     </url>
 </urlset>
